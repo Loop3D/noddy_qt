@@ -2834,7 +2834,31 @@ void xvt_dwin_draw_pmap(WINDOW win, XVT_PIXMAP pmap, RCT *dst_rct, RCT *src_rct)
     if (dst->printPainter) {
         /* nodLib1.c's printPicture draws the on-screen pixmap straight
          * into the print "window" -- route to the real printer QPainter
-         * instead of a (nonexistent) backing image. */
+         * instead of a (nonexistent) backing image. dstRect there is
+         * computed purely from the SOURCE pixmap's own screen-pixel size
+         * (scaled by projectOptions.printScalingFactor, default 1.0) with
+         * no awareness of the actual page size -- real XVT's banded
+         * printing model presumably handled page-fitting via the band
+         * iteration itself, which this port collapsed to a single band
+         * (see xvt_print_get_next_band). A source diagram taller/wider
+         * than the printable page at screen resolution (~96-100dpi, see
+         * xvt_print_create's QPrinter::ScreenResolution choice) previously
+         * just got drawn past the page edge and silently clipped by Qt --
+         * matches a user report of the printed image being "clipped at
+         * top and bottom". Scale dstRect down (preserving aspect ratio,
+         * never up) to fit the printer's actual printable area, centered,
+         * before drawing. */
+        QRect pageRect;
+        if (auto *printer = dynamic_cast<QPrinter *>(dst->printPainter->device()))
+            pageRect = printer->pageLayout().paintRectPixels(printer->resolution());
+        if (!pageRect.isEmpty() &&
+            (dstRect.width() > pageRect.width() || dstRect.height() > pageRect.height())) {
+            double scale = qMin((double)pageRect.width() / dstRect.width(),
+                                 (double)pageRect.height() / dstRect.height());
+            int fitW = qMax(1, (int)(dstRect.width() * scale));
+            int fitH = qMax(1, (int)(dstRect.height() * scale));
+            dstRect = QRect((pageRect.width() - fitW) / 2, (pageRect.height() - fitH) / 2, fitW, fitH);
+        }
         dst->printPainter->drawImage(dstRect, src->backing, srcRect);
         return;
     }
