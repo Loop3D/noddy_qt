@@ -1,0 +1,57 @@
+# ============================================================================
+# Modern g++ / Qt5 Makefile for the Noddy Qt port.
+#
+# Replaces the original 1994 XVT/XOL `MAKEFILE` (which is stale -- see
+# CLAUDE.md -- and targeted a SunOS/XVT toolchain that no longer exists).
+# This builds the SAME application source files unchanged, linked against
+# qt_compat/ instead of the proprietary XVT SDK.
+#
+# Requires: g++ (C++17), Qt5 development packages + pkg-config, e.g. on
+# Debian/Ubuntu:
+#   sudo apt-get install build-essential qtbase5-dev qt5-qmake pkg-config
+#
+# Usage:
+#   make -f Makefile.qt            # build ./noddy
+#   make -f Makefile.qt clean
+# ============================================================================
+
+CXX      := g++
+CC       := gcc
+CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_compat -I. $(shell pkg-config --cflags Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
+CFLAGS   := -std=gnu17 -fPIC -Wall -g -O0 -Iqt_compat
+LDFLAGS  := $(shell pkg-config --libs Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
+
+# All original application .c files are compiled as plain C (gcc) -- most of
+# this 1990s-2000s codebase uses old K&R-style function definitions that
+# C++ never supported, so compiling as C++ (-x c++) fails on those files
+# even though qt_compat/xvt.h itself is C++-compatible. Only xvt_compat.cpp
+# (the Qt5 implementation) is C++; the final link is done with g++ so the
+# C++/Qt runtime is pulled in correctly. Nothing in these .c files is
+# modified to make this work.
+#
+# noddylic.c is excluded: it's a separate standalone license-file-generator
+# utility with its own `main()` (a companion tool, not part of the noddy
+# binary itself) -- linking it in alongside noddy.c's main() is a link
+# error on any toolchain, XVT included.
+APP_SOURCES := $(filter-out noddylic.c,$(wildcard *.c))
+APP_OBJECTS := $(APP_SOURCES:.c=.o)
+
+COMPAT_SOURCES := qt_compat/xvt_compat.cpp qt_compat/dialog_registry.cpp qt_compat/dialog_positions.cpp qt_compat/menu_registry.cpp
+COMPAT_OBJECTS := $(COMPAT_SOURCES:.cpp=.o)
+
+TARGET := noddy
+
+.PHONY: all clean
+all: $(TARGET)
+
+$(TARGET): $(APP_OBJECTS) $(COMPAT_OBJECTS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+qt_compat/%.o: qt_compat/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+clean:
+	rm -f $(APP_OBJECTS) $(COMPAT_OBJECTS) $(TARGET)

@@ -1,0 +1,39 @@
+COMMENTS IN ALL CAPS. 
+
+
+2) Display Type Dialog still has green background (see image). The colour strip is too narrow. When Density or any following choices are made from the dropdown menu no rainbow colour strip appear next to strat colour strip. When anything but Solid Block Diagram is selected, the All Layers checkbox should select all layers (probably brioken becasue multiple arbitrary layers cannot be selected from list)
+
+3)  preview windows now exist  but no 2 x menus nor checkbox) default is mini block diagram no plane (see images and comparison with legacy code and new code. Also many buttons have no labels). Each event defoinitioon dialog preview needs below it a still no Event/History/Full menu; and Plane/Block/Gravity/Mag/Gravity+Map/Mag+Map/Gravity Diff/Magnetic Diff menu and On checkbox. Preview window is currently too small, so increase overall size of all event and options dialogs so that you can have an apprix 293 wide x 272 high preview pane.
+
+7) I can see the block model redraw layer by layer so it can't be using an offscreen pixmap (or if it is, in my mind it is doing it one rectangle at a time, rather than it all drawing offscreen then update screen visualisation)
+
+9) GUI Action for moving icon from icon bar (or around history window should be click and drag icon which creates a dashed rectangle to drag around, and when you let go of the mouse button the icon appears instead of the dashed rectangle see image ) CAN'T SEE ANY DIFFERENCE
+
+10) Print Page menu item does nothing. CAN PRINT TO PDF BUT images is clipped at top and bottom
+
+
+14) stratigraphy dialog strat preview has brown background and text is smooshed ontop of itself 
+
+15)  Minor shift of widgets in ROCK WINDOW dialog so things are no ontop of each other or cropped (see image) see image) NO CHANGE
+
+18) Section/Borehole and Geophsyics Calculations and geophsyics survey and geophsyics display and Windows option menus have not been updated to match original screenshot (see original formats attached) UNCHANGED EVEN AFTER MAKE CLEAN AND MAKE
+
+19) Edit->Cut and Edit->Copy menu says "Error opening clipboard". Edit->Duplicate does nothing WORKS, BUT PASTE AND DUPLICATE PLACE ICON ONTOP OF EXISTING ONE, SO MAKES A MESS. PASTE SHOULD PASTE AT END OF CHAIN TO RIGHT AND DUPLICATE SHOULD PASTE BELOW ORIGINAL PUSHING OTHER FURTHER DOWN IF PRESENT
+
+
+23) right clicking in a geophsyics image should bring up image option window (see attached) IT DOES NOW BUT DOES NOT MATCH ORIGINAL LAYOUT
+
+27) New feature: resize block diagram forces window refresh. CAUSES INFINITE REFRESHES
+
+29) Fold dialog has a mislabed button that should be labelled trace from image 
+
+30) Profile Window editable drawing panel is blank. For Folds for example the defaul should look like attached sine wave. And two widgets that are labels should be drop down menu and an options button that opens up attached option window
+
+31)  Disable all help buttons on all dialogs
+
+32)  Don't allow block diagrams, maps, section, geophsyics cal... if strat is not defined in history window.
+
+33)  Make all options and event and other dialogs stay in front and blocking actions until closed.
+
+
+35) NEW DIisplay Tpye dialog has LAYER LUT VAL text which should be an editable text I think to the right of the Range: label.
