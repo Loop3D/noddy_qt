@@ -1706,28 +1706,56 @@ WINDOW parentWin, previewPlace;
 #define PREVIEW_UPDATE_SIZE       40
 #define PREVIEW_TYPE_SIZE         130
 #define PREVIEW_TYPE_OPTION_SIZE  80
-   RCT listRect, previewRect;
-   WINDOW listWin, previewWin = NULL_WIN;
-      
+#define PREVIEW_ROW_HEIGHT        24
+   RCT listRect, previewRect, rowRect;
+   WINDOW listWin, previewWin = NULL_WIN, rowWin = NULL_WIN;
+
    xvt_vobj_get_outer_rect (previewPlace, &previewRect);
-      
+
+   /* [Qt port] Split the placeholder's footprint into two REAL sibling
+   ** windows instead of packing the Event/Block/On row into the bottom
+   ** of the 3D canvas itself. Root cause (confirmed via live debug
+   ** logging): PREVIEW_WINDOW_eh's E_UPDATE case (prevwin.c, real
+   ** unchanged app code) unconditionally calls update3dPreview() on
+   ** WHATEVER window it fires on -- redrawing a full 3D/block preview
+   ** scene into that window's own backing image on every repaint. That's
+   ** correct for the real 3D canvas, but packing the row's controls into
+   ** the bottom of that SAME window meant every repaint clobbered them
+   ** with unrelated preview content, even though they were created with
+   ** perfectly correct geometry (confirmed: non-null handles, sane
+   ** rects -- this was never a sizing bug). The row now lives in its own
+   ** separate window (rowWin, below the now slightly shorter canvas),
+   ** marked via xvt_win_mark_controls_only() so the compat layer skips
+   ** update3dPreview's drawing for it entirely and just lets Qt's normal
+   ** default background + automatic child-widget compositing handle it. */
+   rowRect = previewRect;
+   rowRect.top = (short)(previewRect.bottom - PREVIEW_ROW_HEIGHT);
+   previewRect.bottom = rowRect.top;
+
    if (previewWin = (WINDOW) xvt_win_create (W_PLAIN, &previewRect, "Preview",
                                0, parentWin, WSF_NO_MENUBAR,
                                EM_ALL, PREVIEW_WINDOW_eh, (long) 0L))
-   {      
-      xvt_vobj_get_client_rect (previewWin, &listRect);
-      listRect.top = listRect.bottom - 20;  /* place at bottom of window */
+   {
+      xvt_vobj_set_visible (previewWin, TRUE);
+      currentPreviewWindow =  previewWin;  /* Store window globally */
+   }
+
+   if (rowWin = (WINDOW) xvt_win_create (W_PLAIN, &rowRect, "Preview",
+                               0, parentWin, WSF_NO_MENUBAR,
+                               EM_ALL, PREVIEW_WINDOW_eh, (long) 0L))
+   {
+      xvt_win_mark_controls_only (rowWin);
+
+      xvt_vobj_get_client_rect (rowWin, &listRect);
       listRect.left = listRect.right - PREVIEW_UPDATE_SIZE;
       listWin = xvt_ctl_create (WC_CHECKBOX, &listRect, "On",
-                                previewWin, CTL_FLAG_CHECKED, 0L, PREVIEW_UPDATE);
+                                rowWin, CTL_FLAG_CHECKED, 0L, PREVIEW_UPDATE);
 
-      xvt_vobj_get_client_rect (previewWin, &listRect);
-      listRect.top = listRect.bottom - 20;  /* place at bottom of window */
-      listRect.bottom += 100;
+      xvt_vobj_get_client_rect (rowWin, &listRect);
       listRect.right = listRect.right - PREVIEW_UPDATE_SIZE;
       listRect.left = listRect.right - PREVIEW_TYPE_SIZE;
       if (listWin = xvt_ctl_create (WC_LISTBUTTON, &listRect, "Preview Type",
-                                    previewWin, 0L, 0L, PREVIEW_TYPE))
+                                    rowWin, 0L, 0L, PREVIEW_TYPE))
       {
          xvt_list_suspend (listWin);
          xvt_list_add (listWin, 0, "Plane");
@@ -1739,28 +1767,48 @@ WINDOW parentWin, previewPlace;
          xvt_list_add (listWin, 6, "Gravity Diff");
          xvt_list_add (listWin, 7, "Magnetic Diff");
          xvt_list_resume (listWin);
+         /* [Qt port, user-requested] default every preview to Block
+         ** instead of Plane -- previously the combo's own default (first
+         ** item added, index 0) went untouched. */
+         xvt_list_set_sel (listWin, 1, TRUE);
       }
 
-      xvt_vobj_get_client_rect (previewWin, &listRect);
-      listRect.top = listRect.bottom - 20;  /* place at bottom of window */
-      listRect.bottom += 100;
+      xvt_vobj_get_client_rect (rowWin, &listRect);
       listRect.right = listRect.right - PREVIEW_UPDATE_SIZE - PREVIEW_TYPE_SIZE;
       listRect.left = listRect.right - PREVIEW_TYPE_OPTION_SIZE;
       if (listWin = xvt_ctl_create (WC_LISTBUTTON, &listRect, "Preview Type Options",
-                                    previewWin, CTL_FLAG_INVISIBLE, 0L, PREVIEW_TYPE_OPTIONS))
+                                    rowWin, 0L, 0L, PREVIEW_TYPE_OPTIONS))
       {
          xvt_list_suspend (listWin);
          xvt_list_add (listWin, 0, "Event");
          xvt_list_add (listWin, 1, "History");
          xvt_list_add (listWin, 2, "Full");
          xvt_list_resume (listWin);
+         /* Matches prevwin.c's own PREVIEW_TYPE handler, which shows this
+         ** control for every mode except Plane -- since Block is now the
+         ** default (not Plane), start this visible to match, instead of
+         ** relying on a real user click to first reveal it. */
+         xvt_list_set_sel (listWin, 0, TRUE);
       }
 
-      xvt_vobj_set_visible (previewWin, TRUE);
+      xvt_vobj_set_visible (rowWin, TRUE);
 
-      currentPreviewWindow =  previewWin;  /* Store window globally */
+      /* nodwork1.c's update3dPreview still looks these controls up via
+      ** xvt_win_get_ctl(previewWin, PREVIEW_UPDATE/_TYPE/_TYPE_OPTIONS)
+      ** -- this makes that keep working even though they're now children
+      ** of rowWin, not previewWin. See XvtObj::ctlProxyWin. */
+      if (previewWin)
+         xvt_win_set_ctl_proxy (previewWin, rowWin);
+
+      /* prevwin.c's E_CONTROL handlers for these same 3 controls call
+      ** xvt_dwin_invalidate_rect(xdWindow, NULL) -- xdWindow is now rowWin
+      ** (the control's own parent), not previewWin, so without this the
+      ** actual 3D canvas never gets told to redraw when a new preview
+      ** mode is picked. See XvtObj::redrawProxyWin. */
+      if (previewWin)
+         xvt_win_set_redraw_proxy (rowWin, previewWin);
    }
-    
+
    return (previewWin);
 }
 

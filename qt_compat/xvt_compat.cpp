@@ -74,6 +74,7 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QPlainTextEdit>
+#include <QIcon>
 #include <QPointer>
 #include <QPolygonF>
 #include <QStatusBar>
@@ -158,6 +159,79 @@ struct XvtObj {
                                     * (matches a user report/screenshot: the Profile window's X/Y
                                     * cursor readout appearing as overlapping boxes on top of the
                                     * curve instead of beside it). */
+    WINDOW ctlProxyWin = NULL_WIN; /* see xvt_win_set_ctl_proxy -- builder.c's
+                                    * createPreviewWindow splits the small
+                                    * "preview" area into two REAL sibling
+                                    * windows: the 3D drawing canvas itself
+                                    * (this object) and a separate thin strip
+                                    * window holding the Event/Block/On row
+                                    * (PREVIEW_UPDATE/_TYPE/_TYPE_OPTIONS),
+                                    * so the canvas's own frequent E_UPDATE
+                                    * repaints (nodwork1.c's update3dPreview,
+                                    * which clears/redraws its FULL client
+                                    * rect on every refresh) can never paint
+                                    * over the row -- matches a user report
+                                    * of the row being created (confirmed via
+                                    * debug logging: sane geometry, non-null
+                                    * handles) but never visibly appearing.
+                                    * Existing unchanged app code (nodwork1.c)
+                                    * still looks the row's controls up via
+                                    * xvt_win_get_ctl(previewWin, ...) though
+                                    * -- this field lets xvt_win_get_ctl also
+                                    * search the row window's children when
+                                    * the canvas's own direct children don't
+                                    * have the requested ctlId, without
+                                    * touching that app code at all. */
+    bool controlsOnly = false;   /* see xvt_win_mark_controls_only. Set on
+                                    * the row window from the ctlProxyWin
+                                    * split above -- it reuses PREVIEW_WINDOW_eh
+                                    * (real, unchanged prevwin.c) so its
+                                    * PREVIEW_UPDATE/_TYPE/_TYPE_OPTIONS
+                                    * controls still get their E_CONTROL
+                                    * clicks routed correctly, but that same
+                                    * handler's E_UPDATE case unconditionally
+                                    * calls update3dPreview() on WHATEVER
+                                    * window it fires on -- which redraws a
+                                    * full 3D/block preview scene into the
+                                    * window's own backing image on every
+                                    * repaint. For the real 3D canvas that's
+                                    * correct; for the little control strip
+                                    * it clobbered the checkbox/combo boxes'
+                                    * area with unrelated preview content on
+                                    * every repaint (matches a user report:
+                                    * controls created with correct geometry,
+                                    * confirmed via debug logging, yet never
+                                    * visibly appearing). This flag makes
+                                    * paintEvent skip both the E_UPDATE
+                                    * dispatch and the backing-image blit for
+                                    * windows that exist ONLY to host child
+                                    * controls, leaving Qt's normal default
+                                    * widget background + automatic child
+                                    * compositing to do the whole job. */
+    WINDOW redrawProxyWin = NULL_WIN; /* see xvt_win_set_redraw_proxy -- set
+                                    * on rowWin (the controlsOnly row),
+                                    * pointing back at previewWin (the real
+                                    * 3D canvas). prevwin.c's E_CONTROL
+                                    * cases for PREVIEW_TYPE/_TYPE_OPTIONS/
+                                    * _UPDATE (real, unchanged app code) all
+                                    * call xvt_dwin_invalidate_rect(xdWindow,
+                                    * NULL) to make the PREVIEW redraw after
+                                    * a mode change -- written when the
+                                    * controls and the canvas were the SAME
+                                    * window, so xdWindow was always the
+                                    * canvas. Now that the controls live on
+                                    * rowWin, xdWindow there IS rowWin, and
+                                    * invalidating a controlsOnly window
+                                    * (which never draws anything of its
+                                    * own) does nothing useful -- the actual
+                                    * canvas never got told to redraw, so
+                                    * picking a new preview mode had no
+                                    * visible effect until some unrelated
+                                    * action (e.g. switching Form/Scale <->
+                                    * Position/Orientation) forced a wider
+                                    * repaint that happened to catch it too.
+                                    * xvt_dwin_invalidate_rect follows this
+                                    * to also invalidate the real canvas. */
 };
 
 /* XVT_PALETTE is an opaque XVT_PALETTE_REC* handle (xvt.h): modern
@@ -532,6 +606,15 @@ protected:
     void paintEvent(QPaintEvent *pe) override
     {
         XvtObj *o = objFor(handle);
+        if (o && o->controlsOnly) {
+            /* See XvtObj::controlsOnly -- this window exists only to host
+             * child controls; skip the app's own E_UPDATE drawing (and the
+             * backing-image blit that would paint over those controls)
+             * entirely and let Qt's normal widget background + automatic
+             * child compositing do the whole job. */
+            QWidget::paintEvent(pe);
+            return;
+        }
         if (o) o->updateRegion = pe->region();
         EVENT ev{}; ev.type = E_UPDATE;
         dispatch(ev);
@@ -660,6 +743,22 @@ int xvt_app_create(int argc, char **argv, long /*flags*/, WIN_EVENT_HANDLER task
     TASK_WIN = allocHandle(taskObj);
     taskWidget->handle = TASK_WIN;
     taskWidget->setWindowTitle(xvt_config.taskwin_title ? xvt_config.taskwin_title : "Noddy");
+    /* [Qt port, user-requested] real Noddy app icon instead of the
+     * generic Qt logo -- both the QApplication-wide icon (drives the
+     * taskbar/window-switcher icon on X11/Wayland via _NET_WM_ICON) and
+     * the task window's own titlebar icon explicitly, since a top-level
+     * window doesn't always inherit the application icon depending on
+     * window manager. NODDY.ICO is the real icon from the original
+     * resource file (qt_compat/icons/, see loadIcon's provenance comment
+     * for how the other .ICO files were recovered the same way). */
+    {
+        QString iconPath = QCoreApplication::applicationDirPath() + "/qt_compat/icons/NODDY.ICO";
+        QIcon appIcon(iconPath);
+        if (!appIcon.isNull()) {
+            g_app->setWindowIcon(appIcon);
+            taskWidget->setWindowIcon(appIcon);
+        }
+    }
     /* Real XVT's task window is the app's main OS frame, normally given a
      * generous default size by the window manager. Qt widgets default to
      * a small size otherwise -- and now that W_DOC windows created with
@@ -1645,6 +1744,26 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
     if (isDialogPath && (subWin || parent == NULL_WIN)) {
         o->isModalDialog = true;
         pushModalDialog(h);
+        /* [Qt port fix] pushModalDialog disables every OTHER real
+         * top-level window except TASK_WIN itself (deliberately excluded
+         * there -- disabling it would also grey out the main menu bar).
+         * TASK_WIN is still a real, independent, enabled OS-level window
+         * though, so without this the window manager could raise it
+         * (e.g. clicking its menu bar) OVER a real independent dialog
+         * window (parent == NULL_WIN, its own separate OS window) even
+         * though the dialog is blocking everything -- matches user
+         * report: dialogs don't "stay in front" of the rest of the app.
+         * QMdiSubWindow dialogs (nested inside TASK_WIN) can't have this
+         * problem since they're already clipped inside TASK_WIN's own
+         * frame, so only apply this to genuine separate top-level
+         * windows. */
+        QWidget *topLevel = subWin ? static_cast<QWidget *>(subWin) : static_cast<QWidget *>(win);
+        if (!subWin) {
+            topLevel->setWindowFlag(Qt::WindowStaysOnTopHint, true);
+            topLevel->show();
+        }
+        topLevel->raise();
+        topLevel->activateWindow();
     }
     return h;
 }
@@ -1858,6 +1977,10 @@ WINDOW xvt_win_get_ctl(WINDOW win, int ctl_id)
     XvtObj *parentObj = objFor(win);
     if (!parentObj) return NULL_WIN;
     if (parentObj->isCustomCtl) return NULL_WIN;
+    if (parentObj->ctlProxyWin != NULL_WIN) {
+        WINDOW r = xvt_win_get_ctl(parentObj->ctlProxyWin, ctl_id);
+        if (r != NULL_WIN) return r;
+    }
     if (!parentObj->formLayout) {
         auto *layout = new QFormLayout();
         parentObj->formLayout = layout;
@@ -1966,6 +2089,21 @@ WINDOW xvt_ctl_create(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
      * checkbox itself never appearing checked. */
     QWidget *w = widgetFor(h);
     if (w) {
+        /* [Qt port fix] unlike controls pre-populated by makeWindow's
+         * dialog-registry loop (created before the owning window's own
+         * show()/showEvent, so they're already visible by the time it
+         * appears), xvt_ctl_create's controls are added to an ALREADY-
+         * shown window (matches real XVT: callers create the window,
+         * show it, then add controls on demand -- e.g. createPreviewWindow).
+         * Qt widgets are supposed to inherit visibility from an already-
+         * visible parent automatically with no explicit show() needed, but
+         * xvt_win_get_tx (a few lines above, a similarly "add to an
+         * already-shown window" path) already needed an explicit show()
+         * call, and empirically the preview row's checkbox/combo boxes
+         * never appeared at all despite confirmed-correct geometry and
+         * non-null handles -- matches that same class of problem. */
+        w->show();
+        w->raise();
         if (flags & CTL_FLAG_CHECKED) {
             if (auto *cb = qobject_cast<QCheckBox *>(w)) cb->setChecked(true);
             else if (auto *rb = qobject_cast<QRadioButton *>(w)) rb->setChecked(true);
@@ -2000,6 +2138,31 @@ WINDOW xvt_custom_ctl_create(int cid, RCT *rct, WINDOW parent, WIN_EVENT_HANDLER
     if (o) { o->ctlId = cid; o->isCustomCtl = true; }
     if (QWidget *w = widgetFor(h)) w->setProperty("xvtCtlId", cid);
     return h;
+}
+
+/* See XvtObj::ctlProxyWin. Not a real XVT API -- a small compat-layer-only
+ * bridge used by builder.c's createPreviewWindow to split the preview area
+ * into two real sibling windows (3D canvas + a row of controls below it)
+ * while keeping xvt_win_get_ctl(canvasWin, ctlId) working for the row's
+ * controls exactly as unchanged app code (nodwork1.c) already expects. */
+void xvt_win_set_ctl_proxy(WINDOW win, WINDOW proxyWin)
+{
+    XvtObj *o = objFor(win);
+    if (o) o->ctlProxyWin = proxyWin;
+}
+
+/* See XvtObj::controlsOnly. Not a real XVT API. */
+void xvt_win_mark_controls_only(WINDOW win)
+{
+    XvtObj *o = objFor(win);
+    if (o) o->controlsOnly = true;
+}
+
+/* See XvtObj::redrawProxyWin. Not a real XVT API. */
+void xvt_win_set_redraw_proxy(WINDOW win, WINDOW proxyWin)
+{
+    XvtObj *o = objFor(win);
+    if (o) o->redrawProxyWin = proxyWin;
 }
 
 BOOLEAN xvt_ctl_is_checked(WINDOW ctl_win)
@@ -2464,10 +2627,21 @@ int xvt_dm_post_ask(const char *b1, const char *b2, const char *b3, const char *
     QPushButton *btn1 = b1 ? box.addButton(QString::fromLocal8Bit(b1), QMessageBox::AcceptRole) : nullptr;
     QPushButton *btn2 = b2 ? box.addButton(QString::fromLocal8Bit(b2), QMessageBox::RejectRole) : nullptr;
     if (b3) box.addButton(QString::fromLocal8Bit(b3), QMessageBox::ActionRole);
+    /* dismissing via Escape/window-close should behave like clicking the
+    ** first (default/"safe") button, not silently fall through. */
+    if (btn1) box.setDefaultButton(btn1);
+    if (btn1) box.setEscapeButton(btn1);
     box.exec();
-    if (box.clickedButton() == btn1) return 1;
-    if (box.clickedButton() == btn2) return 2;
-    return 0; /* RESP_DEFAULT */
+    /* [Qt port fix] real XVT: clicking the FIRST button (b1) returns
+    ** RESP_DEFAULT(0), the second RESP_2(1), the third RESP_3(2) -- see
+    ** xvt_types.h. This previously returned 1/2/0 (b1/b2/other), the
+    ** inverse of b1's real code, which made every "!= RESP_DEFAULT"-style
+    ** check in the app (e.g. noddy.c's is_quit_OK(), "Cancel"/"Quit")
+    ** treat BOTH buttons as the non-default response -- clicking either
+    ** one satisfied the check. */
+    if (box.clickedButton() == btn2) return RESP_2;
+    if (b3 && box.clickedButton() != btn1) return RESP_3;
+    return RESP_DEFAULT;
 }
 
 FL_STATUS xvt_dm_post_file_open(FILE_SPEC *fs, const char *prompt)
@@ -2547,6 +2721,12 @@ void xvt_dwin_invalidate_rect(WINDOW win, RCT *rct)
     if (o && !o->updateRegion.isEmpty()) return;
     if (rct) w->update(toQRect(rct));
     else w->update();
+    /* See XvtObj::redrawProxyWin -- e.g. prevwin.c's PREVIEW_TYPE handler
+     * invalidates the window a control lives on (now the controlsOnly row,
+     * not the 3D canvas) expecting that to make the PREVIEW redraw; follow
+     * the proxy so the real canvas actually gets the invalidate too. */
+    if (o && o->redrawProxyWin != NULL_WIN)
+        xvt_dwin_invalidate_rect(o->redrawProxyWin, rct);
 }
 
 BOOLEAN xvt_dwin_is_update_needed(WINDOW win, RCT *rct)
@@ -3520,28 +3700,67 @@ DATA_PTR xvt_res_get_menu(long resId)
     if (resId == 1000) return (DATA_PTR)buildMenuItemArray(nullptr, nullptr);
     if (resId == 1025) {
         /* MENU_BAR_2 -- the Section/Line-Map window's own small menu
-         * resource. No real structure recovered for this one (not in any
-         * source found so far), but returning nullptr here was the actual
-         * bug behind Section/Map windows never getting a menu bar at all:
-         * nodLib1.c's createLineMapMenubar does
-         * `if (!(lineMapMenubar = xvt_res_get_menu(MENU_BAR_2))) return;`
-         * -- an early return that skipped its xvt_menu_set_tree() call
-         * entirely (confirmed by reading that function). On Windows
-         * (nodLib1.c ~line 1719) it then merges the real TASK_MENUBAR's
-         * first NUM_MENUS(6) items with lineMapMenubar[0..3] into one
-         * combined bar, so as long as this hands back >= 4 valid slots,
-         * the window ends up with the REAL main app menu plus these 4 --
-         * items [1] and [2] get their .child replaced with dynamically-
-         * built event-navigation submenus by that same function (their
-         * placeholder child here is discarded, xvt_res_free_menu_tree is
-         * a no-op so that's safe). Labels are a reasonable placeholder,
-         * not recovered from any original source. */
+         * resource ("Symbol"/"Event 1"/"Event 2"/"Define", per the real
+         * labels the user supplied from the original app's screenshots).
+         * No compiled resource file survives for this one, but the real
+         * structure IS fully recoverable from nodwork2.c's E_COMMAND
+         * handler (real, unchanged app code) and nodStruc.h's real
+         * BEDDING_SYM/FOLIATION_SYM/LINEATION_SYM/BD_CL_SYM/CL_CL_SYM enum
+         * (values 1-5) -- createLineMapMenubar (nodLib1.c) renumbers every
+         * top-level item's tag to 2000/3000/4000/5000 and every child's
+         * tag to <top-level tag>+100+<position> regardless of what's set
+         * here, so only the LABELS/nesting/initial-checked-state below
+         * are load-bearing; nodwork2.c's SYMBOL_OPTIONS_BASE(2100)/
+         * EVENT1_OPTIONS_BASE(3100)/EVENT2_OPTIONS_BASE(4100)/
+         * DEFINE_OPTIONS_BASE(5100) match that scheme exactly, confirming
+         * this reconstruction lines up with the real app logic.
+         * "Event 1"/"Event 2" (indices 1/2) get their .child entirely
+         * REPLACED by createLineMapMenubar with a dynamically-built list
+         * of the current history's events (and their own initial-checked
+         * defaults) -- what's returned for them here is discarded, so a
+         * single harmless placeholder leaf is enough. "Symbol" (index 0)
+         * and "Define" (index 3) are NEVER touched by that dynamic
+         * rebuild, so their real static content (5 symbol types; one
+         * "Position of Event 1" action) must be provided here. */
         auto *arr = (MENU_ITEM *)calloc(5, sizeof(MENU_ITEM));
-        const char *labels[4] = { "Window", "Events", "Groups", "Display" };
+        const char *labels[4] = { "Symbol", "Event 1", "Event 2", "Define" };
         for (int i = 0; i < 4; i++) {
-            arr[i].tag = 2100 + i;
+            arr[i].tag = 2000 + i * 1000;
             arr[i].text = strdup(labels[i]);
             arr[i].enabled = TRUE;
+        }
+        {
+            static const char *symLabels[5] = { "Bedding", "Foliation", "Lineation", "Bd - Cl", "Cl - Cl" };
+            auto *symChildren = (MENU_ITEM *)calloc(6, sizeof(MENU_ITEM));
+            for (int i = 0; i < 5; i++) {
+                symChildren[i].tag = 2101 + i;
+                symChildren[i].text = strdup(symLabels[i]);
+                symChildren[i].enabled = TRUE;
+                symChildren[i].checkable = TRUE;
+                symChildren[i].checked = (i == 0) ? TRUE : FALSE; /* BEDDING_SYM is the default (see createLineMapMenubar) */
+            }
+            arr[0].child = symChildren;
+        }
+        {
+            auto *placeholder = (MENU_ITEM *)calloc(2, sizeof(MENU_ITEM));
+            placeholder[0].tag = 1;
+            placeholder[0].text = strdup("(event)");
+            placeholder[0].enabled = TRUE;
+            arr[1].child = placeholder;
+        }
+        {
+            auto *placeholder = (MENU_ITEM *)calloc(2, sizeof(MENU_ITEM));
+            placeholder[0].tag = 1;
+            placeholder[0].text = strdup("(event)");
+            placeholder[0].enabled = TRUE;
+            arr[2].child = placeholder;
+        }
+        {
+            auto *defineChildren = (MENU_ITEM *)calloc(2, sizeof(MENU_ITEM));
+            defineChildren[0].tag = 5101;
+            defineChildren[0].text = strdup("Position of Event 1");
+            defineChildren[0].enabled = TRUE;
+            arr[3].child = defineChildren;
         }
         return (DATA_PTR)arr;
     }

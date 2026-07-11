@@ -1280,9 +1280,20 @@ static const DialogCtlPosition g_pos_105[] = {
     { 14,340,188, 455, 204, WC_TEXT },
     {  8,  8,295, 120, 317, WC_PUSHBUTTON, "Delete Point" },
     {  9,128,295, 240, 317, WC_PUSHBUTTON, "Delete All" },
+    /* [Qt port fix] ctlIds 2/3 were swapped here relative to their real
+    ** meaning: nodInc.h defines PROFILE_WINDOW_PUSHBUTTON_38 ("Cancel",
+    ** profile.c's E_CONTROL case restores options + destroys the window)
+    ** as ctlId 2, and PROFILE_WINDOW_PUSHBUTTON_39 ("Help...",
+    ** displayHelp) as ctlId 3 -- this table had them backwards, so the
+    ** button drawn/labeled "Cancel" actually fired the Help action and
+    ** vice versa (matches user report: "Profile window cancel still
+    ** hooked up to help action"). Correcting the labels here also fixes
+    ** createControlWidget's auto-disable-Help-buttons rule, which was
+    ** disabling the real Cancel button (mislabeled "Help...") instead of
+    ** the real Help button. */
     {  1,250,295, 320, 317, WC_PUSHBUTTON, "OK" },
-    {  2,330,295, 395, 317, WC_PUSHBUTTON, "Help..." },
-    {  3,400,295, 460, 317, WC_PUSHBUTTON, "Cancel" },
+    {  2,330,295, 395, 317, WC_PUSHBUTTON, "Cancel" },
+    {  3,400,295, 460, 317, WC_PUSHBUTTON, "Help..." },
 };
 
 /* ----------------------------------------------------------------------

@@ -4829,14 +4829,6 @@ BLOCK_SURFACE_DATA *surface;
       else
          strcpy (label, SECTION_TITLE);
       
-                  /* [Qt port fix] was MENU_BAR_2 -- createLineMapMenubar()
-                  ** below built a real combined menu bar for this window
-                  ** via xvt_menu_set_tree(), which drove a whole class of
-                  ** menu-bar-height/client-rect-offset bugs (window
-                  ** mispositioned on resize/Default Size/Tile, and a
-                  ** crash) -- user-requested: give this window no menu at
-                  ** all, same as Block Diagram windows, since it isn't
-                  ** relied on anyway. */
       if (!(win = xvt_win_create (W_DOC, &position, label,
                    (int) NULL, TASK_WIN,
                    WSF_NO_MENUBAR | WSF_CLOSE | WSF_SIZE | WSF_INVISIBLE | WSF_ICONIZABLE,
@@ -4871,9 +4863,18 @@ BLOCK_SURFACE_DATA *surface;
 
    if (!(sectionData = (SECTION_DATA *) xvt_mem_zalloc(sizeof(SECTION_DATA))))
       return;
-                  /* [Qt port fix] createLineMapMenubar() skipped -- see the
-                  ** window-creation comment above; this window has no menu
-                  ** bar for it to attach to anymore. */
+                  /* [Qt port] re-enabled this session -- was previously
+                  ** skipped due to menu-bar-height/client-rect-offset bugs
+                  ** (window mispositioned on resize/Default Size/Tile, a
+                  ** crash) that predated xvt_vobj_get_client_rect's later
+                  ** fix to account for a window's own menu bar height (see
+                  ** that function's comment in xvt_compat.cpp) -- this is
+                  ** also the ONLY call site that builds the Symbol/Event 1/
+                  ** Event 2/Define menu (#36), so it needs to be live for
+                  ** that feature to work at all. */
+   fprintf(stderr, "[DBG updateSection] before createLineMapMenubar, win=%ld\n", (long)win);
+   createLineMapMenubar (win, sectionData);
+   fprintf(stderr, "[DBG updateSection] after createLineMapMenubar\n");
    setStratPalet (win);
 
          /* put the position rectange back to zero for the drawing */
