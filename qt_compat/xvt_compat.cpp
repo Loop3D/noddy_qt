@@ -144,6 +144,20 @@ struct XvtObj {
                                     * "real dialog" paths (as opposed to xvt_win_create's
                                     * "document window" path used for History/Toolbar/diagrams),
                                     * so xvt_vobj_destroy knows to pop it off the modal stack. */
+    bool isCustomCtl = false;     /* see xvt_custom_ctl_create -- true for windows backing an
+                                    * xvtcm_create() custom control (e.g. the Profile window's
+                                    * graph canvas). xvt_win_get_ctl's auto-vivify skips these:
+                                    * real callers (e.g. proflib.c's updateProfileLocation) query
+                                    * the CANVAS first for a sibling control ctlId, expecting
+                                    * NULL_WIN back so they can retry against the canvas's PARENT
+                                    * (the actual dialog those controls really belong to) --
+                                    * auto-vivify "succeeding" on the canvas itself instead
+                                    * planted a stray duplicate placeholder widget directly on
+                                    * top of the canvas's own drawing, and the real, correctly-
+                                    * positioned control in the parent dialog was never queried
+                                    * (matches a user report/screenshot: the Profile window's X/Y
+                                    * cursor readout appearing as overlapping boxes on top of the
+                                    * curve instead of beside it). */
 };
 
 /* XVT_PALETTE is an opaque XVT_PALETTE_REC* handle (xvt.h): modern
@@ -1153,7 +1167,7 @@ extern const int g_dialogRegistryCount;
  * separate QButtonGroups; 0 (default) preserves the old implicit
  * same-parent grouping, which is harmless for the common case of a
  * dialog with only one radio group. */
-struct DialogCtlPosition { int ctlId; short left, top, right, bottom; WIN_TYPE typeOverride = W_NONE; const char *labelOverride = nullptr; bool initiallyDisabled = false; bool hidden = false; bool multiSelect = false; bool editable = false; int radioGroup = 0; };
+struct DialogCtlPosition { int ctlId; short left, top, right, bottom; WIN_TYPE typeOverride = W_NONE; const char *labelOverride = nullptr; bool initiallyDisabled = false; bool hidden = false; bool multiSelect = false; bool editable = false; int radioGroup = 0; bool skipAutoCreate = false; };
 struct DialogPositionEntry {
     long resId;
     short width, height;          /* overall window client size */
@@ -1573,6 +1587,15 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
         for (int i = 0; i < dlg->numCtls; i++) {
             const DialogCtlEntry &ce = dlg->ctls[i];
             const DialogCtlPosition *ctlPos = posEntry ? findCtlPosition(posEntry, ce.ctlId) : nullptr;
+            /* skipAutoCreate: this ctlId is a custom control the app
+             * creates itself via xvtcm_create/graph_create (e.g.
+             * PROFILE_WINDOW_CUSTOM_50, the Profile curve canvas) once its
+             * own E_CREATE fires -- auto-populating a generic placeholder
+             * here too would leave two different widgets both claiming
+             * the same ctlId, and xvt_win_get_ctl's child search would
+             * find whichever was created first (this one), never the
+             * real custom control. */
+            if (ctlPos && ctlPos->skipAutoCreate) continue;
             WIN_TYPE ctlType = (ctlPos && ctlPos->typeOverride != W_NONE) ? ctlPos->typeOverride
                               : (ce.type == W_NONE ? WC_EDIT : ce.type);
             QString label = (ctlPos && ctlPos->labelOverride) ? QString::fromLocal8Bit(ctlPos->labelOverride)
@@ -1828,9 +1851,13 @@ WINDOW xvt_win_get_ctl(WINDOW win, int ctl_id)
     }
     /* Not pre-populated from the registry (unknown dialog, or a control ID
      * the registry didn't have) -- auto-vivify a generic, upgradeable
-     * placeholder so the app doesn't just get NULL_WIN back. */
+     * placeholder so the app doesn't just get NULL_WIN back. EXCEPT for
+     * custom controls (see XvtObj::isCustomCtl) -- callers querying one of
+     * those for a ctlId that isn't really its own child expect a genuine
+     * NULL_WIN so they can retry against its parent window instead. */
     XvtObj *parentObj = objFor(win);
     if (!parentObj) return NULL_WIN;
+    if (parentObj->isCustomCtl) return NULL_WIN;
     if (!parentObj->formLayout) {
         auto *layout = new QFormLayout();
         parentObj->formLayout = layout;
@@ -1945,6 +1972,33 @@ WINDOW xvt_ctl_create(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
         }
         if (flags & CTL_FLAG_INVISIBLE) w->setVisible(false);
     }
+    return h;
+}
+
+/* Backs xvtcm_create() (qt_compat/xvtcm.h), real XVT's "Custom Control
+ * Manager" API for hand-coded custom-drawn controls -- graph.c's
+ * graph_create() (the Profile window's point-editing curve canvas,
+ * PROFILE_WINDOW_CUSTOM_50) is the one real call site. xvtcm_create was a
+ * complete no-op stub (always returned NULL_WIN), so the canvas was never
+ * actually created at all -- graph_eh (the handler with all the curve-
+ * drawing/point-drag logic) never got attached to a real window, matching
+ * a user report of the Profile curve editor's drawing panel being blank.
+ * Unlike xvt_ctl_create (createControlWidget, for standard widget types),
+ * this needs a genuine XvtWindow -- backing QImage, paintEvent, full
+ * E_MOUSE_DOWN/MOVE/UP/E_UPDATE dispatch -- since graph_eh both draws
+ * arbitrary vector content (DrawProfileGraph) and handles free-form mouse
+ * dragging (profilePointMove), neither of which a plain Qt control
+ * supports. W_NO_BORDER (like createPositionedWindow's sub-panels) makes
+ * makeWindow reparent it as a flat, chromeless child of parent_win rather
+ * than a floating top-level window. ctlId is set afterward so
+ * xvt_win_get_ctl(parent_win, cid) can find it, matching every other
+ * control's lookup convention. */
+WINDOW xvt_custom_ctl_create(int cid, RCT *rct, WINDOW parent, WIN_EVENT_HANDLER eh)
+{
+    WINDOW h = makeWindow(W_NO_BORDER, rct, nullptr, parent, eh, 0L);
+    XvtObj *o = objFor(h);
+    if (o) { o->ctlId = cid; o->isCustomCtl = true; }
+    if (QWidget *w = widgetFor(h)) w->setProperty("xvtCtlId", cid);
     return h;
 }
 
@@ -2577,11 +2631,38 @@ void xvt_dwin_draw_rect(WINDOW win, RCT *rct)
     if (!o || !rct) return;
     if (o->drawMode == M_XOR) {
         /* Real XVT's M_XOR draw mode is a classic GDI-style "invert
-         * whatever's already there" technique (used by builder.c's
-         * drawIcon for the toolbar's currently-selected-tool highlight)
-         * -- NOT a normal fill using the current brush color. Invert the
-         * RGB of every pixel under the rect directly rather than trying
-         * to replicate this via QPainter composition modes. */
+         * whatever's already there" technique. Two distinct real call
+         * sites use it very differently:
+         * - builder.c's drawIcon (toolbar selected-tool highlight): a
+         *   FILLED invert of the whole rect -- handled below via a manual
+         *   pixel-invert loop, unchanged from before.
+         * - builder.c's rubberRect (drag-to-create/drag-to-move outline,
+         *   PAT_RUBBER pen + PAT_HOLLOW brush): an OUTLINE-only invert, so
+         *   calling it twice at the same rect (once to draw, once to
+         *   erase before the next position) leaves the interior content
+         *   untouched. The filled-invert loop above ignores brush
+         *   pattern entirely and would paint a solid inverted blob
+         *   instead -- effectively an invisible flash during the fast
+         *   erase+redraw-elsewhere cycle of a live drag (matches a user
+         *   report: dragging a toolbar icon into History to place a new
+         *   event showed no visible drag rectangle at all, unlike the
+         *   dashed-rectangle placeholder in the reference app). Use Qt's
+         *   raster XOR composition mode with a real stroked (dashable)
+         *   rect instead of a manual pixel loop for this case -- draws
+         *   only the border, and PAT_RUBBER maps to a dashed line so it
+         *   visually matches too. */
+        if (o->brushPat == PAT_HOLLOW || o->brushPat == PAT_NONE) {
+            QPainter p(&o->backing);
+            p.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
+            QPen pen(Qt::white); /* colour is irrelevant under XOR -- white flips every channel */
+            pen.setWidth(1);
+            if (o->penPat == PAT_RUBBER) pen.setStyle(Qt::DashLine);
+            p.setPen(pen);
+            p.setBrush(Qt::NoBrush);
+            p.drawRect(toQRect(rct));
+            requestRepaint(o);
+            return;
+        }
         QRect r = toQRect(rct).intersected(o->backing.rect());
         for (int y = r.top(); y <= r.bottom(); y++) {
             uchar *line = o->backing.scanLine(y);

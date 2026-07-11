@@ -241,8 +241,17 @@ OBJECT *object;
    groupXPos = 300;
 #endif
 #if XVTWS == 0   /* Qt port -- see banner comment above and qt_compat/xvt_env.h */
+   /* [Qt port] groupXPos widened from 150 to 320 so the EVENT_PREVIEW
+    * placeholder (qt_compat/dialog_positions.cpp's g_pos_137, ctlId 6)
+    * can be a real ~293x272 preview pane -- at the old 150 the preview
+    * was capped to ~140px wide, too narrow for createPreviewWindow's own
+    * bottom-anchored Preview-Type/Preview-Type-Options/On controls
+    * (250px combined) to be visible at all (matches a user report/
+    * reference screenshot: preview pane exists but shows no menus or
+    * checkbox). EVENT_WINDOW's own size (g_pos_137's registry entry) was
+    * widened to match. */
    groupYPos = 16;
-   groupXPos = 150;
+   groupXPos = 320;
 #endif
 
    xvt_vobj_get_client_rect(win, &posRect);

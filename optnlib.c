@@ -271,7 +271,12 @@ OPTION_TYPE type;
    groupXPos = 300;
 #endif
 #if XVTWS == 0   /* Qt port -- see banner comment above and qt_compat/xvt_env.h */
-   groupXPos = 150;
+   /* [Qt port] widened 150->320 to match eventlib.c's identical fix --
+    * OPTIONS_PREVIEW (qt_compat/dialog_positions.cpp's g_pos_183, ctlId 1)
+    * needed room for a real ~293x272 preview pane, same reasoning as
+    * EVENT_WINDOW's EVENT_PREVIEW (see eventlib.c). OPTIONS_WINDOW's own
+    * size (g_pos_183's registry entry) was widened to match. */
+   groupXPos = 320;
 #endif
    groupYPos = 0;
 

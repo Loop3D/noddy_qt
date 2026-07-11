@@ -80,6 +80,7 @@ WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK mask,
 /* ==================== Controls ============================================= */
 WINDOW xvt_ctl_create(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
                       long flags, long font_id, int ctl_id);         /* [STUB] */
+WINDOW xvt_custom_ctl_create(int cid, RCT *rct, WINDOW parent, WIN_EVENT_HANDLER eh); /* [DONE] -- backs xvtcm_create(), see qt_compat/xvtcm.h */
 BOOLEAN xvt_ctl_is_checked(WINDOW ctl_win);              /* [DONE] */
 void xvt_ctl_set_checked(WINDOW ctl_win, BOOLEAN checked); /* [DONE] */
 void xvt_ctl_check_radio_button(WINDOW checked, WINDOW *group, int count); /* [DONE] */

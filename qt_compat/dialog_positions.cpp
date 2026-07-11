@@ -21,7 +21,7 @@
  * nodInc.h-derived name would otherwise be user-visible and wrong (e.g.
  * a QGroupBox title showing literal "EVENT NAME GB" instead of "Event
  * Name"). Must stay in sync with xvt_compat.cpp's copy of this struct. */
-struct DialogCtlPosition { int ctlId; short left, top, right, bottom; WIN_TYPE typeOverride = W_NONE; const char *labelOverride = nullptr; bool initiallyDisabled = false; bool hidden = false; bool multiSelect = false; bool editable = false; int radioGroup = 0; };
+struct DialogCtlPosition { int ctlId; short left, top, right, bottom; WIN_TYPE typeOverride = W_NONE; const char *labelOverride = nullptr; bool initiallyDisabled = false; bool hidden = false; bool multiSelect = false; bool editable = false; int radioGroup = 0; bool skipAutoCreate = false; };
 struct DialogPositionEntry {
     long resId;
     short width, height;
@@ -341,19 +341,22 @@ static const DialogCtlPosition g_pos_137[] = {
      * bottom-anchors the Event-type/Block-type dropdowns and "On"
      * checkbox within it -- xvt_vobj_get_client_rect(previewWin,...)
      * then listRect.top = bottom-20 / listRect.left = right-N, see
-     * builder.c's createPreviewWindow). Width is capped at ~140 by
-     * eventlib.c's hardcoded groupXPos=150 (where the nested Stratigraphy/
-     * Fold/etc content sub-panel starts) -- widening past that would
-     * overlap it. Shaped landscape (wider than tall) within that width
-     * cap by keeping height modest, was previously 132x215 (a tall
-     * portrait strip, user-reported as visibly wrong shape). */
-    { 6,   8, 80, 145, 195, WC_GROUPBOX, "" },
-    { 7, 150,  0, 380,  14, WC_LISTBUTTON },  /* EVENT OPTION SELECTION (Form/Scale-style dropdown) */
-    { 8,   8,305, 120, 327, WC_PUSHBUTTON, "Previous Event" },  /* EVENT PREVIOUS */
-    { 9, 128,305, 230, 327, WC_PUSHBUTTON, "Next Event" },      /* EVENT NEXT */
-    { 1, 330,305, 380, 327, WC_PUSHBUTTON, "OK" },              /* EVENT OK */
-    { 5, 388,305, 438, 327, WC_PUSHBUTTON, "Help..." },         /* EVENT HELP */
-    { 4, 446,305, 496, 327, WC_PUSHBUTTON, "Cancel" },          /* EVENT CANCEL */
+     * builder.c's createPreviewWindow). Widened to a real ~293x272 per a
+     * user-provided reference screenshot (was capped to ~140x115 by
+     * eventlib.c's old groupXPos=150, far too narrow for
+     * createPreviewWindow's own bottom-anchored Preview-Type/Preview-
+     * Type-Options/On controls -- 250px combined -- to be visible at all;
+     * matches "preview windows now exist but no 2 x menus nor checkbox").
+     * eventlib.c's groupXPos raised to 320 (293 + 8 left offset + margin)
+     * to match, so the nested Stratigraphy/Fold/etc content sub-panel
+     * starts clear of this rect. */
+    { 6,   8, 80, 301, 352, WC_GROUPBOX, "" },
+    { 7, 320,  0, 550,  14, WC_LISTBUTTON },  /* EVENT OPTION SELECTION (Form/Scale-style dropdown) */
+    { 8,   8,388, 120, 410, WC_PUSHBUTTON, "Previous Event" },  /* EVENT PREVIOUS */
+    { 9, 128,388, 230, 410, WC_PUSHBUTTON, "Next Event" },      /* EVENT NEXT */
+    { 1, 460,388, 510, 410, WC_PUSHBUTTON, "OK" },              /* EVENT OK */
+    { 5, 518,388, 568, 410, WC_PUSHBUTTON, "Help..." },         /* EVENT HELP */
+    { 4, 576,388, 626, 410, WC_PUSHBUTTON, "Cancel" },          /* EVENT CANCEL */
 };
 
 /* ----------------------------------------------------------------------
@@ -387,10 +390,13 @@ static const DialogCtlPosition g_pos_183[] = {
      * rendered on top of/covering the right side of this dropdown,
      * matching a user report of it being "covered to the right by other
      * widgets". Narrowed to stay clear of x=150, same constraint
-     * EVENT_WINDOW's own g_pos_137 entry already respects. */
+     * EVENT_WINDOW's own g_pos_137 entry already respects. Preview
+     * further widened to a real ~293x272 (was 137x300, a cramped
+     * portrait strip) per the same user-provided reference used for
+     * EVENT_PREVIEW -- groupXPos raised 150->320 in optnlib.c to match. */
     { 3,   8,  8, 145,  95, WC_GROUPBOX, "Option Selection" },  /* OPTIONS SELECTION GB */
     { 2,  15, 45, 140,  68, WC_LISTBUTTON },                     /* OPTIONS SELECTION (dropdown) */
-    { 1,   8,100, 145, 400, WC_GROUPBOX, "" },  /* OPTIONS PREVIEW (3D canvas + Event/Block type dropdowns + On checkbox placeholder -- createPreviewWindow positions the real preview window on top of this rect) */
+    { 1,   8,100, 301, 372, WC_GROUPBOX, "" },  /* OPTIONS PREVIEW (3D canvas + Event/Block type dropdowns + On checkbox placeholder -- createPreviewWindow positions the real preview window on top of this rect) */
     /* ctlId 5/6 were swapped: optwin.c's real E_CONTROL switch (confirmed
      * from source) is unambiguous --
      * OPTIONS_WINDOW_PUSHBUTTON_107(4)="OK", _108(5)="Cancel",
@@ -405,9 +411,286 @@ static const DialogCtlPosition g_pos_183[] = {
      * (c:\winprgs\Noddy\iexplore %h, see the Project Options "Help
      * Viewer" panel) that has no equivalent in this port yet, so a live
      * Help button would just silently fail. */
-    { 4, 430,392, 495, 412, WC_PUSHBUTTON, "OK" },                             /* OPTIONS WINDOW PUSHBUTTON 107 */
-    { 6, 500,392, 560, 412, WC_PUSHBUTTON, "Help...", true },                 /* OPTIONS WINDOW PUSHBUTTON 109 */
-    { 5, 565,392, 625, 412, WC_PUSHBUTTON, "Cancel" },                         /* OPTIONS WINDOW PUSHBUTTON 108 */
+    /* Y pushed from 388 to 530: the tallest single-column sub-panel stack
+     * (Geophysics Survey: FIELD_WINDOW 230 + ALTITUDE_WINDOW 100 +
+     * DEFORM_FIELD_WINDOW 80 + SUS_UNITS_WINDOW 75 + DRAPED_SURVEY_WINDOW
+     * 25 = 510px, all at the same groupXPos column, stacked by
+     * optnlib.c's controlYPos += height) extends well past the previous
+     * y=388 button row -- later panels' own controls rendered on top of/
+     * overlapping OK/Help/Cancel, matching a user report of "OK Cancel
+     * buttons... often covered by other widgets" (and, since a covering
+     * control could intercept the click instead, an apparent "Help and
+     * Cancel functions reversed" -- the underlying ctlId->action mapping
+     * here is correct, verified directly against optwin.c's real
+     * E_CONTROL switch). Dialog height grown to match (415->570). */
+    { 4, 460,530, 525, 550, WC_PUSHBUTTON, "OK" },                             /* OPTIONS WINDOW PUSHBUTTON 107 */
+    { 6, 530,530, 590, 550, WC_PUSHBUTTON, "Help...", true },                 /* OPTIONS WINDOW PUSHBUTTON 109 */
+    { 5, 595,530, 655, 550, WC_PUSHBUTTON, "Cancel" },                         /* OPTIONS WINDOW PUSHBUTTON 108 */
+};
+
+/* ----------------------------------------------------------------------
+ * OPTIONS_WINDOW's "Section/Borehole" mode sub-panels, reconstructed from
+ * a user-provided reference screenshot. SECTION_WINDOW (211) stacks above
+ * BOREHOLE_WINDOW (210) (optnlib.c's createOptions: controlYPos +=
+ * xvt_rect_get_height() between the two, single column at groupXPos).
+ * Row layout matches the existing XYZ_WINDOW (139) label/HSCROLL/value
+ * convention for visual consistency with the event dialogs.
+ * ---------------------------------------------------------------------- */
+static const DialogCtlPosition g_pos_211[] = {
+    { 1,   0,  0, 280, 210, WC_GROUPBOX, "Section" },
+    { 11, 10, 20, 95, 35, WC_TEXT, "X (E)" },
+    { 8, 100, 20, 205, 35, WC_HSCROLL },
+    { 14, 210, 20, 270, 35 },
+    { 12, 10, 50, 95, 65, WC_TEXT, "Y (N)" },
+    { 9, 100, 50, 205, 65, WC_HSCROLL },
+    { 16, 210, 50, 270, 65 },
+    { 13, 10, 80, 95, 95, WC_TEXT, "Z (Up)" },
+    { 10, 100, 80, 205, 95, WC_HSCROLL },
+    { 15, 210, 80, 270, 95 },
+    { 2, 10, 110, 95, 125, WC_TEXT, "Decl. (Azimuth)" },
+    { 4, 100, 110, 205, 125, WC_HSCROLL },
+    { 7, 210, 110, 270, 125 },
+    { 3, 10, 140, 95, 155, WC_TEXT, "Length" },
+    { 5, 100, 140, 205, 155, WC_HSCROLL },
+    { 6, 210, 140, 270, 155 },
+    { 17, 10, 170, 95, 185, WC_TEXT, "Height" },
+    { 18, 100, 170, 205, 185, WC_HSCROLL },
+    { 19, 210, 170, 270, 185 },
+};
+
+static const DialogCtlPosition g_pos_210[] = {
+    { 1,   0,  0, 280, 210, WC_GROUPBOX, "Borehole" },
+    { 14, 10, 20, 95, 35, WC_TEXT, "X (E)" },
+    { 11, 100, 20, 205, 35, WC_HSCROLL },
+    { 17, 210, 20, 270, 35 },
+    { 15, 10, 50, 95, 65, WC_TEXT, "Y (N)" },
+    { 12, 100, 50, 205, 65, WC_HSCROLL },
+    { 19, 210, 50, 270, 65 },
+    { 16, 10, 80, 95, 95, WC_TEXT, "Z (Up)" },
+    { 13, 100, 80, 205, 95, WC_HSCROLL },
+    { 18, 210, 80, 270, 95 },
+    { 2, 10, 110, 95, 125, WC_TEXT, "Decl. (Azimuth)" },
+    { 4, 100, 110, 205, 125, WC_HSCROLL },
+    { 8, 210, 110, 270, 125 },
+    { 9, 10, 140, 95, 155, WC_TEXT, "Angle with Z" },
+    { 10, 100, 140, 205, 155, WC_HSCROLL },
+    { 6, 210, 140, 270, 155 },
+    { 3, 10, 170, 95, 185, WC_TEXT, "Length (Depth)" },
+    { 5, 100, 170, 205, 185, WC_HSCROLL },
+    { 7, 210, 170, 270, 185 },
+};
+
+/* ----------------------------------------------------------------------
+ * OPTIONS_WINDOW's "Geophysics Calculation" mode sub-panels (GENERATE_
+ * WINDOW/CALC_TYPE_WINDOW/VARIABLE_CUBE_WINDOW/PADDING_WINDOW -- RANGE_
+ * WINDOW(191) is positioned at the SAME Y as PADDING_WINDOW by optnlib.c,
+ * i.e. the two are alternates for the same visual slot depending on
+ * calculation method, not simultaneously visible; not reconstructed here,
+ * stays on auto-flow fallback since the reference screenshot -- Spectral
+ * method selected -- only shows Padding). Reconstructed from a
+ * user-provided reference screenshot.
+ * ---------------------------------------------------------------------- */
+static const DialogCtlPosition g_pos_187[] = {
+    { 1, 0, 0, 280, 95, WC_GROUPBOX, "Modeled Data" },
+    { 2, 15, 20, 150, 38, WC_CHECKBOX, "Gravity" },
+    { 3, 15, 45, 150, 63, WC_CHECKBOX, "Magnetics" },
+    { 4, 15, 70, 200, 88, WC_CHECKBOX, "XYZ Components" },
+};
+
+static const DialogCtlPosition g_pos_192[] = {
+    { 1, 0, 0, 280, 85, WC_GROUPBOX, "Calculation Type" },
+    { 2, 15, 22, 205, 42, WC_LISTBUTTON },
+    { 3, 15, 55, 260, 73, WC_CHECKBOX, "Project Fields" },
+};
+
+static const DialogCtlPosition g_pos_195[] = {
+    { 4, 0, 0, 280, 95, WC_GROUPBOX, "Variable Cube Size" },
+    { 5, 15, 22, 85, 37, WC_TEXT, "Cutoff:" },
+    { 3, 90, 20, 265, 40, WC_LISTBUTTON },
+    { 2, 15, 57, 85, 72, WC_TEXT, "Ratio:" },
+    { 1, 90, 55, 265, 75, WC_LISTBUTTON },
+};
+
+/* RANGE_WINDOW (191): shown instead of PADDING_WINDOW when Calculation
+ * Type is anything other than Spectral (optnlib.c positions both at the
+ * same y-offset, alternates for one visual slot -- see g_pos_187 block
+ * comment). Previously unreconstructed (the Spectral-method reference
+ * screenshot only showed Padding), so switching to e.g. "Spatial
+ * Convolution" fell back to raw unresolved constant-name labels ("RANGE
+ * CONV LABEL", "RANGE GB" etc as literal visible text) -- matches a user
+ * report/screenshot. Same 175px height as PADDING_WINDOW for layout
+ * consistency when toggling between them. */
+static const DialogCtlPosition g_pos_191[] = {
+    { 5, 0, 0, 280, 175, WC_GROUPBOX, "Range" },
+    { 1, 15, 22, 130, 40, WC_TEXT, "Convolution Range:" },
+    { 2, 135, 20, 195, 40 },
+    { 3, 200, 22, 260, 40, WC_TEXT, "m" },
+    { 4, 15, 45, 260, 62, WC_TEXT },
+    { 6, 15, 72, 130, 90, WC_TEXT, "Analytic Range:" },
+    { 7, 135, 70, 195, 90 },
+    { 9, 200, 72, 260, 90, WC_TEXT, "m" },
+    { 8, 15, 95, 260, 112, WC_TEXT },
+    { 10, 15, 122, 130, 140, WC_CHECKBOX, "All Exact" },
+    { 11, 15, 147, 200, 165, WC_CHECKBOX, "Real Geology Padding" },
+};
+
+static const DialogCtlPosition g_pos_194[] = {
+    { 1, 0, 0, 280, 175, WC_GROUPBOX, "Spectral Padding" },
+    { 5, 15, 22, 60, 37, WC_TEXT, "Type:" },
+    { 2, 65, 20, 265, 40, WC_LISTBUTTON },
+    { 12, 15, 52, 70, 67, WC_TEXT, "Fence" },
+    { 13, 75, 50, 140, 68 },
+    { 6, 150, 52, 190, 67, WC_TEXT, "Sus X" },
+    { 4, 195, 50, 265, 68 },
+    { 14, 15, 82, 70, 97, WC_TEXT, "Percent" },
+    { 15, 75, 80, 140, 98 },
+    { 8, 150, 82, 190, 97, WC_TEXT, "Sus Y" },
+    { 7, 195, 80, 265, 98 },
+    { 10, 15, 112, 70, 127, WC_TEXT, "Density" },
+    { 11, 75, 110, 140, 128 },
+    { 3, 150, 112, 190, 127, WC_TEXT, "Sus Z" },
+    { 9, 195, 110, 265, 128 },
+};
+
+/* ----------------------------------------------------------------------
+ * OPTIONS_WINDOW's "Geophysics Survey" mode sub-panels (FIELD_WINDOW/
+ * ALTITUDE_WINDOW/DEFORM_FIELD_WINDOW/SUS_UNITS_WINDOW/DRAPED_SURVEY_
+ * WINDOW, stacked in that order). Reconstructed from a user-provided
+ * reference screenshot.
+ * ---------------------------------------------------------------------- */
+static const DialogCtlPosition g_pos_188[] = {
+    { 7, 0, 0, 280, 230, WC_GROUPBOX, "Field" },
+    { 8, 15, 20, 100, 38, WC_RADIOBUTTON, "Fixed", false, false, false, false, 1 },
+    { 9, 105, 20, 210, 38, WC_RADIOBUTTON, "Variable", false, false, false, false, 1 },
+    { 16, 15, 45, 65, 60, WC_RADIOBUTTON, "XYZ", false, false, false, false, 2 },
+    { 17, 70, 45, 130, 60, WC_RADIOBUTTON, "Decl.", false, false, false, false, 2 },
+    { 18, 135, 45, 190, 60, WC_RADIOBUTTON, "Incl.", false, false, false, false, 2 },
+    { 19, 195, 45, 265, 60, WC_RADIOBUTTON, "Intensity", false, false, false, false, 2 },
+    { 4, 15, 75, 110, 90, WC_TEXT, "Inclination:" },
+    { 3, 115, 73, 200, 91 },
+    { 5, 15, 100, 110, 115, WC_TEXT, "Declination:" },
+    { 6, 115, 98, 200, 116 },
+    { 2, 15, 125, 110, 140, WC_TEXT, "Intensity:" },
+    { 1, 115, 123, 200, 141 },
+    { 10, 15, 155, 45, 170, WC_TEXT, "X:" },
+    { 13, 50, 153, 130, 171 },
+    { 11, 15, 180, 45, 195, WC_TEXT, "Y:" },
+    { 14, 50, 178, 130, 196 },
+    { 12, 15, 205, 45, 220, WC_TEXT, "Z:" },
+    { 15, 50, 203, 130, 221 },
+};
+
+static const DialogCtlPosition g_pos_189[] = {
+    { 3, 0, 0, 280, 100, WC_GROUPBOX, "Altitude" },
+    { 1, 15, 20, 100, 38, WC_RADIOBUTTON, "Surface", false, false, false, false, 1 },
+    { 2, 105, 20, 210, 38, WC_RADIOBUTTON, "Airborne", false, false, false, false, 1 },
+    { 5, 15, 58, 130, 76 },
+    { 4, 135, 62, 200, 78, WC_TEXT, "(m)" },
+};
+
+static const DialogCtlPosition g_pos_193[] = {
+    { 3, 0, 0, 280, 80, WC_GROUPBOX, "Deformable" },
+    { 1, 15, 20, 150, 38, WC_CHECKBOX, "Remanence" },
+    { 2, 15, 45, 150, 63, WC_CHECKBOX, "Anisotropy" },
+};
+
+static const DialogCtlPosition g_pos_196[] = {
+    { 3, 0, 0, 280, 75, WC_GROUPBOX, "Sus. Units" },
+    { 1, 15, 20, 100, 38, WC_RADIOBUTTON, "s.i.", false, false, false, false, 1 },
+    { 2, 105, 20, 210, 38, WC_RADIOBUTTON, "c.g.s.", false, false, false, false, 1 },
+};
+
+static const DialogCtlPosition g_pos_190[] = {
+    { 1, 0, 0, 200, 25, WC_CHECKBOX, "Draped Survey" },
+};
+
+/* ----------------------------------------------------------------------
+ * OPTIONS_WINDOW's "Geophysics Display" mode sub-panels (GEOPHYSICS_
+ * SCALE_WINDOW/GEOPHYSICS_IDISPLAY_WINDOW). Reconstructed from a
+ * user-provided reference screenshot.
+ * ---------------------------------------------------------------------- */
+static const DialogCtlPosition g_pos_197[] = {
+    { 4, 0, 0, 280, 75, WC_GROUPBOX, "Geophysics Image Scaling" },
+    { 1, 15, 25, 130, 43, WC_TEXT, "Scale Images by" },
+    { 3, 135, 23, 185, 43 },
+    { 2, 190, 25, 250, 43, WC_TEXT, "times." },
+};
+
+static const DialogCtlPosition g_pos_198[] = {
+    { 1, 0, 10, 260, 32, WC_PUSHBUTTON, "Gravity Display..." },
+    { 2, 0, 42, 260, 64, WC_PUSHBUTTON, "Magnetic Display..." },
+};
+
+/* ----------------------------------------------------------------------
+ * OPTIONS_WINDOW's "Windows" mode sub-panel (WINPOSITION_WINDOW, 202):
+ * Window Types list on the left, Position (X/Y/Width/Height) sliders on
+ * the right. Reconstructed from a user-provided reference screenshot.
+ * ---------------------------------------------------------------------- */
+static const DialogCtlPosition g_pos_202[] = {
+    { 1, 0, 0, 140, 210, WC_GROUPBOX, "Window Types" },
+    { 2, 10, 20, 130, 200, WC_LBOX },
+    { 15, 150, 0, 400, 175, WC_GROUPBOX, "Position" },
+    { 11, 160, 20, 210, 35, WC_TEXT, "X Pos" },
+    { 3, 215, 18, 310, 36, WC_HSCROLL },
+    { 7, 315, 18, 390, 36 },
+    { 12, 160, 55, 210, 70, WC_TEXT, "Y Pos" },
+    { 4, 215, 53, 310, 71, WC_HSCROLL },
+    { 8, 315, 53, 390, 71 },
+    { 13, 160, 90, 210, 105, WC_TEXT, "Width" },
+    { 5, 215, 88, 310, 106, WC_HSCROLL },
+    { 9, 315, 88, 390, 106 },
+    { 14, 160, 125, 210, 140, WC_TEXT, "Height" },
+    { 6, 215, 123, 310, 141, WC_HSCROLL },
+    { 10, 315, 123, 390, 141 },
+};
+
+/* ----------------------------------------------------------------------
+ * IMAGE_OPTION_WINDOW (174, imopwin.c) -- "Geophysics Plot Options" popup
+ * (right-click context menu on a gravity/magnetic image): Display Range
+ * readout, Image Clipping (Relative Clipping dropdown + Max/Min Clip
+ * sliders), Image Type (Grey Scale/Pseudo Color/Contour + Levels), Grid
+ * (Grid Overlay/Auto/Sensor checkboxes + X/Y Start + Inc X/Y). OK/Cancel/
+ * Help ctlIds confirmed from imopwin.c's real E_CONTROL switch (12=OK,
+ * 13=Cancel, 14=Help...). Reconstructed from a user-provided reference
+ * screenshot.
+ * ---------------------------------------------------------------------- */
+static const DialogCtlPosition g_pos_174[] = {
+    { 10, 10,  8, 100, 24, WC_TEXT, "Display Range:" },
+    { 1, 105,  8, 165, 24 },
+    { 2, 170,  8, 230, 24 },
+
+    { 7, 10, 30, 300, 130, WC_GROUPBOX, "Image Clipping" },
+    { 20, 20, 48, 180, 66, WC_LISTBUTTON },
+    { 5, 20, 75, 160, 90, WC_HSCROLL },
+    { 3, 165, 73, 215, 91 },
+    { 8, 220, 75, 245, 90, WC_TEXT, "%" },
+    { 6, 20, 100, 160, 115, WC_HSCROLL },
+    { 4, 165, 98, 215, 116 },
+    { 9, 220, 100, 245, 115, WC_TEXT, "%" },
+
+    { 11, 10, 135, 300, 210, WC_GROUPBOX, "Image Type" },
+    { 15, 20, 155, 110, 173, WC_RADIOBUTTON, "Grey Scale", false, false, false, false, 1 },
+    { 16, 120, 155, 230, 173, WC_RADIOBUTTON, "Pseudo Color", false, false, false, false, 1 },
+    { 17, 20, 180, 110, 198, WC_RADIOBUTTON, "Contour", false, false, false, false, 1 },
+    { 19, 130, 180, 175, 198, WC_TEXT, "Levels" },
+    { 18, 180, 178, 230, 198 },
+
+    { 22, 10, 215, 300, 320, WC_GROUPBOX, "Grid" },
+    { 21, 20, 233, 130, 251, WC_CHECKBOX, "Grid Overlay" },
+    { 31, 140, 233, 210, 251, WC_CHECKBOX, "Auto" },
+    { 32, 220, 233, 290, 251, WC_CHECKBOX, "Sensor" },
+    { 23, 20, 260, 70, 275, WC_TEXT, "X Start" },
+    { 27, 75, 258, 140, 276 },
+    { 25, 150, 260, 195, 275, WC_TEXT, "Inc X" },
+    { 29, 200, 258, 290, 276 },
+    { 24, 20, 285, 70, 300, WC_TEXT, "Y Start" },
+    { 28, 75, 283, 140, 301 },
+    { 26, 150, 285, 195, 300, WC_TEXT, "Inc Y" },
+    { 30, 200, 283, 290, 301 },
+
+    { 12, 40, 330, 100, 350, WC_PUSHBUTTON, "OK" },
+    { 14, 120, 330, 180, 350, WC_PUSHBUTTON, "Help...", true },
+    { 13, 200, 330, 260, 350, WC_PUSHBUTTON, "Cancel" },
 };
 
 /* ----------------------------------------------------------------------
@@ -978,7 +1261,13 @@ static const DialogCtlPosition g_pos_177[] = {
  * guess -- not clearly identifiable in the reference screenshot.
  * ---------------------------------------------------------------------- */
 static const DialogCtlPosition g_pos_105[] = {
-    { 10,  8,  8, 330, 270, WC_GROUPBOX, "" },  /* graph canvas placeholder (custom-drawn) */
+    /* ctlId 10 (PROFILE_WINDOW_CUSTOM_50) is created directly by profile.c's
+     * E_CREATE handler via graph_create()/xvtcm_create() -- see
+     * xvt_custom_ctl_create() (xvt_compat.cpp) -- as a real drawable/
+     * interactive canvas, not an auto-populated placeholder. skipAutoCreate
+     * so this loop doesn't also create a conflicting generic widget at the
+     * same ctlId (graph_create's own rect, (4,4)-(404,204), wins). */
+    { 10,  8,  8, 330, 270, W_NONE, nullptr, false, false, false, false, 0, true },
     { 16,  8,272, 330, 288, WC_HSCROLL },
     { 15,438,  8, 455,  25, WC_PUSHBUTTON, "..." },
     {  4,340,  8, 455, 110, WC_GROUPBOX, "Properties" },
@@ -1042,7 +1331,7 @@ static const DialogCtlPosition g_pos_182[] = {
 };
 
 extern const DialogPositionEntry g_dialogPositions[] = {
-    { 137, 500, 335, g_pos_137, (int)(sizeof(g_pos_137)/sizeof(g_pos_137[0])) },
+    { 137, 660, 430, g_pos_137, (int)(sizeof(g_pos_137)/sizeof(g_pos_137[0])) },
     { 152, 210, 105, g_pos_152, (int)(sizeof(g_pos_152)/sizeof(g_pos_152[0])) },
     { 153, 210, 115, g_pos_153, (int)(sizeof(g_pos_153)/sizeof(g_pos_153[0])) },
     { 143, 270, 142, g_pos_143, (int)(sizeof(g_pos_143)/sizeof(g_pos_143[0])) },
@@ -1079,7 +1368,23 @@ extern const DialogPositionEntry g_dialogPositions[] = {
     { 161, 205,  54, g_pos_161, (int)(sizeof(g_pos_161)/sizeof(g_pos_161[0])) },
     { 164, 205,  24, g_pos_164, (int)(sizeof(g_pos_164)/sizeof(g_pos_164[0])) },
     { 163, 205,  50, g_pos_163, (int)(sizeof(g_pos_163)/sizeof(g_pos_163[0])) },
-    { 183, 630, 420, g_pos_183, (int)(sizeof(g_pos_183)/sizeof(g_pos_183[0])) },
+    { 183, 660, 570, g_pos_183, (int)(sizeof(g_pos_183)/sizeof(g_pos_183[0])) },
+    { 211, 280, 210, g_pos_211, (int)(sizeof(g_pos_211)/sizeof(g_pos_211[0])) },
+    { 210, 280, 210, g_pos_210, (int)(sizeof(g_pos_210)/sizeof(g_pos_210[0])) },
+    { 187, 280,  95, g_pos_187, (int)(sizeof(g_pos_187)/sizeof(g_pos_187[0])) },
+    { 192, 280,  85, g_pos_192, (int)(sizeof(g_pos_192)/sizeof(g_pos_192[0])) },
+    { 195, 280,  95, g_pos_195, (int)(sizeof(g_pos_195)/sizeof(g_pos_195[0])) },
+    { 191, 280, 175, g_pos_191, (int)(sizeof(g_pos_191)/sizeof(g_pos_191[0])) },
+    { 194, 280, 175, g_pos_194, (int)(sizeof(g_pos_194)/sizeof(g_pos_194[0])) },
+    { 188, 280, 230, g_pos_188, (int)(sizeof(g_pos_188)/sizeof(g_pos_188[0])) },
+    { 189, 280, 100, g_pos_189, (int)(sizeof(g_pos_189)/sizeof(g_pos_189[0])) },
+    { 193, 280,  80, g_pos_193, (int)(sizeof(g_pos_193)/sizeof(g_pos_193[0])) },
+    { 196, 280,  75, g_pos_196, (int)(sizeof(g_pos_196)/sizeof(g_pos_196[0])) },
+    { 190, 200,  25, g_pos_190, (int)(sizeof(g_pos_190)/sizeof(g_pos_190[0])) },
+    { 197, 280,  75, g_pos_197, (int)(sizeof(g_pos_197)/sizeof(g_pos_197[0])) },
+    { 198, 260,  65, g_pos_198, (int)(sizeof(g_pos_198)/sizeof(g_pos_198[0])) },
+    { 202, 400, 210, g_pos_202, (int)(sizeof(g_pos_202)/sizeof(g_pos_202[0])) },
+    { 174, 310, 365, g_pos_174, (int)(sizeof(g_pos_174)/sizeof(g_pos_174[0])) },
     { 124, 300, 100, g_pos_124, (int)(sizeof(g_pos_124)/sizeof(g_pos_124[0])) },
     { 199, 180,  75, g_pos_199, (int)(sizeof(g_pos_199)/sizeof(g_pos_199[0])) },
     { 200, 180,  75, g_pos_200, (int)(sizeof(g_pos_200)/sizeof(g_pos_200[0])) },
