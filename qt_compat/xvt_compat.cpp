@@ -75,6 +75,7 @@
 #include <QMdiSubWindow>
 #include <QPlainTextEdit>
 #include <QIcon>
+#include <QTimer>
 #include <QPointer>
 #include <QPolygonF>
 #include <QStatusBar>
@@ -470,9 +471,42 @@ class XvtWindow : public QWidget {
 public:
     WINDOW handle = NULL_WIN;
     QMenuBar *menuBar = nullptr; /* see buildMenuBar(); nullptr if this window has no menu */
+    bool menuBarIsStatic = false; /* true only for a bar built by buildMenuBar() (the real
+                                    * TASK_MENUBAR, from g_menuTree) -- see xvt_menu_set_tree's
+                                    * use of this: updateWindowsMenu (nodLib1.c) pushes a
+                                    * mostly-empty per-window bookkeeping tree through that
+                                    * function on almost every focus/creation event, and must
+                                    * NOT be allowed to clear()+rebuild this real bar down to
+                                    * nothing just because ITS OWN tree has no top-level content
+                                    * (matches a user report: "all menus have disappeared from
+                                    * startup" the moment updateWindowsMenu(TASK_WIN, ...) first
+                                    * ran without crashing -- previously masked by the same-call
+                                    * use-after-free crash fixed earlier this session, so this
+                                    * bug was always latent, just never reached alive before). */
     QMdiArea *mdiArea = nullptr; /* see ensureMdiArea(); lazily created the first time a
                                    * child window needs to nest inside this one */
     QStatusBar *statBar = nullptr; /* see statbar_create(); nullptr if this window has no status bar */
+    int resizeDispatchDepth = 0; /* see resizeEvent -- reentrancy guard against
+                                   * synchronous recursive E_SIZE dispatch */
+    WINDOW comboMenuOwner = NULL_WIN; /* see xvt_menu_set_tree's redirect branch and
+                                   * xvt_vobj_destroy -- set on TASK_WIN's widget to the
+                                   * handle of whichever window's combined menu (e.g.
+                                   * createLineMapMenubar's Symbol/Event/Define tree) is
+                                   * CURRENTLY installed on this bar. Every QAction in that
+                                   * combined menu dispatches E_COMMAND to THAT window's own
+                                   * handle (matches real XVT's Windows-MDI-merge convention:
+                                   * the owning MDI child's own handler receives all of it,
+                                   * including the cloned main-menu commands, and forwards
+                                   * unrecognized tags to do_TASK_MENUBAR itself) -- so once
+                                   * that window is destroyed, EVERY item on this bar
+                                   * (including the real File/Edit/Geology/... clones, not
+                                   * just the new ones) silently does nothing forever after,
+                                   * since objFor(deadHandle) returns null and the QAction's
+                                   * triggered-lambda just returns (matches a user report:
+                                   * after closing a Section, no menu command -- including
+                                   * "Section" itself -- worked again). xvt_vobj_destroy uses
+                                   * this to know when to rebuild TASK_WIN's bar back to the
+                                   * plain real menu. */
 
     explicit XvtWindow(QWidget *parent) : QWidget(parent) {}
 
@@ -600,8 +634,41 @@ protected:
             bottom = h;
         }
         if (mdiArea) mdiArea->setGeometry(0, top, width(), height() - top - bottom);
+        /* Real XVT delivers a resize as an asynchronous, queued message --
+         * an app's own E_SIZE handler calling xvt_vobj_move()/setGeometry()
+         * on itself (e.g. nodwork2.c's Section/Map aspect-ratio correction,
+         * which re-moves the window if the resized client area doesn't
+         * exactly match the diagram's aspect ratio) would see that second
+         * resize processed on a LATER iteration of the event loop, one at a
+         * time. Qt's QWidget::setGeometry delivers resizeEvent SYNCHRONOUSLY
+         * within the same call stack instead, so the same self-correcting
+         * handler recurses into itself immediately -- confirmed via debug
+         * logging: enabling this window's menu bar (see createLineMapMenubar,
+         * #36) shifted the very first computed aspect ratio just enough that
+         * the correction never exactly converged in one step, producing 24+
+         * synchronous recursive E_SIZE dispatches nested in a single
+         * xvt_vobj_move call before the process unwound -- matches a user
+         * report of the Map/Section window "flashing up then disappearing"
+         * (each recursive resize left it in a smaller/differently-placed
+         * state than the last). Guard against re-entering dispatch() for
+         * E_SIZE while already inside an E_SIZE dispatch for this SAME
+         * window; defer the nested one by one event-loop tick instead,
+         * matching real XVT's async delivery and letting the app's own
+         * iterative correction actually converge instead of recursing. */
+        if (resizeDispatchDepth > 0) {
+            WINDOW h = handle;
+            QTimer::singleShot(0, [h]() {
+                XvtObj *obj = objFor(h);
+                if (!obj || !obj->handler) return;
+                EVENT e{}; e.type = E_SIZE;
+                obj->handler(h, &e);
+            });
+            return;
+        }
+        resizeDispatchDepth++;
         EVENT ev{}; ev.type = E_SIZE;
         dispatch(ev);
+        resizeDispatchDepth--;
     }
     void paintEvent(QPaintEvent *pe) override
     {
@@ -867,6 +934,9 @@ void xvt_vobj_set_data(WINDOW win, long data)
     if (o) o->userData = data;
 }
 
+static void buildMenuBar(XvtWindow *win, WINDOW handle); /* see definition below; forward-declared
+                                    * for xvt_vobj_destroy's use, see its own comment */
+
 void xvt_vobj_destroy(WINDOW win)
 {
     XvtObj *o = objFor(win);
@@ -876,6 +946,22 @@ void xvt_vobj_destroy(WINDOW win)
         o->handler(win, &ev);
     }
     if (o->isModalDialog) popModalDialog(win);
+    /* If this window's combined menu (see XvtObj::comboMenuOwner) is
+     * currently installed on TASK_WIN's bar, every QAction on it
+     * dispatches E_COMMAND to THIS window's own handle -- about to
+     * become permanently dead. Left alone, every menu command (not just
+     * the new ones, the real File/Edit/Geology/... clones too) would
+     * silently do nothing forever after this window closes (matches a
+     * user report: after closing a Section, no menu command -- including
+     * "Section" itself -- worked again). Rebuild TASK_WIN's bar back to
+     * the plain real static menu before this handle goes away. */
+    if (auto *taskXw = dynamic_cast<XvtWindow *>(widgetFor(TASK_WIN))) {
+        if (taskXw->comboMenuOwner == win) {
+            taskXw->comboMenuOwner = NULL_WIN;
+            taskXw->menuBarIsStatic = false;
+            buildMenuBar(taskXw, TASK_WIN);
+        }
+    }
     g_objs.remove(win);
     if (o->widget) {
         /* If nested as a real QMdiSubWindow (see makeWindow), deleting
@@ -1039,6 +1125,34 @@ void xvt_vobj_move(WINDOW win, RCT *rct)
         return;
     }
     w->setGeometry(r);
+}
+
+/* Not a real XVT API. A window with its own menu bar (see createLineMapMenubar,
+ * #36) needs its CONTENT WIDGET to be menuBar-height TALLER than the drawing
+ * area alone -- xvt_vobj_get_client_rect's returned size already accounts for
+ * this (bottom-top = drawing area only, below the bar), but xvt_vobj_move
+ * deliberately does NOT add the bar height back in (see that function's own
+ * comment -- a prior attempt at exactly that double-counted it for callers
+ * that pass a rect NOT derived from xvt_vobj_get_client_rect). Callers that
+ * DO build their rect from xvt_vobj_get_client_rect and then normalize it to
+ * a content-only size before calling xvt_vobj_move (nodwork1.c's
+ * updateSection, nodwork2.c's sectionEventHandler E_SIZE case -- both real,
+ * unchanged app code adapted this session to call this) need to add it back
+ * themselves; without this, the content widget's actual height came out
+ * exactly barHeight pixels short every single resize, and since the NEXT
+ * xvt_vobj_get_client_rect call subtracts barHeight from that ALREADY-short
+ * height again, the effective drawing area shrank by another barHeight on
+ * every resize cycle -- confirmed via gdb backtrace showing the window
+ * dropping into a long idle wait afterward (not an infinite loop, just a
+ * handful of resize-triggered iterations shrinking it to nothing), matching
+ * a user report of the Map/Section window "flashing up then disappearing"
+ * as soon as it gained a menu bar. */
+int xvt_win_get_menubar_height(WINDOW win)
+{
+    QWidget *w = widgetFor(win);
+    if (auto *xw = dynamic_cast<XvtWindow *>(w))
+        if (xw->menuBar) return xw->menuBar->height();
+    return 0;
 }
 
 void xvt_vobj_get_client_rect(WINDOW win, RCT *rct)
@@ -1811,8 +1925,23 @@ static void populateMenu(QMenu *menu, const char *parentPath, WINDOW handle)
 
 static void buildMenuBar(XvtWindow *win, WINDOW handle)
 {
-    if (win->menuBar) return; /* already built (e.g. a second xvt_win_create_def call) */
-    auto *bar = new QMenuBar(win);
+    if (win->menuBarIsStatic) return; /* already built the real static menu (e.g. a second xvt_win_create_def call) */
+    /* [Qt port fix] used to check `if (win->menuBar) return;` -- but
+     * win->menuBar can already be non-null here from an EARLIER,
+     * unrelated xvt_menu_set_tree(TASK_WIN, ...) call that created an
+     * empty placeholder bar (updateWindowsMenu's per-window Windows-list
+     * bookkeeping, see that function's own comments -- it runs
+     * synchronously as part of the SAME History-window E_CREATE cascade
+     * that's still unwinding when THIS function gets called moments
+     * later by xvt_win_create's menu_res_id==1000 handling). The old
+     * check treated that placeholder as "already built," permanently
+     * skipping the real File/Edit/Geology/... population -- matches a
+     * user report of ALL menus (not just Symbol/Event/Define) missing
+     * from startup. Reuse the existing bar object (clear it first) if
+     * one's already there instead of creating an orphan duplicate. */
+    QMenuBar *bar = win->menuBar;
+    if (bar) bar->clear();
+    else bar = new QMenuBar(win);
     for (int i = 0; i < g_menuTreeCount; i++) {
         const MenuNodeEntry &n = g_menuTree[i];
         if (n.parentPath) continue; /* only the 6 top-level roots here */
@@ -1823,6 +1952,7 @@ static void buildMenuBar(XvtWindow *win, WINDOW handle)
     bar->setGeometry(0, 0, win->width(), barHeight);
     bar->show();
     win->menuBar = bar;
+    win->menuBarIsStatic = true;
     /* If this window already has an mdiArea (created by an earlier child
      * window nesting into it -- e.g. the "History" window itself is the
      * one that requests TASK_MENUBAR, but by the time xvt_win_create()
@@ -2486,19 +2616,31 @@ void xvt_menu_set_item_checked(WINDOW win, MENU_TAG tag, BOOLEAN checked)
         m->checked = checked;
 }
 
-/* Populates a real QMenu from a MENU_ITEM sibling run (real XVT's array
- * convention -- walk until a tag==0 sentinel entry, see the s_mitem
- * comment in the real SDK header; .child != nullptr means a submenu, so
- * recurse instead of adding a leaf action). Mirrors populateMenu() above,
- * which does the same thing from the static g_menuTree/MenuNodeEntry data
- * -- this one walks the app's own dynamically-built MENU_ITEM trees
- * instead (xvt_menu_set_tree's whole point in real XVT). */
+/* Populates a real QMenu from a MENU_ITEM sibling run. Real XVT's array
+ * convention is documented as "walk until a tag==0 sentinel entry" (see
+ * the s_mitem comment in the real SDK header), but that's WRONG for this
+ * app's actual data: top-level menu ROOTS (File, Edit, ...) genuinely
+ * have tag==0 themselves (only leaf commands carry a real, non-zero
+ * tag -- selecting a submenu heading doesn't fire an E_COMMAND).
+ * Confirmed via debug logging on createLineMapMenubar's combined tree
+ * (nodLib1.c, #36): `{tag=0, text="File", child=<real submenu>}` for a
+ * perfectly real, populated entry -- a tag-based walk stopped at the
+ * very first item every time, matching a user report that
+ * Symbol/Event1/Event2/Define never appeared even after the tree data
+ * and redirect logic were both individually confirmed correct. `.text`
+ * is the real distinguishing signal: a true end-of-array sentinel
+ * (calloc padding, or an explicit `arr[n].tag=0` terminator) has BOTH
+ * tag==0 AND text==nullptr, while every genuine entry -- root or leaf --
+ * always has real text. `.child != nullptr` means a submenu, so recurse
+ * instead of adding a leaf action. Mirrors populateMenu() above, which
+ * does the same thing from the static g_menuTree/MenuNodeEntry data --
+ * this one walks the app's own dynamically-built MENU_ITEM trees instead
+ * (xvt_menu_set_tree's whole point in real XVT). */
 static void populateMenuFromItems(QMenu *menu, MENU_ITEM *items, WINDOW handle)
 {
     if (!items) return;
-    for (int i = 0; items[i].tag != 0; i++) {
+    for (int i = 0; items[i].text != nullptr; i++) {
         MENU_ITEM &m = items[i];
-        if (!m.text) continue;
         if (m.child) {
             QMenu *sub = menu->addMenu(QString::fromLocal8Bit(m.text));
             populateMenuFromItems(sub, m.child, handle);
@@ -2519,11 +2661,90 @@ static void populateMenuFromItems(QMenu *menu, MENU_ITEM *items, WINDOW handle)
     }
 }
 
+/* xvt_menu_set_tree's bookkeeping copy (o->menuTree, read back later by
+ * xvt_menu_get_tree/xvt_menu_set_item_enabled/_checked -- e.g. every
+ * updateWindowsMenu call, which runs on essentially every window
+ * creation/focus change) used to just alias the caller's own `tree`
+ * pointer. Real XVT's actual contract must be that xvt_menu_set_tree
+ * takes its own copy, because real call sites free their temporary
+ * tree right after calling it -- e.g. nodLib1.c's createLineMapMenubar
+ * builds a combined menu array, calls xvt_menu_set_tree(), then
+ * immediately xvt_mem_free()s that same array (matches
+ * xvt_res_free_menu_tree being a documented no-op elsewhere: the real
+ * API's tree-freeing story assumes XVT already made its own copy).
+ * Aliasing instead of copying left o->menuTree dangling the instant the
+ * caller's free ran -- confirmed via gdb backtrace: a SIGSEGV in
+ * strlen()/QString::fromLocal8Bit() reading a garbage .text pointer,
+ * called from updateWindowsMenu (nodLib1.c) rebuilding the Windows menu
+ * through xvt_menu_get_tree()'s now-dangling result, itself reached via
+ * createLineMapMenubar -> updateTaskMenuOptions immediately after
+ * freeing its own combined-menu buffer (matches a user report of
+ * intermittent crashes a few Map/Section windows into a session, once
+ * something else happened to reuse the freed memory). */
+static MENU_ITEM *deepCopyMenuTree(const MENU_ITEM *src)
+{
+    if (!src) return nullptr;
+    int count = 0;
+    /* .text, not .tag, is the real end-of-array signal -- see
+     * populateMenuFromItems's comment: top-level menu roots (File,
+     * Edit, ...) genuinely have tag==0 themselves, only a true sentinel
+     * (calloc padding or an explicit terminator) has text==nullptr too. */
+    while (src[count].text != nullptr) count++;
+    /* xvt_menu_get_tree hands out a fixed XVT_MENU_TREE_SIZE(32)-slot
+     * scratch buffer regardless of how many entries are currently "in
+     * use" (sentinel-terminated) -- real callers (e.g. updateWindowsMenu,
+     * nodLib1.c) rely on that headroom, indexing a FIXED top-level slot
+     * (NUM_MENUS-1, the Windows menu) directly rather than walking to the
+     * sentinel first. A tightly-sized copy (count+1 slots) breaks that
+     * contract the moment such a caller re-fetches via xvt_menu_get_tree
+     * after a set_tree call whose sentinel sat at a smaller count than
+     * the index it needs (e.g. a window whose tree has 0 populated
+     * top-level entries yet, only the Windows submenu) -- confirmed via
+     * gdb backtrace: reading menuBar[5] on a 1-slot allocation produced a
+     * garbage .child pointer (0x18) and crashed in populateMenuFromItems.
+     * Keep the same minimum-32-slots headroom at every level (cheap, and
+     * child arrays are populated/resized by the app's own
+     * xvt_mem_realloc calls the same way regardless). */
+    size_t numItems = (size_t)count + 1;
+    if (numItems < XVT_MENU_TREE_SIZE) numItems = XVT_MENU_TREE_SIZE;
+    auto *dst = (MENU_ITEM *)calloc(numItems, sizeof(MENU_ITEM));
+    for (int i = 0; i < count; i++) {
+        dst[i].tag = src[i].tag;
+        dst[i].text = src[i].text ? strdup(src[i].text) : nullptr;
+        dst[i].checkable = src[i].checkable;
+        dst[i].checked = src[i].checked;
+        dst[i].enabled = src[i].enabled;
+        dst[i].mkey = src[i].mkey;
+        dst[i].child = src[i].child ? deepCopyMenuTree(src[i].child) : nullptr;
+    }
+    return dst;
+}
+
+static void freeMenuTreeDeep(MENU_ITEM *tree)
+{
+    if (!tree) return;
+    /* .text, not .tag, is the real end-of-array signal -- see
+     * populateMenuFromItems's comment. */
+    for (int i = 0; tree[i].text != nullptr; i++) {
+        free(tree[i].text);
+        freeMenuTreeDeep(tree[i].child);
+    }
+    free(tree);
+}
+
 void xvt_menu_set_tree(WINDOW win, DATA_PTR tree)
 {
     XvtObj *o = objFor(win);
     if (!o) return;
-    o->menuTree = (MENU_ITEM *)tree;
+    /* Copy BEFORE freeing the old bookkeeping tree -- callers that first
+     * xvt_menu_get_tree(win) (getting back o->menuTree itself), mutate it
+     * in place, and pass that SAME pointer back here (e.g.
+     * updateWindowsMenu, see deepCopyMenuTree's comment above) would
+     * otherwise have `tree` freed out from under them by the old-tree
+     * cleanup before it's ever copied. */
+    MENU_ITEM *newTree = deepCopyMenuTree((MENU_ITEM *)tree);
+    freeMenuTreeDeep(o->menuTree);
+    o->menuTree = newTree;
     /* Real XVT's xvt_menu_set_tree attaches a REAL, visible menu bar to
      * the window -- this previously only updated the bookkeeping pointer
      * (used by xvt_menu_set_item_enabled/_checked), never built anything
@@ -2538,7 +2759,77 @@ void xvt_menu_set_tree(WINDOW win, DATA_PTR tree)
     if (o->ctlId != -1 || !o->widget) return;
     auto *xw = dynamic_cast<XvtWindow *>(o->widget);
     if (!xw) return;
-    QMenuBar *bar = xw->menuBar;
+    /* [Qt port fix] Section/Line-Map windows (createLineMapMenubar,
+     * nodLib1.c) build a COMBINED menu -- the real main File/Edit/...
+     * items plus Symbol/Event 1/Event 2/Define -- specifically so it's
+     * visible at the TOP of the app while that window is front, matching
+     * real Windows MDI menu-merging semantics (the exact same reasoning
+     * already applied in xvt_win_create's menu_res_id==1000 handling for
+     * the History window, see that function's own comment: building the
+     * bar as a child of the REQUESTING window put it inside that
+     * window's own small nested content area instead of the outer frame,
+     * "menus have disappeared"). Building it as a child of `xw` (this
+     * window's own tiny MDI-nested widget) has the exact same problem --
+     * confirmed via user report: the underlying menu data was correct
+     * (no crash, real tags/labels) but the Symbol/Event1/Event2/Define
+     * menus never visibly appeared. Redirect to TASK_WIN's widget when
+     * the incoming tree looks like a real top-level menu (non-empty
+     * first entry) -- as opposed to the mostly-empty per-window
+     * bookkeeping trees updateWindowsMenu also pushes through this same
+     * function for every window on most focus/creation events (their
+     * tree[0] is always empty, only the Windows submenu is populated),
+     * which must keep targeting their own harmless invisible nested bar
+     * so they don't stomp on TASK_WIN's real permanent menu with
+     * near-empty data. */
+    /* [Qt port fix] read from o->menuTree (the fresh, independently-owned
+     * copy made above), NOT the original `tree` parameter -- same
+     * use-after-free hazard as the visible-menu-building loop further
+     * down (see that loop's own comment): when a caller aliases `tree`
+     * with o->menuTree (xvt_menu_get_tree(win) then mutate in place,
+     * e.g. updateWindowsMenu), `freeMenuTreeDeep(o->menuTree)` above
+     * frees the SAME memory `tree` still points to, so reading
+     * tree[0].tag here could return reused/garbage data -- confirmed via
+     * debug logging: an empty (tag==0) tree was intermittently read back
+     * as non-zero garbage right here, incorrectly satisfying
+     * looksLikeRealTopLevelMenu and redirecting a per-window Windows-list
+     * bookkeeping update to TASK_WIN's real bar, wiping it (matches a
+     * user report: main menus disappearing specifically after opening an
+     * event dialog, i.e. exactly when this aliased call pattern fires). */
+    /* [Qt port fix] top-level menu ROOTS (File, Edit, ...) never carry a
+     * real command tag in this app's data -- only LEAF commands do,
+     * since selecting a submenu heading just opens it rather than firing
+     * an E_COMMAND. Confirmed via debug logging: createLineMapMenubar's
+     * combined tree has `newLineMapMenubar[0] = {tag=0, text="File",
+     * child=<real submenu>}` -- tag==0 even though it's genuinely real,
+     * populated data (copied straight from the real TASK_MENUBAR clone).
+     * `tag != 0` was therefore never a valid signal for "this is a real
+     * menu, not an empty per-window bookkeeping tree" -- it happened to
+     * exclude the empty case (whose tag[0] AND text[0] are both null,
+     * from a fresh untouched calloc) but ALSO excluded every genuine
+     * top-level root, so the redirect to TASK_WIN never actually fired --
+     * matches a user report of the Symbol/Event1/Event2/Define menus
+     * never appearing even after every crash/visibility bug in this
+     * function was fixed. `.text` alone is the correct, sufficient
+     * distinguishing signal. */
+    MENU_ITEM *firstItem = o->menuTree;
+    bool looksLikeRealTopLevelMenu = firstItem && firstItem->text != nullptr;
+    QWidget *taskWidget = looksLikeRealTopLevelMenu ? widgetFor(TASK_WIN) : nullptr;
+    auto *hostXw = (taskWidget && taskWidget != xw) ? dynamic_cast<XvtWindow *>(taskWidget) : xw;
+    if (!hostXw) hostXw = xw;
+    /* Remember who this combined menu belongs to -- see
+     * XvtObj::comboMenuOwner / xvt_vobj_destroy for why. */
+    if (hostXw != xw) hostXw->comboMenuOwner = win;
+    /* Never let an empty-top-level tree (see looksLikeRealTopLevelMenu
+     * above) clear()+rebuild a bar that buildMenuBar() already populated
+     * from the real static g_menuTree data (see XvtObj::menuBarIsStatic)
+     * -- that would wipe TASK_WIN's real File/Edit/Geology/... menu down
+     * to nothing every time updateWindowsMenu(TASK_WIN, ...) runs, which
+     * is almost every window focus/creation event. This call was always
+     * meant to be a no-op for the VISIBLE bar in that case (real XVT's
+     * per-window "Windows" list bookkeeping, not a real menu rebuild) --
+     * just skip the whole visible-menu section entirely. */
+    if (hostXw->menuBarIsStatic && !looksLikeRealTopLevelMenu) return;
+    QMenuBar *bar = hostXw->menuBar;
     if (bar) {
         /* clear() deletes this bar's QActions -- g_menuActionsByTag is
          * shared with the main app menu bar (populateMenu/buildMenuBar
@@ -2547,23 +2838,41 @@ void xvt_menu_set_tree(WINDOW win, DATA_PTR tree)
          * either way. */
         bar->clear();
     } else {
-        bar = new QMenuBar(xw);
-        xw->menuBar = bar;
+        bar = new QMenuBar(hostXw);
+        hostXw->menuBar = bar;
     }
     /* Top-level entries are always menu roots (QMenuBar only ever holds
      * QMenus, not leaf QActions), so add one QMenu per top-level item and
      * populate its children -- mirrors buildMenuBar()/populateMenu()
-     * above for the static g_menuTree case. */
-    for (MENU_ITEM *items = (MENU_ITEM *)tree; items && items->tag != 0; items++) {
-        if (!items->text) continue;
+     * above for the static g_menuTree case.
+     * [Qt port fix] Walk o->menuTree (the just-made deep copy), NOT the
+     * original `tree` parameter -- callers that alias `tree` with
+     * o->menuTree (xvt_menu_get_tree(win) then mutate-in-place, e.g.
+     * updateWindowsMenu) had `tree` freed out from under THIS loop by the
+     * freeMenuTreeDeep(o->menuTree) call above (same memory, since they
+     * alias), even though the copy itself was made safely beforehand.
+     * Confirmed via gdb + debug logging: the freed block got reused by
+     * deepCopyMenuTree's own calloc (or Qt's own allocations) before this
+     * loop re-read it, producing garbage tag/text/child values and a
+     * SIGSEGV in QString::fromLocal8Bit. o->menuTree is a fresh,
+     * independently-owned copy -- always safe to read here regardless of
+     * what the caller does with its own `tree` buffer afterward.
+     * [Qt port fix] Loop on `.text != nullptr`, NOT `.tag != 0` -- see
+     * populateMenuFromItems's comment: top-level menu roots (File,
+     * Edit, ...) genuinely have tag==0, so a tag-based walk stopped at
+     * the very first entry every time, adding ZERO menus (matches a
+     * user report of Symbol/Event1/Event2/Define -- and in fact every
+     * other top-level menu too -- never appearing on the rebuilt bar
+     * even once the redirect itself was firing correctly). */
+    for (MENU_ITEM *items = o->menuTree; items && items->text != nullptr; items++) {
         QMenu *menu = bar->addMenu(QString::fromLocal8Bit(items->text));
         populateMenuFromItems(menu, items->child, win);
     }
     int barHeight = bar->sizeHint().height();
-    bar->setGeometry(0, 0, xw->width(), barHeight);
+    bar->setGeometry(0, 0, hostXw->width(), barHeight);
     bar->show();
-    if (xw->mdiArea)
-        xw->mdiArea->setGeometry(0, barHeight, xw->width(), xw->height() - barHeight);
+    if (hostXw->mdiArea)
+        hostXw->mdiArea->setGeometry(0, barHeight, hostXw->width(), hostXw->height() - barHeight);
 }
 
 DATA_PTR xvt_menu_get_tree(WINDOW win)

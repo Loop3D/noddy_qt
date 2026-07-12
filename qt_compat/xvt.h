@@ -84,6 +84,7 @@ WINDOW xvt_custom_ctl_create(int cid, RCT *rct, WINDOW parent, WIN_EVENT_HANDLER
 void xvt_win_set_ctl_proxy(WINDOW win, WINDOW proxyWin); /* [DONE] -- compat-layer-only bridge, see XvtObj::ctlProxyWin in xvt_compat.cpp */
 void xvt_win_mark_controls_only(WINDOW win); /* [DONE] -- compat-layer-only, see XvtObj::controlsOnly in xvt_compat.cpp */
 void xvt_win_set_redraw_proxy(WINDOW win, WINDOW proxyWin); /* [DONE] -- compat-layer-only, see XvtObj::redrawProxyWin in xvt_compat.cpp */
+int xvt_win_get_menubar_height(WINDOW win); /* [DONE] -- compat-layer-only, see xvt_vobj_move's comment in xvt_compat.cpp */
 BOOLEAN xvt_ctl_is_checked(WINDOW ctl_win);              /* [DONE] */
 void xvt_ctl_set_checked(WINDOW ctl_win, BOOLEAN checked); /* [DONE] */
 void xvt_ctl_check_radio_button(WINDOW checked, WINDOW *group, int count); /* [DONE] */
