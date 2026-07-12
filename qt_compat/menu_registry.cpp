@@ -83,6 +83,12 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "3.7", "3", "3D Topo", 1049, true },
     { "3.8", "3", "3D Triangulation", 1050, true },
     { "3.9", "3", "Plot Orientations", 1069, true },
+    /* [Qt port ADDITION] todo.txt #43 -- NEW menu item, not part of the
+     * real XVT-Design .rc file this tree was otherwise parsed from (see
+     * TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS, nodInc.h, for why
+     * tag 1200). Dispatched in mainMenu.c, calculated in lineEvnt.c's
+     * saveSurfaceOrientations(). */
+    { "3.10", "3", "Save Surface Orientations...", 1200, true },
     { "4", nullptr, "Geophysics", 0, false },
     { "4.1", "4", "Calculate Anomalies", 0, false },
     { "4.1.1", "4.1", "Anomalies...", 1043, true },

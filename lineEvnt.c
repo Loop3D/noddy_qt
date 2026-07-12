@@ -1922,3 +1922,197 @@ int offsetX, offsetY;
    return (TRUE);
 }
 
+/* ============================================================================
+ * [Qt port ADDITION] todo.txt #43 -- NEW feature, not part of the original
+ * XVT-Design-generated app (no calculation code above this point was
+ * modified to add it). "Save Surface Orientations" (Geology menu): sweeps a
+ * regular X/Y grid across the current block model's full extent
+ * (BLOCK_VIEW_OPTIONS origin/length, from getViewOptions()) at
+ * geologyCubeSize spacing, and at every point computes the bedding dip/dip-
+ * direction using the EXACT SAME calculation chain as clicking "Bedding" on
+ * a Map/Section window: BedDip()/find() above (sox=3, type=FOLIATION),
+ * built on the same dots[1][1]/histoire[1][1] construction onedotmp()
+ * (ldotmap2.c) uses for a single click -- including its X/Y/Z formula and
+ * reverseEvents() call -- plus the lithology name at each point via
+ * whichLayer() (which.c). Written directly here (rather than a separate
+ * file) so it can read the `good`/`error` statics BedDip() itself relies on
+ * to know whether find() actually succeeded at a given point.
+ *
+ * Per-point behaviour (user-specified): every grid point gets a CSV row
+ * (never skipped) so the lithology name is always captured; dip/dip
+ * direction are set to -99/-99 specifically where find() reports failure
+ * (the same cases a real map click would show as an error, e.g. igneous
+ * rock with no meaningful bedding).
+ *
+ * Z is evaluated at the block's own top surface (BLOCK_VIEW_OPTIONS::
+ * originZ, Block Options, defaults to 5000 -- "Upper South West Corner
+ * (MinX, MinY, MaxZ)" per that struct's own comment, nodStruc.h), NOT
+ * onedotmp's own view-relative Z formula (that one's specific to
+ * interactive map-click coordinate conversion, not "the surface").
+ *
+ * Known limitation: does not yet account for GEOLOGY_OPTIONS::useTopography
+ * -- always evaluates at the flat originZ surface -- ready to extend once
+ * real topography support exists, per the CSV's own z column (kept
+ * separate from x/y for exactly this reason).
+ * ============================================================================
+ */
+void saveSurfaceOrientations(void)
+{
+   BLOCK_VIEW_OPTIONS *viewOptions = getViewOptions ();
+   FILE_SPEC fs;
+   FILE *outFile;
+   double ***dots;
+   struct story **histoire;
+   int numEvents = (int) countObjects (NULL_WIN);
+   double absx, absy, surfaceZ, cubeSize;
+   double worldX, worldY;
+   int nx, ny, ix, iy;
+
+   if (numEvents < 1)
+   {
+      xvt_dm_post_error ("No history is currently loaded.");
+      return;
+   }
+
+   cubeSize = viewOptions->geologyCubeSize;
+   if (cubeSize <= 0.0)
+   {
+      xvt_dm_post_error ("Geology Cube Size (Block Options) must be greater than zero.");
+      return;
+   }
+
+   getCurrentFileName (&fs);
+   if (!strlen(fs.name))
+      strcpy (fs.name, "untitled.csv");
+   else
+      addFileExtention (fs.name, ".csv");
+   getDefaultDirectory (&(fs.dir));
+
+   switch (xvt_dm_post_file_save(&fs, "Save Surface Orientations as ..."))
+   {
+      case FL_OK:
+         break;
+      case FL_BAD:
+      case FL_CANCEL:
+      default:
+         return;
+   }
+   if (!strlen(fs.name))
+   {
+      xvt_dm_post_error ("Error, No file Specified");
+      return;
+   }
+   setDefaultDirectory (&(fs.dir));
+   xvt_fsys_set_dir (&fs.dir);
+
+   if (!(outFile = (FILE *) fopen(fs.name, "w")))
+   {
+      xvt_dm_post_error ("Error, Could not create output file");
+      return;
+   }
+
+   if ((dots = (double ***) qdtrimat(0,2,0,2,0,3)) == 0L)
+   {
+      xvt_dm_post_error ("Not enough memory, try closing some windows");
+      fclose (outFile);
+      return;
+   }
+   if ((histoire = (struct story **) strstomat(0,2,0,2)) == 0L)
+   {
+      xvt_dm_post_error ("Not enough memory, try closing some windows");
+      freeqdtrimat (dots,0,2,0,2,0,3);
+      fclose (outFile);
+      return;
+   }
+
+   absx = viewOptions->originX;
+   absy = viewOptions->originY;
+                        /* The "surface" is the top of the block (Upper
+                        ** South West Corner (MinX, MinY, MaxZ) per
+                        ** BLOCK_VIEW_OPTIONS's own comment, nodStruc.h) --
+                        ** i.e. originZ itself (Block Options, defaults to
+                        ** 5000), NOT onedotmp's originZ-lengthZ formula
+                        ** (that's a different, view-relative Z onedotmp
+                        ** uses for interactive map clicks, not "the
+                        ** surface" -- confirmed wrong by the user). */
+   surfaceZ = viewOptions->originZ;
+
+   nx = (int) (viewOptions->lengthX / cubeSize) + 1;
+   ny = (int) (viewOptions->lengthY / cubeSize) + 1;
+
+   fprintf (outFile, "x,y,z,dip,dip direction,lithoname\n");
+
+   initLongJob (0, nx, "Calculating Surface Orientations...", NULL);
+
+   for (ix = 0; ix < nx; ix++)
+   {
+      if (abortLongJob ())
+         break;
+
+      worldX = absx + ((double) ix * cubeSize);
+
+      for (iy = 0; iy < ny; iy++)
+      {
+         double dip = -99.0, dipdir = -99.0;
+         unsigned int flavor;
+         int index;
+         LAYER_PROPERTIES *layerProp;
+         char lithoName[UNIT_NAME_LENGTH+1];
+
+         worldY = absy + ((double) iy * cubeSize);
+
+                        /* same dots[1][1]/histoire[1][1] construction as
+                        ** onedotmp() (ldotmap2.c), except Z is the real
+                        ** block-top surface (see surfaceZ's own comment
+                        ** above), not onedotmp's view-relative formula */
+         dots[1][1][1] = worldX;
+         dots[1][1][2] = worldY;
+         dots[1][1][3] = surfaceZ;
+         histoire[1][1].again = 1;
+         izero (histoire[1][1].sequence);
+         reverseEvents (dots, histoire, 1, 1);
+
+                        /* lithology name -- always captured, regardless of
+                        ** whether a bedding orientation is available here.
+                        ** reverseEvents() (just above) walks dots[1][1]
+                        ** BACKWARDS through every fold/fault/tilt/etc,
+                        ** mutating it in place to the point's un-deformed
+                        ** position -- find()'s own sox==1 (rock type) path
+                        ** reads xdots[5][1..3] FROM dots[1][1] post-
+                        ** reverseEvents for exactly this reason (see
+                        ** find()'s own which() call, above) before calling
+                        ** which()/whichLayer(). Using the original flat
+                        ** worldX/worldY/surfaceZ here instead (this
+                        ** function's first version) ignored all of that
+                        ** deformation, so every grid point resolved to
+                        ** whichever single stratigraphic band the FLAT
+                        ** surfaceZ happened to fall into -- matches user
+                        ** report: lithology always came back the same
+                        ** ("Upper") everywhere. */
+         taste (numEvents, histoire[1][1].sequence, &flavor, &index);
+         layerProp = whichLayer (index, dots[1][1][1], dots[1][1][2], dots[1][1][3]);
+         strncpy (lithoName, layerProp ? layerProp->unitName : "", UNIT_NAME_LENGTH);
+         lithoName[UNIT_NAME_LENGTH] = '\0';
+
+                        /* bedding dip/dip-direction -- same call BedDip() makes */
+         find (dots, histoire, worldX, worldY, surfaceZ, 3, 0, FOLIATION, &dip, &dipdir);
+         if (!good)
+         {
+            dip = -99.0;
+            dipdir = -99.0;
+         }
+
+         fprintf (outFile, "%.3f,%.3f,%.3f,%.3f,%.3f,%s\n",
+                  worldX, worldY, surfaceZ, dip, dipdir, lithoName);
+      }
+
+      incrementLongJob (INCREMENT_JOB);
+   }
+
+   finishLongJob ();
+
+   freeqdtrimat (dots,0,2,0,2,0,3);
+   free_strstomat (histoire,0,2,0,2);
+   fclose (outFile);
+}
+

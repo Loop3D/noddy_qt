@@ -1011,6 +1011,13 @@ EVENT *xdEvent;
 		/* TAG END TASK_MENUBAR_4_69 EVNT:Select */
 		}
 		break;
+	case TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS: /* Menu "Save Surface Orientations..." */
+		{
+		/* [Qt port ADDITION] todo.txt #43 -- see nodInc.h/menu_registry.cpp
+		** for why this tag/case isn't part of the real .rc-derived list. */
+		      saveSurfaceOrientations ();
+		}
+		break;
 	case TASK_MENUBAR_5_11_43: /* Menu "Anomalies..." */
 		{
 		/* TAG BEGIN TASK_MENUBAR_5_11_43 EVNT:Select */

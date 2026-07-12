@@ -934,6 +934,7 @@ int load3dSurface (FILE_SPEC *, OBJECT *, DXFHANDLE *);
 int view3dSurface (WINDOW, OBJECT *);
 void saveOrientationFile (WINDOW, char *);
 void plotOrientations (WINDOW);
+void saveSurfaceOrientations (void); /* [Qt port ADDITION] todo.txt #43, lineEvnt.c */
 void updateStratColumns ();
 void updateLineMap (int);
 void invalidateCurrentLineMap ();
@@ -992,6 +993,7 @@ int load3dSurface ();
 int view3dSurface ();
 void saveOrientationFile ();
 void plotOrientations ();
+void saveSurfaceOrientations ();
 void updateStratColumns ();
 void updateLineMap ();
 void invalidateCurrentLineMap ();

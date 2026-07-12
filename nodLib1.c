@@ -594,6 +594,10 @@ WINDOW ignoreWin;
    xvt_menu_set_item_enabled (win, TASK_MENUBAR_4_50, historyPresent);
                                                     /* Plot Orientations */
    xvt_menu_set_item_enabled (win, TASK_MENUBAR_4_69, historyPresent);
+                                                    /* [Qt port ADDITION]
+                                                    ** todo.txt #43 -- Save
+                                                    ** Surface Orientations */
+   xvt_menu_set_item_enabled (win, TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS, historyPresent);
 
                                               /* ********************* */
                                               /* ***** Geophysics **** */
@@ -1431,9 +1435,7 @@ DEBUG(printf("PASTING OBJECTS - GOT THEM");)
    ** would otherwise land the new copy right on top of whatever's already
    ** there. Push any existing object(s) that now overlap the duplicate's
    ** footprint further down, cascading in case that shove causes a
-   ** knock-on overlap with the next one below it. Purely a visual/bound
-   ** adjustment -- doesn't touch the linked-list order, so calculation
-   ** order (which is execution order, not visual position) is unaffected. */
+   ** knock-on overlap with the next one below it. */
    if (pasteAsDuplicate)
    {
       RCT dupBound;
@@ -1474,6 +1476,22 @@ DEBUG(printf("PASTING OBJECTS - GOT THEM");)
          }
       } while (pushed);
    }
+
+   /* [Qt port fix] the pasted/duplicated object(s) were always appended
+   ** at the tail of wip->head regardless of where they land visually
+   ** (see comment above -- Duplicate lands below the original, not at
+   ** the end of the chain). drawObjectLinks() connects objects based on
+   ** LIST adjacency, assuming the list is already kept in left-to-right
+   ** visual order (true elsewhere -- e.g. objMove() calls reorderObjects()
+   ** after every manual drag). Without the same call here, duplicating
+   ** any event that wasn't already the last one in the history produced
+   ** a connector line to whatever WAS last (not to the object actually
+   ** duplicated), and more importantly left calculation order (list
+   ** order = execution order) out of sync with the visual left-to-right
+   ** order the app's own paradigm relies on. reorderObjects() re-sorts
+   ** by bound.left/top exactly as a manual move already does, so this
+   ** brings Paste/Duplicate in line with existing, working behaviour. */
+   reorderObjects (win);
 
    xvt_dwin_invalidate_rect (win, NULL);
 }

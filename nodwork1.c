@@ -4828,7 +4828,7 @@ BLOCK_SURFACE_DATA *surface;
          strcpy (label, LINEMAP_TITLE);
       else
          strcpy (label, SECTION_TITLE);
-      
+
       if (!(win = xvt_win_create (W_DOC, &position, label,
                    (int) NULL, TASK_WIN,
                    WSF_NO_MENUBAR | WSF_CLOSE | WSF_SIZE | WSF_INVISIBLE | WSF_ICONIZABLE,
@@ -4837,7 +4837,7 @@ BLOCK_SURFACE_DATA *surface;
          xvt_dm_post_error("Cannot Create Section Window.");
          return;
       }
-      
+
       if (mapView)
          lineMapWindow = win;
       else
@@ -4872,9 +4872,7 @@ BLOCK_SURFACE_DATA *surface;
                   ** also the ONLY call site that builds the Symbol/Event 1/
                   ** Event 2/Define menu (#36), so it needs to be live for
                   ** that feature to work at all. */
-   fprintf(stderr, "[DBG updateSection] before createLineMapMenubar, win=%ld\n", (long)win);
    createLineMapMenubar (win, sectionData);
-   fprintf(stderr, "[DBG updateSection] after createLineMapMenubar\n");
    setStratPalet (win);
 
          /* put the position rectange back to zero for the drawing */
@@ -4988,6 +4986,19 @@ BLOCK_SURFACE_DATA *surface;
    position.left = 0;
    position.top = 0;
    position.bottom--;
+                  /* [Qt port fix] xvt_vobj_move sets the CONTENT WIDGET's
+                  ** outer size directly from this rect, but this window's
+                  ** content widget also contains its own menu bar (MENU_BAR_2)
+                  ** stacked above the drawing area -- without adding that
+                  ** height back here, the widget came out exactly menu-bar-
+                  ** height short every time, and since the NEXT
+                  ** xvt_vobj_get_client_rect call subtracts the bar height
+                  ** from that already-short size again, the window shrank by
+                  ** another bar-height on every subsequent resize, quickly
+                  ** collapsing to nothing (matches a user report of the
+                  ** Map/Section window flashing up then disappearing as soon
+                  ** as it gained a menu bar, #36). */
+   position.bottom += xvt_win_get_menubar_height (win);
    CORRECT_WIN_RESIZE(win, position)
    xvt_vobj_move (win, &position);
 

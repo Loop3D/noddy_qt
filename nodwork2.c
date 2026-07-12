@@ -386,17 +386,32 @@ EVENT *ep;
               break;
 
            if (lineMapData = (SECTION_DATA *) xvt_vobj_get_data (win))
-           {                    
+           {
               RCT pixmapSize;
               xvt_vobj_get_client_rect (lineMapData->pixmap, &pixmapSize);
               position = pixmapSize;
-              xvt_dwin_draw_pmap (win, lineMapData->pixmap,
-                                                  &position, &pixmapSize);
+                        /* [Qt port fix] todo.txt #47: draw symbols onto
+                        ** the pixmap before blitting it to win, not after
+                        ** -- a defensive reorder matching the fix applied
+                        ** to sectionEventHandler's own E_UPDATE case below
+                        ** (same file). NOTE: investigation traced the
+                        ** actual reported symptom (symbols vanishing after
+                        ** raising another window and bringing the map/
+                        ** section back) to a DIFFERENT root cause --
+                        ** createLineMapMenubar (nodLib1.c) unconditionally
+                        ** zeroing SECTION_DATA::count as a side effect of
+                        ** rebuilding the combo menu on refocus (see the
+                        ** E_FOCUS case in sectionEventHandler, this file,
+                        ** for the real fix) -- this reorder is kept as a
+                        ** correctness improvement in its own right, not
+                        ** because it was confirmed to be the cause here. */
               oldCurrentDrawingWindow = getCurrentDrawingWindow ();
               setCurrentDrawingWindow (lineMapData->pixmap);
               refreshContents (lineMapData->orientations,
                                lineMapData->count, 0, 0);
               setCurrentDrawingWindow (oldCurrentDrawingWindow);
+              xvt_dwin_draw_pmap (win, lineMapData->pixmap,
+                                                  &position, &pixmapSize);
               if (objectBeingPositioned)
                  xvt_dwin_draw_icon(win, eventPosX, eventPosY,
                                          EVENT_POSITION_ICON);
@@ -447,11 +462,11 @@ EVENT *ep;
          break;
       case E_DESTROY:
                           /* make sure current window is not invalid */
-         if (getWindowPixmap(win) == (XVT_PIXMAP) getCurrentDrawingWindow ()) 
+         if (getWindowPixmap(win) == (XVT_PIXMAP) getCurrentDrawingWindow ())
            setCurrentDrawingWindow (NULL_WIN);
          if (win == lastActiveWindow)  /* make sure lastActiveWindow is valid */
            lastActiveWindow = NULL_WIN;
-         
+
          if (win == sectionWindow)
            sectionWindow = NULL_WIN;
          if (win == lineMapWindow)
@@ -463,7 +478,7 @@ EVENT *ep;
                freeSurfaceData(sectionData->surfaceData);
          }
          xvt_vobj_set_data (win, 0L);
-         
+
          updateMenuOptions (TASK_MENUBAR, win);
          break;
       case E_CLOSE:
@@ -723,8 +738,22 @@ EVENT *ep;
               position.bottom = position.top + (short) (xScale * realHeight);
               position.right = position.left + (short) (xScale * realWidth);
            }
+                     /* [Qt port fix] xvt_vobj_move sets the CONTENT WIDGET's
+                     ** outer size directly from this rect, but this window's
+                     ** content widget also contains its own menu bar stacked
+                     ** above the drawing area -- without adding that height
+                     ** back here, the widget came out exactly menu-bar-height
+                     ** short every resize, and since the NEXT
+                     ** xvt_vobj_get_client_rect call subtracts the bar height
+                     ** from that already-short size again, the window shrank
+                     ** by another bar-height on every resize this handler
+                     ** triggered, collapsing to nothing within a handful of
+                     ** cycles (matches a user report of the window flashing
+                     ** up then disappearing as soon as it gained a menu bar,
+                     ** #36). */
+           position.bottom += xvt_win_get_menubar_height (win);
            CORRECT_WIN_RESIZE(win, position)
-         
+
            xvt_vobj_move (win, &position);
          }
          xvt_dwin_invalidate_rect (win, NULL);
@@ -736,9 +765,9 @@ EVENT *ep;
          
          xvt_vobj_get_client_rect (win, &position);
          if (sectionData = (SECTION_DATA *) xvt_vobj_get_data (win))
-         {                    
+         {
             RCT pixmapSize;
-                       
+
             xvt_vobj_get_client_rect (sectionData->pixmap, &pixmapSize);
             xvt_dwin_draw_pmap (win, sectionData->pixmap,
                                                &position, &pixmapSize);
@@ -756,6 +785,49 @@ EVENT *ep;
       case E_FOCUS:
          lastActiveWindow = win;
 			updateLegendData(win, SECTION_LEGENDS);
+                  /* [Qt port] todo.txt #39: the combined Symbol/Event1/
+                  ** Event2/Define menu (built once at E_CREATE by
+                  ** createLineMapMenubar) is now reverted off TASK_MENUBAR
+                  ** when this window loses MDI focus (see
+                  ** revertTaskMenuBarIfOwnedBy in xvt_compat.cpp) -- so it
+                  ** must be rebuilt here when focus returns, or the menu
+                  ** would stay gone even while this window is back in
+                  ** front. Regaining focus (v.active) is when the real
+                  ** XVT/Windows MDI merge would have re-installed it. */
+         if (ep->v.active)
+           if (sectionData = (SECTION_DATA *) xvt_vobj_get_data (win))
+           {
+                  /* [Qt port fix] todo.txt #47: createLineMapMenubar
+                  ** (nodLib1.c) was only ever meant to be called ONCE, at
+                  ** E_CREATE, to build the combined menu AND initialize a
+                  ** brand-new window's symbol/event1/event2/define/count
+                  ** fields to their defaults (see its own tail:
+                  ** `lineMapData->count = 0;` etc). The #39 fix above
+                  ** re-calls it on every refocus to rebuild the menu --
+                  ** but that same tail unconditionally zeroes `count`
+                  ** every time too, silently discarding every previously
+                  ** placed structural symbol on the very next refocus
+                  ** (matches user report: symbols vanish after raising
+                  ** another window and bringing the map/section back --
+                  ** confirmed via a debug trace showing count go 5 -> 0
+                  ** right when this E_FOCUS case fires). Preserve the
+                  ** already-placed-symbol state across the rebuild by
+                  ** saving/restoring it around the call -- createLineMapMenubar
+                  ** itself is untouched, so its real E_CREATE behaviour
+                  ** (correctly zeroing a genuinely new window) still
+                  ** works exactly as before. */
+              int savedCount = sectionData->count;
+              int savedSymbol = sectionData->symbol;
+              int savedEvent1 = sectionData->event1;
+              int savedEvent2 = sectionData->event2;
+              int savedDefine = sectionData->define;
+              createLineMapMenubar (win, sectionData);
+              sectionData->count = savedCount;
+              sectionData->symbol = savedSymbol;
+              sectionData->event1 = savedEvent1;
+              sectionData->event2 = savedEvent2;
+              sectionData->define = savedDefine;
+           }
          break;
    }
    return 0L;
