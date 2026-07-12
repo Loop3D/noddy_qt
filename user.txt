@@ -1,0 +1,138 @@
+NODDY (QT PORT) -- RUNTIME DEPENDENCIES / DEPLOYMENT NOTES
+============================================================
+
+This file lists what needs to be installed or bundled alongside the
+compiled `noddy` (or `noddy.exe`) binary for it to actually RUN on a
+machine that doesn't already have a full Qt5 development environment
+set up. This is about *running* the already-built program -- for how
+to *compile* it, see README.md instead.
+
+The Linux section below was verified directly against a real build in
+this repo (via `ldd`/`dpkg -S`). The Windows and macOS sections are
+written from standard, well-established Qt deployment practice (Qt's
+own `windeployqt`/`macdeployqt` tools), but have NOT been verified
+against an actual Windows or macOS build of this port -- there was no
+such machine available while writing this. Treat them as a solid
+starting point, not a guarantee; if something's missing, the error
+message when launching (a "DLL not found"/"Library not loaded"-style
+message, or Qt's own "This application failed to start because no Qt
+platform plugin could be initialized" message) will name the missing
+piece directly.
+
+
+LINUX
+-----
+Verified (Ubuntu 20.04, this repo's own WSL build tree) via
+`ldd noddy`. The binary dynamically links against:
+
+  libQt5Widgets.so.5
+  libQt5Gui.so.5
+  libQt5Core.so.5
+  libQt5PrintSupport.so.5
+
+...plus those libraries' own further dependencies (ICU, FreeType,
+libxcb, fontconfig, and the usual base C/C++/X11 runtime -- all things
+essentially every desktop Linux install already has).
+
+On top of the libraries `ldd` reports, Qt ALSO needs a "platform
+plugin" loaded at runtime to actually open a window -- this is NOT a
+linked library, so it won't show up in `ldd`, but the app will refuse
+to start without it. For a normal desktop session this is
+`libqxcb.so` (the X11 backend); confirmed via `dpkg -S` to be part of
+the `libqt5gui5` package on Debian/Ubuntu, installed at:
+
+  /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/libqxcb.so
+
+What to install on a machine that doesn't already have Qt5:
+
+  Debian/Ubuntu:
+    sudo apt-get install libqt5widgets5 libqt5printsupport5
+
+  (this pulls in libqt5gui5/libqt5core5a as dependencies automatically,
+  which is where the platform plugin comes from)
+
+If you need to run headless (no display, e.g. a CI server or the
+`-block`/`-anom`/etc batch/CLI modes) set:
+
+  QT_QPA_PLATFORM=offscreen
+
+before launching -- this uses the `libqoffscreen.so` plugin instead of
+`libqxcb.so`, avoiding the need for a real X11/Wayland display at all.
+(This is how this port's own batch-mode regression testing runs in
+this repo's WSL environment, which has no real display.)
+
+If you want a single, fully self-contained binary that doesn't
+require the target machine to have Qt5 installed at all, look into
+`linuxdeploy` or building an AppImage -- not set up in this repo yet.
+
+
+WINDOWS (MinGW build, per Makefile.qt's Windows section)
+----------------------------------------------------------
+NOT verified against an actual Windows build -- written from Qt's own
+documented deployment process.
+
+A MinGW-built noddy.exe needs, alongside the .exe (same folder, or
+somewhere on PATH):
+
+  Qt5Core.dll
+  Qt5Gui.dll
+  Qt5Widgets.dll
+  Qt5PrintSupport.dll
+
+...plus a `platforms\` subfolder next to the .exe containing at least:
+
+  platforms\qwindows.dll
+
+(Qt, like on Linux, needs this "platform plugin" to actually create a
+window -- without it you'll see "This application failed to start
+because no Qt platform plugin could be initialized" and nothing else.)
+
+Since this is a MinGW build (not MSVC), it ALSO needs the MinGW-w64
+runtime DLLs unless statically linked:
+
+  libgcc_s_seh-1.dll
+  libstdc++-6.dll
+  libwinpthread-1.dll
+
+The easiest, most reliable way to gather all of the above correctly
+(rather than hunting for each DLL by hand) is Qt's own bundling tool,
+which ships with every Qt5 Windows install and is designed for exactly
+this:
+
+  windeployqt.exe path\to\noddy.exe
+
+Run from an MSYS2 MinGW64 shell (matching the one used to build, see
+README.md) with the mingw-w64 Qt5 tools on PATH -- it inspects the
+.exe, copies every DLL and plugin it actually needs into the same
+folder, and is the standard way Qt applications are packaged for
+Windows redistribution.
+
+
+MACOS (Homebrew Qt5 build, per Makefile.qt's macOS section)
+---------------------------------------------------------------
+NOT verified against an actual macOS build -- written from Qt's own
+documented deployment process.
+
+A Homebrew-Qt5-linked `noddy` binary dynamically links against Qt's
+Frameworks (Qt5Core.framework, Qt5Gui.framework, Qt5Widgets.framework,
+Qt5PrintSupport.framework) from wherever Homebrew installed them
+(typically /opt/homebrew/opt/qt@5/lib on Apple Silicon, /usr/local/opt/
+qt@5/lib on Intel) -- inspect the actual linkage on a real build with:
+
+  otool -L noddy
+
+For a machine that already has `brew install qt@5` done, the binary
+should just run as built (Homebrew's dynamic linker search path
+resolves the Frameworks directly, no bundling needed for local use).
+
+For distributing to a machine WITHOUT Homebrew/Qt5 installed, the
+binary needs to become a proper macOS .app bundle with Qt's Frameworks
+and platform plugin (libqcocoa.dylib) embedded inside it -- Qt's own
+bundling tool handles this:
+
+  macdeployqt Noddy.app
+
+(This assumes the build is wrapped into a Noddy.app bundle structure
+first -- Makefile.qt currently produces a bare command-line-style
+binary, not an .app bundle; turning it into one, if full standalone
+distribution is needed, is a separate follow-up task not done yet.)
