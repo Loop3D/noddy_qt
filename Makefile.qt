@@ -6,20 +6,95 @@
 # This builds the SAME application source files unchanged, linked against
 # qt_compat/ instead of the proprietary XVT SDK.
 #
-# Requires: g++ (C++17), Qt5 development packages + pkg-config, e.g. on
-# Debian/Ubuntu:
-#   sudo apt-get install build-essential qtbase5-dev qt5-qmake pkg-config
+# [Qt port change] todo.txt #57: cross-platform support (was Linux/pkg-config
+# only). Detects the host platform (Linux, macOS, or Windows via MSYS2/MinGW)
+# and adjusts the Qt5 discovery method, executable name, and a couple of
+# platform-specific link/compile flags accordingly. The actual build recipes
+# (compile each .c as C, link everything with g++) are UNCHANGED across
+# platforms -- only how Qt5's include/lib paths get discovered, and the
+# output filename, differ.
 #
-# Usage:
-#   make -f Makefile.qt            # build ./noddy
+# Requires: g++/gcc (C++17) and Qt5 development packages, per platform:
+#
+#   Linux (Debian/Ubuntu):
+#     sudo apt-get install build-essential qtbase5-dev qt5-qmake pkg-config
+#
+#   macOS (Homebrew, either Intel or Apple Silicon):
+#     brew install qt@5 pkg-config
+#     (qt@5 is "keg-only" -- not symlinked onto the default PATH/pkg-config
+#     search path -- this Makefile adds Homebrew's Qt5 pkgconfig directory
+#     to PKG_CONFIG_PATH automatically; no manual `brew link` needed.)
+#     Xcode Command Line Tools must be installed for a working g++/clang:
+#     xcode-select --install
+#
+#   Windows (MSYS2 MinGW64 shell -- NOT a native cmd.exe/PowerShell prompt):
+#     pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-qt5-base \
+#               mingw-w64-x86_64-pkgconf make
+#     Then build from the "MSYS2 MinGW64" shell shortcut (not the plain
+#     MSYS2 shell), so `g++`/`pkg-config` resolve to the mingw-w64 versions
+#     with Qt5 already on their search path.
+#
+# Usage (same on every platform, from the appropriate shell above):
+#   make -f Makefile.qt            # build ./noddy (or noddy.exe on Windows)
 #   make -f Makefile.qt clean
 # ============================================================================
 
 CXX      := g++
 CC       := gcc
-CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_compat -I. $(shell pkg-config --cflags Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
-CFLAGS   := -std=gnu17 -fPIC -Wall -g -O0 -Iqt_compat
-LDFLAGS  := $(shell pkg-config --libs Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
+
+# ---- Platform detection --------------------------------------------------
+# $(OS) is set to "Windows_NT" by the environment on Windows regardless of
+# shell (cmd.exe, PowerShell, or an MSYS2/MinGW shell) -- reliable even
+# though `uname` also works from an MSYS2 shell, since it's a plain env var
+# lookup with no subshell needed. Everywhere else, ask `uname -s` to tell
+# Linux and macOS (Darwin) apart.
+ifeq ($(OS),Windows_NT)
+    NODDY_PLATFORM := Windows
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Darwin)
+        NODDY_PLATFORM := macOS
+    else
+        NODDY_PLATFORM := Linux
+    endif
+endif
+
+# ---- Executable name -------------------------------------------------------
+ifeq ($(NODDY_PLATFORM),Windows)
+    TARGET := noddy.exe
+else
+    TARGET := noddy
+endif
+
+# ---- Qt5 discovery ----------------------------------------------------------
+# All three platforms use pkg-config to find Qt5's include/lib flags -- the
+# only difference is macOS Homebrew's Qt5 formula is "keg-only" (deliberately
+# not linked onto the default pkg-config search path, since Homebrew doesn't
+# want to presume you want THIS Qt version as the system default), so its
+# .pc files need to be added to PKG_CONFIG_PATH explicitly. Probe both the
+# Apple Silicon (/opt/homebrew) and Intel (/usr/local) Homebrew prefixes --
+# whichever exists (or neither, on Linux/Windows) is harmless to add.
+ifeq ($(NODDY_PLATFORM),macOS)
+    export PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/opt/homebrew/opt/qt@5/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig
+endif
+
+QT_CFLAGS := $(shell pkg-config --cflags Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
+QT_LIBS   := $(shell pkg-config --libs Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
+
+CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_compat -I. $(QT_CFLAGS)
+CFLAGS   := -std=gnu17 -fPIC -Wall -g -O2 -Iqt_compat
+LDFLAGS  := $(QT_LIBS)
+
+# -fPIC is meaningless (and warns) when targeting Windows PE via MinGW --
+# every object is position-independent there by construction, there's no
+# separate "PIC" relocation mode to opt into the way there is on ELF/Mach-O.
+ifeq ($(NODDY_PLATFORM),Windows)
+    CXXFLAGS := $(filter-out -fPIC,$(CXXFLAGS))
+    CFLAGS   := $(filter-out -fPIC,$(CFLAGS))
+    # MinGW's runtime needs this for Qt's exception-based event loop
+    # plumbing to unwind correctly across the app/Qt DLL boundary.
+    LDFLAGS  += -mthreads
+endif
 
 # All original application .c files are compiled as plain C (gcc) -- most of
 # this 1990s-2000s codebase uses old K&R-style function definitions that
@@ -39,8 +114,6 @@ APP_OBJECTS := $(APP_SOURCES:.c=.o)
 COMPAT_SOURCES := qt_compat/xvt_compat.cpp qt_compat/dialog_registry.cpp qt_compat/dialog_positions.cpp qt_compat/menu_registry.cpp
 COMPAT_OBJECTS := $(COMPAT_SOURCES:.cpp=.o)
 
-TARGET := noddy
-
 .PHONY: all clean
 all: $(TARGET)
 
@@ -54,4 +127,4 @@ qt_compat/%.o: qt_compat/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(APP_OBJECTS) $(COMPAT_OBJECTS) $(TARGET)
+	rm -f $(APP_OBJECTS) $(COMPAT_OBJECTS) noddy noddy.exe

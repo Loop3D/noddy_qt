@@ -39,6 +39,15 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "1.8", "1", "Read Picture...", 1030, true },
     { "1.9", "1", "Save Picture...", 1031, true },
     { "1.10", "1", "Save Orientations...", 1032, true },
+    /* [Qt port ADDITION] todo.txt #43/#56 -- NEW menu item, not part of
+     * the real XVT-Design .rc file this tree was otherwise parsed from
+     * (see TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS, nodInc.h,
+     * for why tag 1200 -- name kept despite moving out of Geology).
+     * Originally added under Geology (#43), moved here per #56 (user:
+     * "Move 'Save surface Orientations' menu item to File menu just
+     * below 'save orintations'"). Dispatched in mainMenu.c, calculated
+     * in lineEvnt.c's saveSurfaceOrientations(). */
+    { "1.10.1", "1", "Save Surface Orientations...", 1200, true },
     { "1.11", "1", "Save Profile...", 1093, true },
     { "1.12", "1", "Page Setup...", 1024, true },
     { "1.13", "1", "Print Page", 1071, true },
@@ -83,12 +92,6 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "3.7", "3", "3D Topo", 1049, true },
     { "3.8", "3", "3D Triangulation", 1050, true },
     { "3.9", "3", "Plot Orientations", 1069, true },
-    /* [Qt port ADDITION] todo.txt #43 -- NEW menu item, not part of the
-     * real XVT-Design .rc file this tree was otherwise parsed from (see
-     * TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS, nodInc.h, for why
-     * tag 1200). Dispatched in mainMenu.c, calculated in lineEvnt.c's
-     * saveSurfaceOrientations(). */
-    { "3.10", "3", "Save Surface Orientations...", 1200, true },
     { "4", nullptr, "Geophysics", 0, false },
     { "4.1", "4", "Calculate Anomalies", 0, false },
     { "4.1.1", "4.1", "Anomalies...", 1043, true },

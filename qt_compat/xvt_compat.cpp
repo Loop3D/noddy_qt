@@ -46,6 +46,7 @@
 #include <QInputDialog>
 #include <QListWidget>
 #include <QScrollBar>
+#include <QAbstractSlider>
 #include <QCheckBox>
 #include <QRadioButton>
 #include <QButtonGroup>
@@ -1565,6 +1566,49 @@ static void sendControlEvent(WINDOW parentWin, int ctlId, WINDOW ctlWin, WIN_TYP
     o->handler(parentWin, &ev);
 }
 
+/* [Qt port fix] todo.txt #55: "The up arrows on all scroll widgets
+ * don't increase values whilst the down (or left) arrows do". Every
+ * WC_HSCROLL/WC_VSCROLL's E_CONTROL dispatch went through plain
+ * sendControlEvent() above, which never populates
+ * ev.v.ctl.ci.v.scroll.what/.pos at all -- EVENT ev{} zero-initializes
+ * it, and SC_LINE_UP (xvt_types.h) is the first (zero-valued)
+ * SCROLL_CONTROL enumerator, so every single scrollbar interaction --
+ * arrow click either direction, page/track click, or thumb drag --
+ * was reported to the app as SC_LINE_UP regardless of what actually
+ * happened. App code (e.g. nodwork2.c's HSCROLL case) does `case
+ * SC_LINE_UP: pos = xvt_sbar_get_pos(...) - 1;` -- but xvt_sbar_get_pos
+ * reads the QScrollBar's CURRENT value, which Qt has ALREADY updated
+ * correctly for the real click BEFORE valueChanged fires. So: the
+ * "increase" arrow (Qt: value+1) always got exactly undone (app
+ * recomputes value-1, landing back where it started -- looks
+ * completely broken); the "decrease" arrow (Qt: value-1) got double-
+ * applied (app subtracts another 1 from the already-decreased value)
+ * -- still visibly moves in the right direction, just too far, so it
+ * "looks like it works". Page clicks and thumb drags were equally
+ * wrong (thumb drag ignored the actual drop position entirely, always
+ * reading as "decrement by 1" too).
+ *
+ * Fixed by using QAbstractSlider::actionTriggered (fires with a
+ * SliderAction telling us exactly what the user did, BEFORE Qt
+ * applies it) to remember the real action, then reading that back
+ * when valueChanged fires afterward with the new value -- giving the
+ * app the SAME (what, pos) pair real XVT would have sent. Stored as a
+ * dynamic property on the scrollbar itself rather than extra capture
+ * state, since multiple scrollbars share this one lambda body. */
+static void sendScrollControlEvent(WINDOW parentWin, int ctlId, WINDOW ctlWin, WIN_TYPE ctlType, SCROLL_CONTROL what, int pos)
+{
+    XvtObj *o = objFor(parentWin);
+    if (!o || !o->handler) return;
+    EVENT ev{};
+    ev.type = E_CONTROL;
+    ev.v.ctl.id = (short)ctlId;
+    ev.v.ctl.ci.type = ctlType;
+    ev.v.ctl.ci.win = ctlWin;
+    ev.v.ctl.ci.v.scroll.what = what;
+    ev.v.ctl.ci.v.scroll.pos = (short)pos;
+    o->handler(parentWin, &ev);
+}
+
 /* Creates the Qt widget for a control of the given type, wires its natural
  * Qt signal to synthesize the matching E_CONTROL event back to the owning
  * window's handler (unchanged application code), and registers it in the
@@ -1709,8 +1753,69 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
             sendControlEvent(parentWin, ctlId, h, type);
         });
     } else if (auto *sb = qobject_cast<QScrollBar *>(w)) {
-        QObject::connect(sb, &QScrollBar::valueChanged, [parentWin, ctlId, h, type](int) {
-            sendControlEvent(parentWin, ctlId, h, type);
+        /* See sendScrollControlEvent's comment (todo.txt #55): capture
+         * WHICH action the user actually performed via actionTriggered
+         * (fires before Qt applies it) so valueChanged (fires after,
+         * with the new value) can report the correct SC_LINE_UP/DOWN/
+         * PAGE_UP/DOWN/THUMB to the app instead of always claiming
+         * SC_LINE_UP. sliderMoved (continuous drag) doesn't go through
+         * actionTriggered/triggerAction at all -- handle it directly as
+         * SC_THUMBTRACK, matching real XVT's own distinction between a
+         * final drop (SC_THUMB) and in-progress drag (SC_THUMBTRACK).
+         *
+         * Getting the direction right isn't enough on its own though:
+         * real XVT never auto-applies an arrow/page step to the widget
+         * -- the app computes the new position itself (old position +/-
+         * one step, via xvt_sbar_get_pos()) and calls xvt_sbar_set_pos()
+         * to apply it. Qt's QAbstractSlider, unlike real XVT, ALREADY
+         * applies the step to its own value immediately as part of the
+         * same click, before valueChanged (and this dispatch) even
+         * fires -- so xvt_sbar_get_pos() inside the app's handler would
+         * read the ALREADY-stepped value and add another full step on
+         * top, silently doubling every arrow/page click (still visibly
+         * moves, just too far -- easy to miss versus the "stuck
+         * entirely" symptom the wrong-direction case produces, which is
+         * likely why only "up doesn't move" was reported, not "down
+         * moves 2 units per click"). Remember the PRE-click value (in
+         * actionTriggered, before Qt's own step lands) and silently
+         * restore it right before dispatching E_CONTROL for the
+         * step-based actions, so the app's own get_pos()+/-1
+         * computation starts from where the widget ACTUALLY was when
+         * clicked -- its own xvt_sbar_set_pos() call moments later
+         * applies the real, single, correct step. Drag actions
+         * (SC_THUMBTRACK) skip this entirely: their app-side handling
+         * reads ci.v.scroll.pos directly rather than recomputing from
+         * xvt_sbar_get_pos(), so Qt's already-correct dragged-to value
+         * can be passed straight through with no doubling risk. */
+        QObject::connect(sb, &QAbstractSlider::actionTriggered, [sb](int action) {
+            SCROLL_CONTROL what;
+            bool isStep = true;
+            switch (action) {
+            case QAbstractSlider::SliderSingleStepSub: what = SC_LINE_UP;   break;
+            case QAbstractSlider::SliderSingleStepAdd: what = SC_LINE_DOWN; break;
+            case QAbstractSlider::SliderPageStepSub:   what = SC_PAGE_UP;   break;
+            case QAbstractSlider::SliderPageStepAdd:   what = SC_PAGE_DOWN; break;
+            default:                                   what = SC_THUMB; isStep = false; break;
+            }
+            sb->setProperty("xvtLastScrollAction", (int)what);
+            sb->setProperty("xvtPreActionValue", isStep ? QVariant(sb->value()) : QVariant());
+        });
+        QObject::connect(sb, &QAbstractSlider::sliderMoved, [sb](int) {
+            sb->setProperty("xvtLastScrollAction", (int)SC_THUMBTRACK);
+            sb->setProperty("xvtPreActionValue", QVariant());
+        });
+        QObject::connect(sb, &QScrollBar::valueChanged, [parentWin, ctlId, h, type, sb](int newValue) {
+            QVariant lastAction = sb->property("xvtLastScrollAction");
+            SCROLL_CONTROL what = lastAction.isValid() ? (SCROLL_CONTROL)lastAction.toInt() : SC_THUMB;
+            QVariant preValue = sb->property("xvtPreActionValue");
+            sb->setProperty("xvtLastScrollAction", QVariant());
+            sb->setProperty("xvtPreActionValue", QVariant());
+            if (preValue.isValid()) {
+                sb->blockSignals(true);
+                sb->setValue(preValue.toInt());
+                sb->blockSignals(false);
+            }
+            sendScrollControlEvent(parentWin, ctlId, h, type, what, newValue);
         });
     } else if (auto *lw = qobject_cast<QListWidget *>(w)) {
         QObject::connect(lw, &QListWidget::itemSelectionChanged, [parentWin, ctlId, h, type]() {
@@ -2002,6 +2107,20 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
         }
         topLevel->raise();
         topLevel->activateWindow();
+        /* [Qt port change] todo.txt #53: "All dialogs should not be
+         * resizeable". Real XVT dialogs are fixed-size by convention --
+         * the drag-to-resize affordance (window edges, and for
+         * QMdiSubWindow dialogs the maximize button) is a Qt-native
+         * addition this port introduced incidentally, not something
+         * real XVT dialogs ever offered. Lock in whatever size the
+         * dialog was just laid out at (posEntry's registered width/
+         * height, or the QFormLayout auto-flow fallback's computed
+         * size) -- applies to every window this `isModalDialog` branch
+         * covers, i.e. every genuine dialog (event/options dialogs,
+         * Define Colour, Profile Options, ...), not document/diagram
+         * windows (History, Map, Section, Block Diagram, ...), which
+         * go through xvt_win_create instead and never reach here. */
+        topLevel->setFixedSize(topLevel->size());
     }
     return h;
 }
@@ -3087,11 +3206,32 @@ int xvt_dm_post_ask(const char *b1, const char *b2, const char *b3, const char *
     return RESP_DEFAULT;
 }
 
+/* [Qt port fix] todo.txt #52: "when saving a noddy file or loading it
+ * (his, mag, grv, g00 etc) only show same file type in file gui" --
+ * every real call site (~40+ across mainMenu.c/nodwork*.c/etc, e.g.
+ * `strcpy(fs.type, "his");` / `"mag"` / `"grv"` / `"g00"` / `"bmp"` /
+ * ...) already sets FILE_SPEC::type to the plain extension for
+ * exactly this dialog invocation, universally, before calling
+ * xvt_dm_post_file_open/_save -- but neither function ever read it,
+ * so QFileDialog always showed every file in the directory regardless
+ * of context. Build a "<EXT> Files (*.<ext>);;All Files (*)" filter
+ * from it -- "All Files" kept as a second choice (not the only one)
+ * so a real XVT-vintage "TEXT"/unusual type still works via manual
+ * override rather than becoming impossible to select. */
+static QString extensionFilter(const char *type)
+{
+    if (!type || !type[0]) return QString();
+    QString ext = QString::fromLocal8Bit(type).trimmed().toLower();
+    if (ext.isEmpty()) return QString();
+    return QString("%1 Files (*.%2);;All Files (*)").arg(ext.toUpper(), ext);
+}
+
 FL_STATUS xvt_dm_post_file_open(FILE_SPEC *fs, const char *prompt)
 {
     ensureQApp();
     if (!fs) return FL_BAD;
-    QString name = QFileDialog::getOpenFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Open");
+    QString name = QFileDialog::getOpenFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Open",
+                                                 QString(), extensionFilter(fs->type));
     if (name.isEmpty()) return FL_CANCEL;
     QFileInfo fi(name);
     strncpy(fs->name, fi.fileName().toLocal8Bit().constData(), SZ_FNAME);
@@ -3104,7 +3244,8 @@ FL_STATUS xvt_dm_post_file_save(FILE_SPEC *fs, const char *prompt)
 {
     ensureQApp();
     if (!fs) return FL_BAD;
-    QString name = QFileDialog::getSaveFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Save");
+    QString name = QFileDialog::getSaveFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Save",
+                                                 QString(), extensionFilter(fs->type));
     if (name.isEmpty()) return FL_CANCEL;
     QFileInfo fi(name);
     strncpy(fs->name, fi.fileName().toLocal8Bit().constData(), SZ_FNAME);

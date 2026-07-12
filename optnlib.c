@@ -460,18 +460,27 @@ OPTION_TYPE type;
              ALTITUDE_WINDOW, ALTITUDE_WINDOW_eh, (RCT *) NULL, 0,
              (long) GEOPHYSICS_SURVEY_OP, controlXPos, controlYPos, &posRect);
 
-   controlXPos += xvt_rect_get_width(&posRect);  /* Beside control */
+   /* [Qt port change] todo.txt #53: Deform Field and Sus Units used to
+   ** sit BESIDE Altitude (a 2-column layout: `controlXPos +=
+   ** xvt_rect_get_width(&posRect)` here, then back to `groupXPos`
+   ** before Draped Survey) -- each of these sub-panels is registered
+   ** at the SAME 280px width as Altitude itself (dialog_positions.cpp),
+   ** so the combined row needed ~560px, wider than this port's dialog
+   ** actually rendered, truncating Deform Field's right edge. Stack
+   ** all of them in a single column instead (user's explicit request),
+   ** which fits within the existing width since no sub-panel here
+   ** exceeds 280px. */
+   controlYPos += xvt_rect_get_height(&posRect);
    setOptionsTab(win, group++, numTabs, tabLabel,
              DEFORM_FIELD_WINDOW, DEFORM_FIELD_WINDOW_eh, (RCT *) NULL, 0,
              (long) GEOPHYSICS_SURVEY_OP, controlXPos, controlYPos, &posRect);
 
-   controlYPos += xvt_rect_get_height(&posRect);  /* Beside and Below control */
+   controlYPos += xvt_rect_get_height(&posRect);
    setOptionsTab(win, group++, numTabs, tabLabel,
              SUS_UNITS_WINDOW, SUS_UNITS_WINDOW_eh, (RCT *) NULL, 0,
              (long) GEOPHYSICS_SURVEY_OP, controlXPos, controlYPos, &posRect);
 
-   controlXPos = groupXPos;
-	controlYPos += xvt_rect_get_height(&posRect);  /* Beside and Below control */
+   controlYPos += xvt_rect_get_height(&posRect);
    setOptionsTab(win, group++, numTabs, tabLabel,
              DRAPED_SURVEY_WINDOW, DRAPED_SURVEY_WINDOW_eh, (RCT *) NULL, 0,
              (long) GEOPHYSICS_SURVEY_OP, controlXPos, controlYPos, &posRect);

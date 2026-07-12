@@ -1879,6 +1879,19 @@ OUTPUT
 
 RETURNED
 ====================================================================== */
+/* [Qt port change] todo.txt #51: every alteration profile's maxX
+** (the "Alteration Distance" field, Profile Options dialog) used to
+** default to 0.0 here. block.c's applyAlterations() explicitly skips
+** (`continue`s past) any alteration profile whose maxX < 1.0 -- a
+** genuinely correct divide-by-zero guard, not a bug -- so a freshly
+** created event's alteration had NO EFFECT until the user explicitly
+** opened Profile Options and set a real distance, which wasn't
+** obvious from the UI alone (confirmed via the user's own testing:
+** the calculation path works correctly once maxX is non-zero -- this
+** was a "confusing silent no-op default", not a broken calculation).
+** Changed the default to 500.0 (user's explicit request) so a new
+** alteration profile is usable out of the box. minX (always the
+** contact/surface, 0.0) is unaffected. */
 PROFILE_OPTIONS *
 #if XVT_CC_PROTO
 initAlterationZones (OBJECTS type)
@@ -1911,7 +1924,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_0);
                   profOption->type = DENSITY_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = 0.0;
                   profOption->maxYScale = 4.0;
                   profOption->scaleOrigin = 1.0;
@@ -1922,7 +1935,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_1);
                   profOption->type = ANI_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -10.0;
                   profOption->maxYScale =  10.0;
                   profOption->scaleOrigin = 0.0;
@@ -1933,7 +1946,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_2);
                   profOption->type = SUS_X_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -5.0;
                   profOption->maxYScale =  5.0;
                   profOption->scaleOrigin = 0.0;
@@ -1944,7 +1957,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_3);
                   profOption->type = SUS_Y_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -5.0;
                   profOption->maxYScale =  5.0;
                   profOption->scaleOrigin = 0.0;
@@ -1955,7 +1968,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_4);
                   profOption->type = SUS_Z_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -5.0;
                   profOption->maxYScale =  5.0;
                   profOption->scaleOrigin = 0.0;
@@ -1966,7 +1979,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_5);
                   profOption->type = SUS_DIP_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -180.0;
                   profOption->maxYScale =  180.0;
                   profOption->scaleOrigin = 1.0;
@@ -1977,7 +1990,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_6);
                   profOption->type = SUS_DDIR_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -360.0;
                   profOption->maxYScale =  360.0;
                   profOption->scaleOrigin = 1.0;
@@ -1988,7 +2001,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_7);
                   profOption->type = SUS_PITCH_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -360.0;
                   profOption->maxYScale =  360.0;
                   profOption->scaleOrigin = 1.0;
@@ -1999,7 +2012,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_8);
                   profOption->type = REM_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -10.0;
                   profOption->maxYScale =  10.0;
                   profOption->scaleOrigin = 0.0;
@@ -2010,7 +2023,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_9);
                   profOption->type = REM_DEC_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -360.0;
                   profOption->maxYScale =  360.0;
                   profOption->scaleOrigin = 1.0;
@@ -2021,7 +2034,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_10);
                   profOption->type = REM_INC_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -360.0;
                   profOption->maxYScale =  360.0;
                   profOption->scaleOrigin = 1.0;
@@ -2032,7 +2045,7 @@ OBJECTS type;
                   strcpy (profOption->name, ALTERATION_PARAM_11);
                   profOption->type = REM_STR_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = -5.0;
                   profOption->maxYScale =  5.0;
                   profOption->scaleOrigin = 0.0;
@@ -2043,7 +2056,7 @@ OBJECTS type;
                   strcpy (profOption->name, "Graph");
                   profOption->type = UNDEFINED_PROFILE;
                   profOption->minX = 0.0;
-                  profOption->maxX = 0.0;
+                  profOption->maxX = 500.0;
                   profOption->minYScale = 0.0;
                   profOption->maxYScale = 1.0;
                   profOption->scaleOrigin = 0.5;
@@ -4988,7 +5001,9 @@ int confirm, factorySettings;
       geophysicsOptions.declination = 0.0;
       geophysicsOptions.calculationAltitude = 0;
       geophysicsOptions.altitude = 80.0;
-      geophysicsOptions.calculationMethod = SPATIAL;
+      geophysicsOptions.calculationMethod = SPECTRAL; /* [Qt port change]
+                                       ** todo.txt #55: user-requested
+                                       ** default (was SPATIAL) */
       geophysicsOptions.constantBoxDepth = 0.0;
       geophysicsOptions.cleverBoxRatio = 1.0;
       geophysicsOptions.drapedSurvey = FALSE;
@@ -4997,7 +5012,10 @@ int confirm, factorySettings;
       geophysicsOptions.magneticVectorComponents = FALSE;
       geophysicsOptions.projectVectorsOntoField = TRUE;
       geophysicsOptions.padWithRealGeology = TRUE;
-      geophysicsOptions.spectralPaddingType = RAMP_PADDING;
+      geophysicsOptions.spectralPaddingType = RECLECTION_PADDING; /* [Qt
+                                       ** port change] todo.txt #55:
+                                       ** user-requested default (was
+                                       ** RAMP_PADDING) */
       geophysicsOptions.spectralFence = 50;
       geophysicsOptions.spectralPercent = 100;
 

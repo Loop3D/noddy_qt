@@ -122,7 +122,8 @@ GEOPHYSICS_OPTIONS geophysicsOptions = {
 			 FIXED_FIELD, /* fieldType */
           0,   /* calculationAltitude */
           0.0, /* altitude */
-          SPATIAL,  /* calculationMethod */
+          SPECTRAL, /* calculationMethod -- [Qt port change] todo.txt
+                     ** #55: user-requested default (was SPATIAL) */
           0.0,      /* constantBoxDepth */
           1.0,      /* cleverBoxRatio */
           FALSE,    /* drapedSurvey */
@@ -131,7 +132,9 @@ GEOPHYSICS_OPTIONS geophysicsOptions = {
           FALSE,     /* magneticVectorComponents */
           TRUE,     /* projectVectorsOntoField */
 			 TRUE,		/* padWithRealGeology */
-          RAMP_PADDING, /* spectralPaddingType */
+          RECLECTION_PADDING, /* spectralPaddingType -- [Qt port
+                     ** change] todo.txt #55: user-requested default
+                     ** (was RAMP_PADDING) */
           50,        /* spectralFence */
           100,       /* spectralPercent */
 };
