@@ -6,12 +6,12 @@ from a user-specified sequence of tectonic/depositional events (folds,
 faults, unconformities, dykes, plugs, ...), voxelises the result into a
 block model, and forward-calculates gravity and magnetic anomalies from it.
 
-The original GUI was built on **XVT**, a commercial/legacy cross-platform C
+The original GUI was built on **XVT**, a  cross-platform C
 toolkit that requires a commerical licence. This tree has been ported to **Qt5**
 via a compatibility shim (`qt_compat/`) that implements the subset of the
 XVT API this application actually uses, on top of real Qt widgets. None of
 the calculation code (event kinematics, voxelisation, geophysics forward
-modelling) was not changed by the port -- only the GUI layer underneath it.
+modelling) were not changed by the port -- only the GUI layer underneath it, however some new code has since been added.
 
 This document covers how to **compile** Noddy from scratch on Ubuntu,
 Windows (MinGW), and macOS. For what needs to be installed/bundled to
