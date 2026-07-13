@@ -54,7 +54,7 @@ XVT_CC_LARG(EVENT *, ep)
         profOptions = (PROFILE_OPTIONS *) getProfileOptionsStructure(object);
         lastActiveWindow = win;        
 
-        xvt_vobj_set_data (win, (long) profOptions);
+        xvt_vobj_set_data (win, (intptr_t) profOptions);
         break;
        }
     case E_SIZE:

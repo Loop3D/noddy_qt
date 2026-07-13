@@ -258,7 +258,7 @@ EVENT *xdEvent;
 			   if (strcmp (option, "Curved") == 0)
 			   {
 			      data->generalData = 0;
-			      if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data)))
+			      if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data)))
 				 xvt_dm_post_error("Can't open window");
 			   }
 			}
@@ -288,7 +288,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN TGMA_ALTERATION_EDIT EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 1;
-			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data))
+			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END TGMA_ALTERATION_EDIT EVNT:Control */
 			}
@@ -309,7 +309,7 @@ EVENT *xdEvent;
 			WINDOW win;
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 0;
-			if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data)))
+			if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data)))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END TGMA_PROFILE_BUTTON EVNT:Control */
 			}

@@ -119,10 +119,16 @@ xvtcm_set_src_char_size(xdSrcCharSize);
 	
 	xvt_fsys_get_default_dir (&defaultDir);
 	
+	/* [Qt port ADDITION] todo.txt #41 -- recognise a bare "-random" (with
+	** no other arguments, argc == 2) as a batch trigger too, the same way
+	** "-h"/"-?" already are below -- otherwise `noddy -random` alone would
+	** fall through to interactive mode instead of generating a random
+	** history in batch. */
 	if ( (argc > 2) ||
 	    ((argc > 1) && ((argv[1][0] == '-') &&
 	                    ((argv[1][1] == 'h') ||
-	                     (argv[1][1] == '?')))))
+	                     (argv[1][1] == '?')))) ||
+	    ((argc > 1) && (strcmp(argv[1], "-random") == 0)))
 	{
 	   int interactive = FALSE, arg;
 	

@@ -253,7 +253,7 @@ EVENT *xdEvent;
 			WINDOW win;
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 0;
-			if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data)))
+			if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data)))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END FFORM_PROFILE EVNT:Control */
 			}
@@ -282,7 +282,7 @@ EVENT *xdEvent;
 			   else
 			   {
 			      data->generalData = 0;
-			      if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data)))
+			      if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data)))
 				 xvt_dm_post_error("Can't open window");
 			   }
 			}

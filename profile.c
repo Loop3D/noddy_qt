@@ -399,7 +399,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN PROFILE_OPTIONS_BUT EVNT:Control */
 			char *data = (char *) xvt_vobj_get_data (xdWindow);
 			WINDOW win;
-			if (!(win = createCenteredWindow(PROFILE_OPTION_WINDOW, TASK_WIN, EM_ALL, PROFILE_OPTION_WINDOW_eh, (long) data)))
+			if (!(win = createCenteredWindow(PROFILE_OPTION_WINDOW, TASK_WIN, EM_ALL, PROFILE_OPTION_WINDOW_eh, (intptr_t) data)))
 				xvt_dm_post_error("Can't open window");
 			/* TAG END PROFILE_OPTIONS_BUT EVNT:Control */
 			}

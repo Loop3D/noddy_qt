@@ -46,6 +46,7 @@
 #include <QInputDialog>
 #include <QListWidget>
 #include <QScrollBar>
+#include <QAbstractSlider>
 #include <QCheckBox>
 #include <QRadioButton>
 #include <QButtonGroup>
@@ -98,7 +99,7 @@ struct XvtObj {
     QWidget *widget = nullptr;   /* null for pure off-screen pixmaps */
     QImage backing;              /* retained drawing surface (all drawable objs) */
     WIN_EVENT_HANDLER handler = nullptr;
-    long userData = 0;
+    intptr_t userData = 0;   /* [Qt port fix] was `long` -- see PTR_LONG's comment in xvt_types.h */
     WIN_TYPE type = W_DOC;
     WINDOW parent = NULL_WIN;
     int ctlId = -1;
@@ -233,6 +234,42 @@ struct XvtObj {
                                     * repaint that happened to catch it too.
                                     * xvt_dwin_invalidate_rect follows this
                                     * to also invalidate the real canvas. */
+    bool xorOutlineActive = false;   /* see xvt_dwin_draw_rect's M_XOR+
+                                    * PAT_HOLLOW branch and paintEvent below.
+                                    * todo.txt #9: builder.c's rubberRect
+                                    * (drag-to-create/drag-to-move outline)
+                                    * draws a transient dashed rect directly
+                                    * into o->backing via XOR, relying on
+                                    * real XVT's model where a direct draw
+                                    * call shows up immediately with no
+                                    * further redraw involved. This port's
+                                    * paintEvent instead dispatches the
+                                    * app's own E_UPDATE handler FIRST on
+                                    * every repaint (which redraws the whole
+                                    * diagram from the persisted model,
+                                    * typically starting with
+                                    * xvt_dwin_clear()) and only THEN blits
+                                    * o->backing -- so the very next time Qt
+                                    * actually paints this widget (which is
+                                    * exactly what our own requestRepaint()
+                                    * just asked for), the app's E_UPDATE
+                                    * wipes out the rubber-band rect before
+                                    * the user ever sees it (confirmed via a
+                                    * debug trace: rubberRect/
+                                    * xvt_dwin_draw_rect fire with correct,
+                                    * advancing coordinates throughout the
+                                    * drag, yet nothing was ever visible --
+                                    * matches user report). Track the
+                                    * outline as separate, transient overlay
+                                    * state instead of baking it into
+                                    * o->backing, and re-composite it in
+                                    * paintEvent AFTER the backing blit
+                                    * (i.e. on top of the freshly
+                                    * E_UPDATE-redrawn content) every single
+                                    * repaint, so it survives until
+                                    * explicitly toggled off. */
+    QRect xorOutlineRect;
+    bool xorOutlineDashed = false;   /* PAT_RUBBER vs a plain solid outline */
 };
 
 /* XVT_PALETTE is an opaque XVT_PALETTE_REC* handle (xvt.h): modern
@@ -462,6 +499,15 @@ static WINDOW g_trappedWindow = NULL_WIN;
 
 class XvtWindow;
 static XvtWindow *enclosingXvtWindow(QWidget *w);
+static void revertTaskMenuBarIfOwnedBy(WINDOW win); /* see definition near buildMenuBar,
+                                    * below -- reverts TASK_WIN's bar back to the plain
+                                    * real static menu if `win` is the current
+                                    * XvtWindow::comboMenuOwner. Used both when `win` is
+                                    * destroyed (xvt_vobj_destroy) and when it loses MDI
+                                    * focus to another window (ensureMdiArea's
+                                    * subWindowActivated hook, todo.txt #39: "make extra
+                                    * menus disappear if map or section window is not at
+                                    * front"). */
 
 /* ==========================================================================
  * XvtWindow: turns native Qt events into EVENT structs for the app's
@@ -508,7 +554,22 @@ public:
                                    * this to know when to rebuild TASK_WIN's bar back to the
                                    * plain real menu. */
 
-    explicit XvtWindow(QWidget *parent) : QWidget(parent) {}
+    explicit XvtWindow(QWidget *parent) : QWidget(parent)
+    {
+        /* [Qt port fix] todo.txt #40: real XVT sends E_MOUSE_MOVE for any
+        ** mouse movement over a window, button held or not (e.g.
+        ** graph.c's graph_eh uses it to live-update the Profile window's
+        ** X/Y cursor readout -- proflib.c's updateProfileLocation --
+        ** purely on hover, no click needed). Qt's mouseMoveEvent (see
+        ** below) only fires during hover if the widget opts in via
+        ** setMouseTracking(true); without it, Qt only delivers move
+        ** events while a button is held (drag), so pure-hover callers
+        ** silently got nothing (confirmed via user's debug trace: zero
+        ** [DBG updateProfileLocation] output while moving the mouse with
+        ** no button held). Applies to every XvtWindow, not just the
+        ** Profile graph canvas, since real XVT's contract is universal. */
+        setMouseTracking(true);
+    }
 
     void dispatch(EVENT &ev)
     {
@@ -554,6 +615,13 @@ public:
                     if (auto *xw = dynamic_cast<XvtWindow *>(lastActive->widget())) {
                         EVENT e{}; e.type = E_FOCUS; e.v.active = FALSE;
                         xw->dispatch(e);
+                        /* todo.txt #39: if this window's combined menu (Symbol/
+                         * Event/Define, from createLineMapMenubar) is still
+                         * installed on TASK_WIN's bar, revert it now that this
+                         * window is no longer the front MDI child -- matches
+                         * xvt_vobj_destroy's revert-on-close, just triggered by
+                         * focus loss instead of destruction. */
+                        revertTaskMenuBarIfOwnedBy(xw->handle);
                     }
                 }
                 if (activated) {
@@ -563,6 +631,37 @@ public:
                     }
                 }
                 lastActive = activated;
+                /* todo.txt #33: pushModalDialog/popModalDialog (see their
+                 * own comments above) already disable every OTHER top-
+                 * level window's CONTENT while a modal-path dialog (e.g.
+                 * an event/options window) is open, and WindowStaysOnTop
+                 * keeps a genuinely independent top-level dialog above
+                 * everything -- but an MDI-nested modal dialog (the
+                 * common case: every event/options window nests as a
+                 * QMdiSubWindow inside TASK_WIN) has no such protection
+                 * against being covered WITHIN the same QMdiArea: a
+                 * QMdiSubWindow's own title-bar/frame is a separate
+                 * widget from the disabled content widget, so clicking
+                 * another subwindow's (e.g. History's) title bar still
+                 * raises IT to the front of the MDI stack, obscuring the
+                 * disabled-but-still-open modal dialog underneath --
+                 * matches user report: "the window with focus can be
+                 * placed behind the history window if I click on that
+                 * window." If a modal dialog is on the stack and some
+                 * OTHER subwindow just became active, immediately re-
+                 * activate the modal one instead -- deferred via
+                 * singleShot(0) (not called synchronously here) to avoid
+                 * reentering this same subWindowActivated signal while
+                 * still inside its own handler. */
+                if (!g_modalDialogStack.isEmpty()) {
+                    QWidget *modalWidget = widgetFor(g_modalDialogStack.last());
+                    auto *modalSub = modalWidget ? qobject_cast<QMdiSubWindow *>(modalWidget->parentWidget()) : nullptr;
+                    if (modalSub && activated != modalSub) {
+                        QTimer::singleShot(0, [areaPtr, modalSub]() {
+                            if (areaPtr) areaPtr->setActiveSubWindow(modalSub);
+                        });
+                    }
+                }
             });
         }
         return mdiArea;
@@ -689,6 +788,22 @@ protected:
         if (o && !o->backing.isNull()) {
             QPainter p(this);
             p.drawImage(0, 0, o->backing);
+        }
+        /* See XvtObj::xorOutlineActive -- todo.txt #9. Re-composite the
+         * transient rubber-band outline (if any) on top of the backing
+         * image we just blit, every single repaint, so a live drag
+         * survives the app's own E_UPDATE-driven full redraw above
+         * instead of being silently wiped by it before ever reaching the
+         * screen. */
+        if (o && o->xorOutlineActive) {
+            QPainter p(this);
+            p.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
+            QPen pen(Qt::white);
+            pen.setWidth(1);
+            if (o->xorOutlineDashed) pen.setStyle(Qt::DashLine);
+            p.setPen(pen);
+            p.setBrush(Qt::NoBrush);
+            p.drawRect(o->xorOutlineRect);
         }
     }
     void mousePressEvent(QMouseEvent *me) override { sendMouse(me, me->button() == Qt::RightButton ? E_MOUSE_DOWN : E_MOUSE_DOWN); }
@@ -922,20 +1037,39 @@ void xvt_vobj_set_attr(WINDOW win, XVT_ATTR attr, long value)
     }
 }
 
-long xvt_vobj_get_data(WINDOW win)
+intptr_t xvt_vobj_get_data(WINDOW win)
 {
     XvtObj *o = objFor(win);
     return o ? o->userData : 0;
 }
 
-void xvt_vobj_set_data(WINDOW win, long data)
+void xvt_vobj_set_data(WINDOW win, intptr_t data)
 {
     XvtObj *o = objFor(win);
     if (o) o->userData = data;
 }
 
 static void buildMenuBar(XvtWindow *win, WINDOW handle); /* see definition below; forward-declared
-                                    * for xvt_vobj_destroy's use, see its own comment */
+                                    * for revertTaskMenuBarIfOwnedBy's use, see its own comment */
+
+/* If `win`'s combined menu (see XvtObj::comboMenuOwner) is currently
+ * installed on TASK_WIN's bar, every QAction on it dispatches E_COMMAND to
+ * `win`'s own handle. Called both when `win` is about to be destroyed
+ * (handle going away permanently -- xvt_vobj_destroy) and when `win` loses
+ * MDI focus to another window (handle still alive, but its combined menu
+ * shouldn't stay installed while some other window is in front -- see
+ * ensureMdiArea's subWindowActivated hook, todo.txt #39). Rebuilds
+ * TASK_WIN's bar back to the plain real static menu when triggered. */
+static void revertTaskMenuBarIfOwnedBy(WINDOW win)
+{
+    if (auto *taskXw = dynamic_cast<XvtWindow *>(widgetFor(TASK_WIN))) {
+        if (taskXw->comboMenuOwner == win) {
+            taskXw->comboMenuOwner = NULL_WIN;
+            taskXw->menuBarIsStatic = false;
+            buildMenuBar(taskXw, TASK_WIN);
+        }
+    }
+}
 
 void xvt_vobj_destroy(WINDOW win)
 {
@@ -946,22 +1080,13 @@ void xvt_vobj_destroy(WINDOW win)
         o->handler(win, &ev);
     }
     if (o->isModalDialog) popModalDialog(win);
-    /* If this window's combined menu (see XvtObj::comboMenuOwner) is
-     * currently installed on TASK_WIN's bar, every QAction on it
-     * dispatches E_COMMAND to THIS window's own handle -- about to
-     * become permanently dead. Left alone, every menu command (not just
-     * the new ones, the real File/Edit/Geology/... clones too) would
-     * silently do nothing forever after this window closes (matches a
-     * user report: after closing a Section, no menu command -- including
-     * "Section" itself -- worked again). Rebuild TASK_WIN's bar back to
-     * the plain real static menu before this handle goes away. */
-    if (auto *taskXw = dynamic_cast<XvtWindow *>(widgetFor(TASK_WIN))) {
-        if (taskXw->comboMenuOwner == win) {
-            taskXw->comboMenuOwner = NULL_WIN;
-            taskXw->menuBarIsStatic = false;
-            buildMenuBar(taskXw, TASK_WIN);
-        }
-    }
+    /* See revertTaskMenuBarIfOwnedBy's comment: left alone, every menu
+     * command (not just the new ones, the real File/Edit/Geology/... clones
+     * too) would silently do nothing forever after this window closes
+     * (matches a user report: after closing a Section, no menu command --
+     * including "Section" itself -- worked again), since this handle is
+     * about to become permanently dead. */
+    revertTaskMenuBarIfOwnedBy(win);
     g_objs.remove(win);
     if (o->widget) {
         /* If nested as a real QMdiSubWindow (see makeWindow), deleting
@@ -1441,6 +1566,49 @@ static void sendControlEvent(WINDOW parentWin, int ctlId, WINDOW ctlWin, WIN_TYP
     o->handler(parentWin, &ev);
 }
 
+/* [Qt port fix] todo.txt #55: "The up arrows on all scroll widgets
+ * don't increase values whilst the down (or left) arrows do". Every
+ * WC_HSCROLL/WC_VSCROLL's E_CONTROL dispatch went through plain
+ * sendControlEvent() above, which never populates
+ * ev.v.ctl.ci.v.scroll.what/.pos at all -- EVENT ev{} zero-initializes
+ * it, and SC_LINE_UP (xvt_types.h) is the first (zero-valued)
+ * SCROLL_CONTROL enumerator, so every single scrollbar interaction --
+ * arrow click either direction, page/track click, or thumb drag --
+ * was reported to the app as SC_LINE_UP regardless of what actually
+ * happened. App code (e.g. nodwork2.c's HSCROLL case) does `case
+ * SC_LINE_UP: pos = xvt_sbar_get_pos(...) - 1;` -- but xvt_sbar_get_pos
+ * reads the QScrollBar's CURRENT value, which Qt has ALREADY updated
+ * correctly for the real click BEFORE valueChanged fires. So: the
+ * "increase" arrow (Qt: value+1) always got exactly undone (app
+ * recomputes value-1, landing back where it started -- looks
+ * completely broken); the "decrease" arrow (Qt: value-1) got double-
+ * applied (app subtracts another 1 from the already-decreased value)
+ * -- still visibly moves in the right direction, just too far, so it
+ * "looks like it works". Page clicks and thumb drags were equally
+ * wrong (thumb drag ignored the actual drop position entirely, always
+ * reading as "decrement by 1" too).
+ *
+ * Fixed by using QAbstractSlider::actionTriggered (fires with a
+ * SliderAction telling us exactly what the user did, BEFORE Qt
+ * applies it) to remember the real action, then reading that back
+ * when valueChanged fires afterward with the new value -- giving the
+ * app the SAME (what, pos) pair real XVT would have sent. Stored as a
+ * dynamic property on the scrollbar itself rather than extra capture
+ * state, since multiple scrollbars share this one lambda body. */
+static void sendScrollControlEvent(WINDOW parentWin, int ctlId, WINDOW ctlWin, WIN_TYPE ctlType, SCROLL_CONTROL what, int pos)
+{
+    XvtObj *o = objFor(parentWin);
+    if (!o || !o->handler) return;
+    EVENT ev{};
+    ev.type = E_CONTROL;
+    ev.v.ctl.id = (short)ctlId;
+    ev.v.ctl.ci.type = ctlType;
+    ev.v.ctl.ci.win = ctlWin;
+    ev.v.ctl.ci.v.scroll.what = what;
+    ev.v.ctl.ci.v.scroll.pos = (short)pos;
+    o->handler(parentWin, &ev);
+}
+
 /* Creates the Qt widget for a control of the given type, wires its natural
  * Qt signal to synthesize the matching E_CONTROL event back to the owning
  * window's handler (unchanged application code), and registers it in the
@@ -1585,8 +1753,69 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
             sendControlEvent(parentWin, ctlId, h, type);
         });
     } else if (auto *sb = qobject_cast<QScrollBar *>(w)) {
-        QObject::connect(sb, &QScrollBar::valueChanged, [parentWin, ctlId, h, type](int) {
-            sendControlEvent(parentWin, ctlId, h, type);
+        /* See sendScrollControlEvent's comment (todo.txt #55): capture
+         * WHICH action the user actually performed via actionTriggered
+         * (fires before Qt applies it) so valueChanged (fires after,
+         * with the new value) can report the correct SC_LINE_UP/DOWN/
+         * PAGE_UP/DOWN/THUMB to the app instead of always claiming
+         * SC_LINE_UP. sliderMoved (continuous drag) doesn't go through
+         * actionTriggered/triggerAction at all -- handle it directly as
+         * SC_THUMBTRACK, matching real XVT's own distinction between a
+         * final drop (SC_THUMB) and in-progress drag (SC_THUMBTRACK).
+         *
+         * Getting the direction right isn't enough on its own though:
+         * real XVT never auto-applies an arrow/page step to the widget
+         * -- the app computes the new position itself (old position +/-
+         * one step, via xvt_sbar_get_pos()) and calls xvt_sbar_set_pos()
+         * to apply it. Qt's QAbstractSlider, unlike real XVT, ALREADY
+         * applies the step to its own value immediately as part of the
+         * same click, before valueChanged (and this dispatch) even
+         * fires -- so xvt_sbar_get_pos() inside the app's handler would
+         * read the ALREADY-stepped value and add another full step on
+         * top, silently doubling every arrow/page click (still visibly
+         * moves, just too far -- easy to miss versus the "stuck
+         * entirely" symptom the wrong-direction case produces, which is
+         * likely why only "up doesn't move" was reported, not "down
+         * moves 2 units per click"). Remember the PRE-click value (in
+         * actionTriggered, before Qt's own step lands) and silently
+         * restore it right before dispatching E_CONTROL for the
+         * step-based actions, so the app's own get_pos()+/-1
+         * computation starts from where the widget ACTUALLY was when
+         * clicked -- its own xvt_sbar_set_pos() call moments later
+         * applies the real, single, correct step. Drag actions
+         * (SC_THUMBTRACK) skip this entirely: their app-side handling
+         * reads ci.v.scroll.pos directly rather than recomputing from
+         * xvt_sbar_get_pos(), so Qt's already-correct dragged-to value
+         * can be passed straight through with no doubling risk. */
+        QObject::connect(sb, &QAbstractSlider::actionTriggered, [sb](int action) {
+            SCROLL_CONTROL what;
+            bool isStep = true;
+            switch (action) {
+            case QAbstractSlider::SliderSingleStepSub: what = SC_LINE_UP;   break;
+            case QAbstractSlider::SliderSingleStepAdd: what = SC_LINE_DOWN; break;
+            case QAbstractSlider::SliderPageStepSub:   what = SC_PAGE_UP;   break;
+            case QAbstractSlider::SliderPageStepAdd:   what = SC_PAGE_DOWN; break;
+            default:                                   what = SC_THUMB; isStep = false; break;
+            }
+            sb->setProperty("xvtLastScrollAction", (int)what);
+            sb->setProperty("xvtPreActionValue", isStep ? QVariant(sb->value()) : QVariant());
+        });
+        QObject::connect(sb, &QAbstractSlider::sliderMoved, [sb](int) {
+            sb->setProperty("xvtLastScrollAction", (int)SC_THUMBTRACK);
+            sb->setProperty("xvtPreActionValue", QVariant());
+        });
+        QObject::connect(sb, &QScrollBar::valueChanged, [parentWin, ctlId, h, type, sb](int newValue) {
+            QVariant lastAction = sb->property("xvtLastScrollAction");
+            SCROLL_CONTROL what = lastAction.isValid() ? (SCROLL_CONTROL)lastAction.toInt() : SC_THUMB;
+            QVariant preValue = sb->property("xvtPreActionValue");
+            sb->setProperty("xvtLastScrollAction", QVariant());
+            sb->setProperty("xvtPreActionValue", QVariant());
+            if (preValue.isValid()) {
+                sb->blockSignals(true);
+                sb->setValue(preValue.toInt());
+                sb->blockSignals(false);
+            }
+            sendScrollControlEvent(parentWin, ctlId, h, type, what, newValue);
         });
     } else if (auto *lw = qobject_cast<QListWidget *>(w)) {
         QObject::connect(lw, &QListWidget::itemSelectionChanged, [parentWin, ctlId, h, type]() {
@@ -1624,7 +1853,7 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
 }
 
 static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
-                          WIN_EVENT_HANDLER eh, long user_data, long resId = 0,
+                          WIN_EVENT_HANDLER eh, intptr_t user_data, long resId = 0,
                           bool isDialogPath = false)
 {
     ensureQApp();
@@ -1878,6 +2107,20 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
         }
         topLevel->raise();
         topLevel->activateWindow();
+        /* [Qt port change] todo.txt #53: "All dialogs should not be
+         * resizeable". Real XVT dialogs are fixed-size by convention --
+         * the drag-to-resize affordance (window edges, and for
+         * QMdiSubWindow dialogs the maximize button) is a Qt-native
+         * addition this port introduced incidentally, not something
+         * real XVT dialogs ever offered. Lock in whatever size the
+         * dialog was just laid out at (posEntry's registered width/
+         * height, or the QFormLayout auto-flow fallback's computed
+         * size) -- applies to every window this `isModalDialog` branch
+         * covers, i.e. every genuine dialog (event/options dialogs,
+         * Define Colour, Profile Options, ...), not document/diagram
+         * windows (History, Map, Section, Block Diagram, ...), which
+         * go through xvt_win_create instead and never reach here. */
+        topLevel->setFixedSize(topLevel->size());
     }
     return h;
 }
@@ -2040,7 +2283,7 @@ void statbar_autosize(WINDOW) {}
 
 WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_id,
                        WINDOW parent, unsigned long /*style*/, EVENT_MASK /*mask*/,
-                       WIN_EVENT_HANDLER eh, long user_data)
+                       WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     WINDOW h = makeWindow(type, rct, title, parent, eh, user_data);
     /* menu_res_id == 1000 (TASK_MENUBAR, nodInc.h) is the only menu
@@ -2080,7 +2323,7 @@ WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_
 }
 
 WINDOW xvt_win_create_def(WIN_DEF *def, WINDOW parent, EVENT_MASK /*mask*/,
-                           WIN_EVENT_HANDLER eh, long user_data)
+                           WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     WIN_TYPE type = def ? def->wtype : W_DOC;
     RCT *rct = def ? &def->rct : nullptr;
@@ -2179,12 +2422,12 @@ void xvt_win_trap_pointer(WINDOW win) { g_trappedWindow = win; }
 void xvt_win_release_pointer(void) { g_trappedWindow = NULL_WIN; }
 
 WINDOW xvt_dlg_create_res(WIN_TYPE dlg_type, long dlg_res_id, EVENT_MASK /*mask*/,
-                           WIN_EVENT_HANDLER eh, long user_data)
+                           WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     return makeWindow(dlg_type, nullptr, nullptr, NULL_WIN, eh, user_data, dlg_res_id, true);
 }
 
-WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK /*mask*/, WIN_EVENT_HANDLER eh, long user_data)
+WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK /*mask*/, WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     WIN_TYPE type = def ? def->wtype : WD_MODAL;
     RCT *rct = def ? &def->rct : nullptr;
@@ -2914,7 +3157,10 @@ void xvt_dm_post_error(const char *fmt, ...)
     va_list ap; va_start(ap, fmt);
     QString msg = vformat(fmt, ap);
     va_end(ap);
-    QMessageBox::critical(nullptr, "Noddy", msg);
+    /* [Qt port fix] todo.txt #38 (see xvt_dm_post_ask's comment below):
+    ** same multi-monitor screen-center-vs-main-window-center issue,
+    ** same fix -- pass TASK_WIN's widget as parent. */
+    QMessageBox::critical(widgetFor(TASK_WIN), "Noddy", msg);
 }
 
 void xvt_dm_post_note(const char *fmt, ...)
@@ -2923,7 +3169,7 @@ void xvt_dm_post_note(const char *fmt, ...)
     va_list ap; va_start(ap, fmt);
     QString msg = vformat(fmt, ap);
     va_end(ap);
-    QMessageBox::information(nullptr, "Noddy", msg);
+    QMessageBox::information(widgetFor(TASK_WIN), "Noddy", msg);
 }
 
 int xvt_dm_post_ask(const char *b1, const char *b2, const char *b3, const char *fmt, ...)
@@ -2932,7 +3178,14 @@ int xvt_dm_post_ask(const char *b1, const char *b2, const char *b3, const char *
     va_list ap; va_start(ap, fmt);
     QString msg = vformat(fmt, ap);
     va_end(ap);
-    QMessageBox box(QMessageBox::Question, "Noddy", msg);
+    /* [Qt port fix] todo.txt #38: with no parent, Qt centers this dialog
+    ** on the screen the cursor/window-manager happens to pick -- on a
+    ** multi-monitor setup that's often not the monitor the Noddy main
+    ** window is on. Passing TASK_WIN's widget as parent makes Qt center
+    ** it over the main window instead (matches real XVT's modal-dialog
+    ** behavior, which is always positioned relative to its owning
+    ** window, never the physical screen). */
+    QMessageBox box(QMessageBox::Question, "Noddy", msg, QMessageBox::NoButton, widgetFor(TASK_WIN));
     QPushButton *btn1 = b1 ? box.addButton(QString::fromLocal8Bit(b1), QMessageBox::AcceptRole) : nullptr;
     QPushButton *btn2 = b2 ? box.addButton(QString::fromLocal8Bit(b2), QMessageBox::RejectRole) : nullptr;
     if (b3) box.addButton(QString::fromLocal8Bit(b3), QMessageBox::ActionRole);
@@ -2953,11 +3206,32 @@ int xvt_dm_post_ask(const char *b1, const char *b2, const char *b3, const char *
     return RESP_DEFAULT;
 }
 
+/* [Qt port fix] todo.txt #52: "when saving a noddy file or loading it
+ * (his, mag, grv, g00 etc) only show same file type in file gui" --
+ * every real call site (~40+ across mainMenu.c/nodwork*.c/etc, e.g.
+ * `strcpy(fs.type, "his");` / `"mag"` / `"grv"` / `"g00"` / `"bmp"` /
+ * ...) already sets FILE_SPEC::type to the plain extension for
+ * exactly this dialog invocation, universally, before calling
+ * xvt_dm_post_file_open/_save -- but neither function ever read it,
+ * so QFileDialog always showed every file in the directory regardless
+ * of context. Build a "<EXT> Files (*.<ext>);;All Files (*)" filter
+ * from it -- "All Files" kept as a second choice (not the only one)
+ * so a real XVT-vintage "TEXT"/unusual type still works via manual
+ * override rather than becoming impossible to select. */
+static QString extensionFilter(const char *type)
+{
+    if (!type || !type[0]) return QString();
+    QString ext = QString::fromLocal8Bit(type).trimmed().toLower();
+    if (ext.isEmpty()) return QString();
+    return QString("%1 Files (*.%2);;All Files (*)").arg(ext.toUpper(), ext);
+}
+
 FL_STATUS xvt_dm_post_file_open(FILE_SPEC *fs, const char *prompt)
 {
     ensureQApp();
     if (!fs) return FL_BAD;
-    QString name = QFileDialog::getOpenFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Open");
+    QString name = QFileDialog::getOpenFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Open",
+                                                 QString(), extensionFilter(fs->type));
     if (name.isEmpty()) return FL_CANCEL;
     QFileInfo fi(name);
     strncpy(fs->name, fi.fileName().toLocal8Bit().constData(), SZ_FNAME);
@@ -2970,7 +3244,8 @@ FL_STATUS xvt_dm_post_file_save(FILE_SPEC *fs, const char *prompt)
 {
     ensureQApp();
     if (!fs) return FL_BAD;
-    QString name = QFileDialog::getSaveFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Save");
+    QString name = QFileDialog::getSaveFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Save",
+                                                 QString(), extensionFilter(fs->type));
     if (name.isEmpty()) return FL_CANCEL;
     QFileInfo fi(name);
     strncpy(fs->name, fi.fileName().toLocal8Bit().constData(), SZ_FNAME);
@@ -3139,16 +3414,40 @@ void xvt_dwin_draw_rect(WINDOW win, RCT *rct)
          *   raster XOR composition mode with a real stroked (dashable)
          *   rect instead of a manual pixel loop for this case -- draws
          *   only the border, and PAT_RUBBER maps to a dashed line so it
-         *   visually matches too. */
+         *   visually matches too.
+         *
+         * [Qt port fix] todo.txt #9 round 2: painting the outline directly
+         * into o->backing (as this branch used to) was itself invisible
+         * end-to-end, confirmed via a debug trace -- rubberRect/this
+         * function fired with correct, advancing coordinates throughout a
+         * real drag, yet the user never saw anything. Root cause: this
+         * port's paintEvent (below) dispatches the app's own E_UPDATE
+         * handler FIRST on every repaint -- which redraws the whole
+         * diagram from the persisted model straight into o->backing,
+         * typically starting with xvt_dwin_clear() -- and only THEN blits
+         * o->backing to the screen. The very next time Qt actually paints
+         * this widget (exactly what requestRepaint() below just asked
+         * for), that E_UPDATE redraw wipes out whatever we just XORed into
+         * o->backing before the user ever sees it. Real XVT has no such
+         * "redraw everything on every repaint" step forcing a direct draw
+         * call to survive a full model redraw. Fixed by NOT touching
+         * o->backing here at all -- track the outline as transient overlay
+         * state (XvtObj::xorOutlineActive/Rect/Dashed) instead, toggled
+         * exactly like the real XOR would (same rect drawn twice cancels
+         * out, matching rubberRect's own erase-old/draw-new call
+         * discipline), and re-composite it in paintEvent AFTER the
+         * backing blit -- i.e. on top of the freshly E_UPDATE-redrawn
+         * content -- every single repaint, so it survives until
+         * explicitly toggled off. */
         if (o->brushPat == PAT_HOLLOW || o->brushPat == PAT_NONE) {
-            QPainter p(&o->backing);
-            p.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
-            QPen pen(Qt::white); /* colour is irrelevant under XOR -- white flips every channel */
-            pen.setWidth(1);
-            if (o->penPat == PAT_RUBBER) pen.setStyle(Qt::DashLine);
-            p.setPen(pen);
-            p.setBrush(Qt::NoBrush);
-            p.drawRect(toQRect(rct));
+            QRect r = toQRect(rct);
+            if (o->xorOutlineActive && o->xorOutlineRect == r) {
+                o->xorOutlineActive = false;
+            } else {
+                o->xorOutlineRect = r;
+                o->xorOutlineDashed = (o->penPat == PAT_RUBBER);
+                o->xorOutlineActive = true;
+            }
             requestRepaint(o);
             return;
         }
@@ -4164,7 +4463,7 @@ BOOLEAN xvt_cb_put_data(long, const char *, long size, PICTURE)
 PICTURE xvt_cb_get_data(long, const char *, long *size)
 {
     if (size) *size = g_clipboardSize;
-    return reinterpret_cast<PICTURE>(g_clipboardData);
+    return (PICTURE)(intptr_t)g_clipboardData;
 }
 
 /* Correctly a no-op here, not a missed port: nearly every *win.c dialog

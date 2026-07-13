@@ -99,7 +99,7 @@ struct XvtObj {
     QWidget *widget = nullptr;   /* null for pure off-screen pixmaps */
     QImage backing;              /* retained drawing surface (all drawable objs) */
     WIN_EVENT_HANDLER handler = nullptr;
-    long userData = 0;
+    intptr_t userData = 0;   /* [Qt port fix] was `long` -- see PTR_LONG's comment in xvt_types.h */
     WIN_TYPE type = W_DOC;
     WINDOW parent = NULL_WIN;
     int ctlId = -1;
@@ -1037,13 +1037,13 @@ void xvt_vobj_set_attr(WINDOW win, XVT_ATTR attr, long value)
     }
 }
 
-long xvt_vobj_get_data(WINDOW win)
+intptr_t xvt_vobj_get_data(WINDOW win)
 {
     XvtObj *o = objFor(win);
     return o ? o->userData : 0;
 }
 
-void xvt_vobj_set_data(WINDOW win, long data)
+void xvt_vobj_set_data(WINDOW win, intptr_t data)
 {
     XvtObj *o = objFor(win);
     if (o) o->userData = data;
@@ -1853,7 +1853,7 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
 }
 
 static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
-                          WIN_EVENT_HANDLER eh, long user_data, long resId = 0,
+                          WIN_EVENT_HANDLER eh, intptr_t user_data, long resId = 0,
                           bool isDialogPath = false)
 {
     ensureQApp();
@@ -2283,7 +2283,7 @@ void statbar_autosize(WINDOW) {}
 
 WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_id,
                        WINDOW parent, unsigned long /*style*/, EVENT_MASK /*mask*/,
-                       WIN_EVENT_HANDLER eh, long user_data)
+                       WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     WINDOW h = makeWindow(type, rct, title, parent, eh, user_data);
     /* menu_res_id == 1000 (TASK_MENUBAR, nodInc.h) is the only menu
@@ -2323,7 +2323,7 @@ WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_
 }
 
 WINDOW xvt_win_create_def(WIN_DEF *def, WINDOW parent, EVENT_MASK /*mask*/,
-                           WIN_EVENT_HANDLER eh, long user_data)
+                           WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     WIN_TYPE type = def ? def->wtype : W_DOC;
     RCT *rct = def ? &def->rct : nullptr;
@@ -2422,12 +2422,12 @@ void xvt_win_trap_pointer(WINDOW win) { g_trappedWindow = win; }
 void xvt_win_release_pointer(void) { g_trappedWindow = NULL_WIN; }
 
 WINDOW xvt_dlg_create_res(WIN_TYPE dlg_type, long dlg_res_id, EVENT_MASK /*mask*/,
-                           WIN_EVENT_HANDLER eh, long user_data)
+                           WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     return makeWindow(dlg_type, nullptr, nullptr, NULL_WIN, eh, user_data, dlg_res_id, true);
 }
 
-WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK /*mask*/, WIN_EVENT_HANDLER eh, long user_data)
+WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK /*mask*/, WIN_EVENT_HANDLER eh, intptr_t user_data)
 {
     WIN_TYPE type = def ? def->wtype : WD_MODAL;
     RCT *rct = def ? &def->rct : nullptr;
@@ -4463,7 +4463,7 @@ BOOLEAN xvt_cb_put_data(long, const char *, long size, PICTURE)
 PICTURE xvt_cb_get_data(long, const char *, long *size)
 {
     if (size) *size = g_clipboardSize;
-    return reinterpret_cast<PICTURE>(g_clipboardData);
+    return (PICTURE)(intptr_t)g_clipboardData;
 }
 
 /* Correctly a no-op here, not a missed port: nearly every *win.c dialog

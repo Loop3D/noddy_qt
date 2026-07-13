@@ -40,8 +40,11 @@ void xvt_app_get_default_ctools(DRAW_CTOOLS *tools);     /* [STUB] */
 /* ==================== vobj: generic object attributes/data =============== */
 long xvt_vobj_get_attr(WINDOW win, XVT_ATTR attr);       /* [DONE] */
 void xvt_vobj_set_attr(WINDOW win, XVT_ATTR attr, long value); /* [DONE] */
-long xvt_vobj_get_data(WINDOW win);                      /* [DONE] */
-void xvt_vobj_set_data(WINDOW win, long data);           /* [DONE] */
+/* [Qt port fix] were `long` -- see PTR_LONG's comment in xvt_types.h for
+ * why that truncated real pointers (a confirmed startup crash) on native
+ * 64-bit Windows. */
+intptr_t xvt_vobj_get_data(WINDOW win);                  /* [DONE] */
+void xvt_vobj_set_data(WINDOW win, intptr_t data);       /* [DONE] */
 void xvt_vobj_destroy(WINDOW win);                       /* [DONE] */
 void xvt_vobj_set_enabled(WINDOW win, BOOLEAN enabled);  /* [DONE] */
 BOOLEAN xvt_vobj_get_enabled(WINDOW win);                /* [DONE] */
@@ -62,9 +65,9 @@ DATA_PTR xvt_vobj_get_palet(WINDOW win);                 /* [STUB] */
 /* ==================== Windows / dialogs =================================== */
 WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_id,
                       WINDOW parent, unsigned long style, EVENT_MASK mask,
-                      WIN_EVENT_HANDLER eh, long user_data);         /* [DONE] */
+                      WIN_EVENT_HANDLER eh, intptr_t user_data);     /* [DONE] */
 WINDOW xvt_win_create_def(WIN_DEF *def, WINDOW parent, EVENT_MASK mask,
-                      WIN_EVENT_HANDLER eh, long user_data);         /* [DONE] */
+                      WIN_EVENT_HANDLER eh, intptr_t user_data);     /* [DONE] */
 WINDOW xvt_win_get_ctl(WINDOW win, int ctl_id);          /* [DONE] */
 void xvt_win_set_cursor(WINDOW win, int cursor_id);      /* [STUB] */
 long xvt_win_dispatch_event(WINDOW win, EVENT *ev);      /* [DONE] */
@@ -73,9 +76,9 @@ void xvt_win_trap_pointer(WINDOW win);                   /* [STUB] */
 void xvt_win_release_pointer(void);                      /* [STUB] */
 
 WINDOW xvt_dlg_create_res(WIN_TYPE dlg_type, long dlg_res_id, EVENT_MASK mask,
-                      WIN_EVENT_HANDLER eh, long user_data);         /* [DONE] */
+                      WIN_EVENT_HANDLER eh, intptr_t user_data);     /* [DONE] */
 WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK mask,
-                      WIN_EVENT_HANDLER eh, long user_data);         /* [STUB] */
+                      WIN_EVENT_HANDLER eh, intptr_t user_data);     /* [STUB] */
 
 /* ==================== Controls ============================================= */
 WINDOW xvt_ctl_create(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,

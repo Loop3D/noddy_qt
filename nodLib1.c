@@ -281,7 +281,7 @@ void assignNoddyColourStructure (NODDY_COLOUR *, char *, int, int, int);
 void addWinToStack (WINDOW);
 void takeWinFromStack (WINDOW);
 WINDOW stackParentWin (WINDOW);
-WINDOW createPopupWindow (WINDOW, PNT, int, EVENT_HANDLER, long);
+WINDOW createPopupWindow (WINDOW, PNT, int, EVENT_HANDLER, intptr_t); /* [Qt port fix] long -> intptr_t, see PTR_LONG's comment in qt_compat/xvt_types.h */
 void copyOptions (int, OBJECT *, OPTION_OPERATIONS);
 void updateDykeOptions (WINDOW);
 void updatePlugOptions (WINDOW);
@@ -1074,7 +1074,11 @@ setupPageForPrinter ()
 setupPageForPrinter ()
 #endif
 {
-   int size;
+   /* [Qt port fix] xvt_print_create takes long*, not int* -- was a silent
+   ** 4-byte stack overflow on Linux/Mac (long is 8 bytes there) every time
+   ** this ran, previously only a warning under Linux's older default GCC,
+   ** a hard error under this newer MinGW one. */
+   long size;
 
    if (!printerSetup)
    {
@@ -1107,7 +1111,7 @@ long data;
 #endif
 {
    XVT_PIXMAP pixmap;
-   int intSize;
+   long intSize;   /* [Qt port fix] xvt_print_create takes long*, not int* -- see setupPageForPrinter's identical fix above */
    WINDOW printWindow;
    RCT *band;
    RCT scrFrame, dstFrame;
@@ -1186,7 +1190,14 @@ OBJECT **objectList;
 
    sizeOfObject = sizeof (OBJECT);   /* the room for the object structure */
 
-   if ((clipPointer = xvt_cb_get_data(CB_APPL, CLIPBOARD_NAME, &totalSize)) == NULL)
+   /* [Qt port fix] xvt_cb_get_data returns PICTURE (an intptr_t-typed opaque
+   ** descriptor per the original XVT convention), not a real pointer type --
+   ** needs an explicit cast to compile as plain C. PICTURE was widened from
+   ** `long` to `intptr_t` (see qt_compat/xvt_types.h and parXVT.h) after this
+   ** cast's 32-bit `long` round-trip was confirmed (WER+addr2line) to
+   ** truncate the real clipboard pointer on native 64-bit Windows (LLP64),
+   ** crashing every Paste/Duplicate on the dereference just below. */
+   if ((clipPointer = (char far *) xvt_cb_get_data(CB_APPL, CLIPBOARD_NAME, &totalSize)) == NULL)
    {
       xvt_dm_post_note("No data to paste from clipboard.");
    }
@@ -2057,14 +2068,14 @@ RETURNED
 WINDOW
 #if XVT_CC_PROTO
 createPopupWindow (WINDOW insideWindow, PNT location, int windowId,
-                   EVENT_HANDLER eventHandler, long data)
+                   EVENT_HANDLER eventHandler, intptr_t data)
 #else
 createPopupWindow (insideWindow, location, windowId, eventHandler, data)
 WINDOW insideWindow;
 PNT location;
 int windowId;
 EVENT_HANDLER eventHandler;
-long data;
+intptr_t data;
 #endif
 {
    RCT rect;

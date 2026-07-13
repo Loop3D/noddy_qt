@@ -34,6 +34,7 @@
 #endif
 #include "noddy.h"
 #include <math.h>
+#include <ctype.h>
 
 #define DEBUG(X)    
 #define DEBUGX(X)                       

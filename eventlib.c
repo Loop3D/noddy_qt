@@ -275,7 +275,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(STRATIGRAPHY_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, STRATIGRAPHY_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, STRATIGRAPHY_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case FOLD:
@@ -285,7 +285,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(FFOLD_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, FFOLD_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, FFOLD_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = groupYPos+xvt_rect_get_height(&posRect);
@@ -295,7 +295,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(FDSCL_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, FDSCL_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, FDSCL_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = newGroupYPos+xvt_rect_get_height(&posRect);
@@ -305,7 +305,7 @@ OBJECT *object;
          xvt_rect_set (&(tabs[group].region), 0, 0, 0, 0);
          tabs[group].win = createPositionedWindow(TRACE_BUTTON_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, TRACE_BUTTON_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, TRACE_BUTTON_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -314,7 +314,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = groupYPos+xvt_rect_get_height(&posRect);
@@ -324,7 +324,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(DDP_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, DDP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case FAULT:
@@ -334,7 +334,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(GMA_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, GMA_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, GMA_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Form");
@@ -344,7 +344,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(SURFACE_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, SURFACE_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, SURFACE_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -353,7 +353,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = groupYPos+xvt_rect_get_height(&posRect);
@@ -363,7 +363,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(DDP_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, DDP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = newGroupYPos+xvt_rect_get_height(&posRect);
@@ -373,7 +373,7 @@ OBJECT *object;
          xvt_rect_set (&(tabs[group].region), 0, 0, 0, 0);
          tabs[group].win = createPositionedWindow(TRACE_BUTTON_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, TRACE_BUTTON_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, TRACE_BUTTON_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale");
@@ -382,7 +382,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(FSCL_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, FSCL_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, FSCL_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale (Ellipsoid)");
@@ -391,7 +391,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(AXIS_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, AXIS_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, AXIS_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case UNCONFORMITY:
@@ -401,7 +401,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(ALT_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, ALT_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, ALT_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Form");
@@ -411,7 +411,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(SURFACE_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, SURFACE_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, SURFACE_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -420,7 +420,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -430,7 +430,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(DDD_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, DDD_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDD_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Layers");
@@ -439,7 +439,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(STRATIGRAPHY_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, STRATIGRAPHY_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, STRATIGRAPHY_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case SHEAR_ZONE:
@@ -449,7 +449,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(TGMA_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, TGMA_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, TGMA_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Form (Surface)");
@@ -458,7 +458,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(SURFACE_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, SURFACE_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, SURFACE_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -467,7 +467,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = groupYPos+xvt_rect_get_height(&posRect);
@@ -477,7 +477,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(DDP_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, DDP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          newGroupYPos = newGroupYPos+xvt_rect_get_height(&posRect);
@@ -487,7 +487,7 @@ OBJECT *object;
          xvt_rect_set (&(tabs[group].region), 0, 0, 0, 0);
          tabs[group].win = createPositionedWindow(TRACE_BUTTON_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, TRACE_BUTTON_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, TRACE_BUTTON_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale");
@@ -496,7 +496,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(SSCL_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, SSCL_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, SSCL_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale (Ellipsoid)");
@@ -505,7 +505,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(AXIS_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, AXIS_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, AXIS_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case DYKE:
@@ -515,7 +515,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(FDYKE_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, FDYKE_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, FDYKE_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -524,7 +524,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -534,7 +534,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(DDP_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, DDP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale");
@@ -543,7 +543,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(SW_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, SW_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, SW_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case PLUG:
@@ -553,7 +553,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(FPLUG_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, FPLUG_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, FPLUG_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -562,7 +562,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Position/Orientation");
@@ -572,7 +572,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(DDP_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, DDP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale");
@@ -581,7 +581,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(PSCL_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, PSCL_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, PSCL_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale");
@@ -591,7 +591,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(AXIS_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, AXIS_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, AXIS_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case STRAIN:
@@ -601,7 +601,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(MATRIX_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, MATRIX_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, MATRIX_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case TILT:
@@ -611,7 +611,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
 			xvt_vobj_set_title(xvt_win_get_ctl(tabs[group].win, XYZ_GB), "Position of Rotation Axis");
          group++;
 
@@ -622,7 +622,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow (PP_WINDOW,
                            win, groupXPos, newGroupYPos,
-                           EM_ALL, PP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, PP_WINDOW_eh, (intptr_t) object, &posRect);
 			xvt_vobj_set_title(xvt_win_get_ctl(tabs[group].win, PP_GROUPBOX), "Orientation of Rotation Axis");
          group++;
 
@@ -632,7 +632,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow (ROTATION_WINDOW,
                            win, groupXPos, newGroupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, ROTATION_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, ROTATION_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case FOLIATION:
@@ -642,7 +642,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(DDD_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, DDD_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, DDD_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case LINEATION:
@@ -652,7 +652,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(PP_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, PP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, PP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case IMPORT:
@@ -662,7 +662,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(CORNER_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, CORNER_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, CORNER_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Form/Position");
@@ -672,7 +672,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(XYZ_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, XYZ_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, XYZ_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale/Properties");
@@ -681,7 +681,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(ISCL_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, ISCL_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, ISCL_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
 
          strcpy (tabs[group].label, "Scale/Properties");
@@ -691,7 +691,7 @@ OBJECT *object;
          tabs[group].win = createPositionedWindow(IPROP_WINDOW,
                            win, groupXPos,
                            groupYPos+xvt_rect_get_height(&posRect),
-                           EM_ALL, IPROP_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, IPROP_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       case GENERIC:
@@ -701,7 +701,7 @@ OBJECT *object;
          memcpy ((char *) &(tabs[group].region), (char *) &(iconRects[numIcon++]), sizeof(RCT));
          tabs[group].win = createPositionedWindow(GENERIC_WINDOW,
                            win, groupXPos, groupYPos,
-                           EM_ALL, GENERIC_WINDOW_eh, (long) object, &posRect);
+                           EM_ALL, GENERIC_WINDOW_eh, (intptr_t) object, &posRect);
          group++;
          break;
       default:

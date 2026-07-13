@@ -103,17 +103,28 @@ both to hard errors by default, which would otherwise block a Windows
 build entirely over pre-existing, functionally-harmless omissions
 unrelated to the Qt port itself.
 
-**Known limitation**: a handful of `long`-as-pointer-carrier spots in the
-Qt compat layer (`qt_compat/xvt_types.h`'s `PTR_LONG` macro backing
-`xvt_vobj_set_data`/`get_data` and dialog "app data" passing, and the
-`PICTURE` clipboard-descriptor typedef) only round-trip losslessly on
-platforms where `long` is pointer-width -- true on Linux/Mac (LP64), NOT
-on native 64-bit Windows (LLP64, where `long` stays 32 bits). In practice
-this tends to work for typical small/early heap allocations, but isn't a
-guarantee; see `PTR_LONG`'s own comment in `qt_compat/xvt_types.h` for
-the full explanation. Not fixed as part of getting a Windows build
-working -- would need widening `long` to `intptr_t` across every XVT API
-signature that uses it for data-passing, a separate, larger audit.
+**Fixed, but worth knowing about**: the app used to crash (access
+violation) almost immediately on every native Windows launch, before any
+window appeared. Root cause: several "attach a heap pointer as a window/
+dialog's opaque user data" spots in the Qt compat layer (`xvt_vobj_set_data`
+/`get_data`, `xvt_win_create`/`_def`, `xvt_dlg_create_res`/`_def`,
+`createCenteredWindow`/`createCenteredDialog`/`createPositionedWindow`)
+carried that pointer through a `long`, via the `PTR_LONG` macro in
+`qt_compat/xvt_types.h`. `long` is pointer-width on Linux/Mac (LP64), so
+this was invisible there -- but on native 64-bit Windows (LLP64, where
+`long` stays 32 bits even though pointers are 64), it silently truncated
+any heap pointer that didn't fit in 32 bits, corrupting it. `builder.c`'s
+`setupWindow()` -- called for every window's very first setup, including
+the main History window at startup -- hit this on essentially every
+launch (confirmed via Windows Error Reporting crash dumps + `addr2line`
+against the built `noddy.exe`, 100% reproducible at the same fault
+offset). Fixed by widening the whole chain (and every app-side call site
+passing a real pointer through it) from `long` to `intptr_t` -- see
+`PTR_LONG`'s comment in `qt_compat/xvt_types.h` for the full chain. The
+`PICTURE` clipboard-descriptor typedef (`xvt_cb_get_data`) has the
+identical shape but was NOT widened -- clipboard paste isn't confirmed to
+crash, and is a narrower, lower-traffic code path, so it's left as a
+documented, smaller residual risk rather than growing this fix further.
 
 If `./noddy.exe` fails to start with no error output (or Windows reports
 it can't find an entry point / a DLL), it's almost always a missing Qt5
@@ -181,3 +192,7 @@ See [CLAUDE.md](CLAUDE.md) for a full description of the codebase's
 architecture (the event-history model, voxelisation, geophysics forward
 modelling, the 3D renderer, and how the Qt compatibility layer maps onto
 the original XVT-based GUI).
+
+
+## Qt distribution
+Qt is used ot build the GUI for this code. Distribution of Qt libraries for Open Source codes is allowed as long as the source code for the Qt libraries is made available (here https://download.qt.io/). The Qt code is ditributed under a LGPLv3 license [lgpl-3.0](lgpl-3.0.txt).

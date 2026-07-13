@@ -815,7 +815,7 @@ ANOMIMAGE_DATA *anomaliesImageData;
                    WSF_NO_MENUBAR | WSF_CLOSE | WSF_SIZE |
                    WSF_INVISIBLE | WSF_ICONIZABLE,
 #endif
-                   EM_ALL, anomImageEventHandler, (long) anomImageData)))
+                   EM_ALL, anomImageEventHandler, (intptr_t) anomImageData)))
    {
       finishLongJob ();
       xvt_dm_post_error("Cannot Create Image Display Window.");
@@ -874,7 +874,7 @@ ANOMIMAGE_DATA *anomaliesImageData;
                                /* rect is the size of the data array */
    updateAnomaliesImageDisplay(imageWindow);
    
-   xvt_vobj_set_data (imageWindow, (long) anomImageData);
+   xvt_vobj_set_data (imageWindow, (intptr_t) anomImageData);
 
    finishLongJob ();
 
@@ -1241,7 +1241,7 @@ char *filename;
 
 
    free_dmatrix (imageData, 0, sizeX, 0, sizeY);
-   xvt_vobj_set_data (contourWindow, (long) pixmap);
+   xvt_vobj_set_data (contourWindow, (intptr_t) pixmap);
 
    finishLongJob ();
 
@@ -1352,7 +1352,7 @@ char *filename;
                    (float) airgap, (int) fileId, (double) minoff, (double) range, filename);
 
    destroy2DArray ((char **) imageData, sizeX+1, sizeY+1);
-   xvt_vobj_set_data (profileWindow, (long) pixmap);
+   xvt_vobj_set_data (profileWindow, (intptr_t) pixmap);
 
    finishLongJob ();
 
@@ -1426,7 +1426,7 @@ double scale, scaleToData;
                              anomImageData, startLine, endLine, scale,
 								  	  startLineOrig, endLineOrig, scaleToData);
    
-   xvt_vobj_set_data (profWindow, (long) profileAnomImageData);
+   xvt_vobj_set_data (profWindow, (intptr_t) profileAnomImageData);
 
    xvt_vobj_set_visible (profWindow, TRUE);
    bringWindowToFront(profWindow);
@@ -2209,7 +2209,7 @@ char *filename;
                    title, (int) NULL, TASK_WIN,
                    WSF_NO_MENUBAR | WSF_CLOSE | WSF_SIZE |
                    WSF_INVISIBLE | WSF_ICONIZABLE,
-                   EM_ALL, traceEventHandler, (long) traceData)))
+                   EM_ALL, traceEventHandler, (intptr_t) traceData)))
    {
       xvt_dm_post_error("Cannot Create Picture Window.");
       return (FALSE);
@@ -2537,7 +2537,7 @@ char *filename;
       return;
    }
 
-   xvt_vobj_set_data (pictureWindow, (long) pixmap);
+   xvt_vobj_set_data (pictureWindow, (intptr_t) pixmap);
 
    xvt_vobj_set_visible (pictureWindow, TRUE);
    bringWindowToFront(pictureWindow);
@@ -3355,7 +3355,7 @@ updateTopographyMap ()
       finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (topoWindow, (long) topoPixmap);
+   xvt_vobj_set_data (topoWindow, (intptr_t) topoPixmap);
 
    if (!created)
       xvt_dwin_invalidate_rect (topoWindow, NULL);
@@ -3474,7 +3474,7 @@ update3dTopographyMap ()
    finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (topo3dWindow, (long) threedData);
+   xvt_vobj_set_data (topo3dWindow, (intptr_t) threedData);
 
    if (!created)
       xvt_dwin_invalidate_rect (topo3dWindow, NULL);
@@ -3635,7 +3635,7 @@ update3dStratigraphy ()
    finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (strat3dWindow, (long) threedData);
+   xvt_vobj_set_data (strat3dWindow, (intptr_t) threedData);
 
    if (!created)
       xvt_dwin_invalidate_rect (strat3dWindow, NULL);
@@ -3686,7 +3686,7 @@ char *message;
 }
 
 /* ======================================================================
-FUNCTION        update3dPreview
+FUNCTION        update3dPreview (real implementation, see wrapper below)
 DESCRIPTION
 
 INPUT
@@ -3695,11 +3695,11 @@ OUTPUT
 
 RETURNED
 ====================================================================== */
-void
+static void
 #if XVT_CC_PROTO
-update3dPreview (WINDOW prevWin, OBJECT *object)
+update3dPreviewImpl (WINDOW prevWin, OBJECT *object)
 #else
-update3dPreview (prevWin, object)
+update3dPreviewImpl (prevWin, object)
 WINDOW prevWin;
 OBJECT *object;
 #endif
@@ -3716,7 +3716,7 @@ OBJECT *object;
    BLOCK_VIEW_OPTIONS *copyBlockView = NULL, *blockView, tempView;
    THREED_VIEW_OPTIONS *copy3DViewOptions = NULL;
                         /* Get the preview Window */
-   if (object && ((long) object > 100))  /* any real address will be greater than 100 */
+   if (object && ((intptr_t) object > 100))  /* any real address will be greater than 100 */
       previewWin = object->previewWin;
    else
    {
@@ -3726,7 +3726,7 @@ OBJECT *object;
       else
          previewWin = currentPreviewWindow;
    }
-      
+
    if (!previewWin)
       return;
                             /* Only update if preview is turned On */
@@ -4087,8 +4087,81 @@ OBJECT *object;
 
 #if (XVTWS != MTFWS) && (XVTWS != XOLWS)
       xvt_win_set_cursor (TASK_WIN, CURSOR_ARROW);
-#endif      
+#endif
 
+}
+
+/* ======================================================================
+FUNCTION        update3dPreview
+DESCRIPTION
+     Thin re-entrancy-guarded, coalescing wrapper around
+     update3dPreviewImpl.
+
+     [Qt port fix] Rapid scrollbar/slider drags on the Qt port can deliver
+     a burst of valueChanged-driven E_CONTROL/E_HSCROLL events before the
+     previous update3dPreview call has returned (real XVT's scrollbar
+     drag delivery was throttled to the OS's own message pump; Qt's
+     signal delivery for a fast drag is not). Re-entering
+     update3dPreviewImpl while it's still mid-flight through its own
+     large stack frame (BLOCK_DIAGRAM_DATA blockDiagram; THREED_IMAGE_DATA
+     threedData; etc, all stack-local) let the inner and outer calls'
+     locals interleave, confirmed via targeted logging: two calls for the
+     SAME object, one with the correct pointer and the very next with the
+     identical value truncated-and-sign-extended through a 32-bit `long`
+     (e.g. 0x1e9bb12c860 -> 0xffffffffbb12c860) even though every
+     xvt_vobj_get_data/set_data call in between returned the untouched
+     64-bit value -- i.e. the corruption was happening between calls, not
+     in storage. First reported as "preview only reflects the first
+     change" and, depending on timing, as an outright crash on drag.
+
+     A plain "drop any re-entrant call" guard (matching the
+     updatingImage/processingLongJob pattern nodwork2.c uses for the same
+     class of overlapping-update problem) stopped the crash but silently
+     dropped every update that arrived while one was already running --
+     for a fast drag that's most of them, so the preview stopped tracking
+     the slider for most event types (Fault/Unconformity/Shear/Dyke/Plug/
+     Tilt all reported as "no crash, but doesn't update" once the drop-
+     only guard was in). Since only the FINAL state of a drag actually
+     matters for a preview redraw, remember the latest dropped request
+     and, once the in-flight call finishes, immediately run it (looping
+     in case more arrived while catching up) -- coalescing every
+     intermediate tick down to just the last one instead of losing it.
+INPUT
+
+OUTPUT
+
+RETURNED
+====================================================================== */
+void
+#if XVT_CC_PROTO
+update3dPreview (WINDOW prevWin, OBJECT *object)
+#else
+update3dPreview (prevWin, object)
+WINDOW prevWin;
+OBJECT *object;
+#endif
+{
+   static BOOLEAN inUpdate3dPreview = FALSE;
+   static BOOLEAN havePending = FALSE;
+   static WINDOW pendingPrevWin;
+   static OBJECT *pendingObject;
+
+   if (inUpdate3dPreview)
+   {
+      pendingPrevWin = prevWin;
+      pendingObject = object;
+      havePending = TRUE;
+      return;
+   }
+
+   inUpdate3dPreview = TRUE;
+   update3dPreviewImpl (prevWin, object);
+   while (havePending)
+   {
+      havePending = FALSE;
+      update3dPreviewImpl (pendingPrevWin, pendingObject);
+   }
+   inUpdate3dPreview = FALSE;
 }
 
 /* ======================================================================
@@ -4299,7 +4372,7 @@ OBJECT *object;
 /*   xvt_palet_destroy (palet); */
    xvt_image_destroy (image);
 
-   xvt_vobj_set_data (win, (long) pixmap);
+   xvt_vobj_set_data (win, (intptr_t) pixmap);
    CORRECT_WIN_RESIZE (win, diagRect)
    xvt_vobj_move (win, &diagRect);
    
@@ -4471,7 +4544,7 @@ WINDOW win;
       finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (lineMapPlotWindow, (long) lineMapPlotPixmap);
+   xvt_vobj_set_data (lineMapPlotWindow, (intptr_t) lineMapPlotPixmap);
 
    if (!created)
       xvt_dwin_invalidate_rect (lineMapPlotWindow, NULL);
@@ -4601,7 +4674,7 @@ updateStratColumns ()
       finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (stratColumnsWindow, (long) stratPixmap);
+   xvt_vobj_set_data (stratColumnsWindow, (intptr_t) stratPixmap);
 
    if (!created)
       xvt_dwin_invalidate_rect (stratColumnsWindow, NULL);
@@ -4741,7 +4814,7 @@ int solidColor;
 #endif
 
    lineMapData->pixmap = lineMapPixmap;
-   xvt_vobj_set_data (lineMapWindow, (long) lineMapData);
+   xvt_vobj_set_data (lineMapWindow, (intptr_t) lineMapData);
 
    if (!created)
       xvt_dwin_invalidate_rect (lineMapWindow, NULL);
@@ -4964,7 +5037,7 @@ BLOCK_SURFACE_DATA *surface;
 #endif
 
    sectionData->pixmap = sectionPixmap;
-   xvt_vobj_set_data (win, (long) sectionData);
+   xvt_vobj_set_data (win, (intptr_t) sectionData);
 
              /* Generate a Size event to scale window correctly */
    xvt_vobj_get_client_rect (win, &position);
@@ -5099,7 +5172,7 @@ updateWellLog ()
       finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (boreHoleWindow, (long) wellLogPixmap);
+   xvt_vobj_set_data (boreHoleWindow, (intptr_t) wellLogPixmap);
 
    if (!created)
       xvt_dwin_invalidate_rect (boreHoleWindow, NULL);
@@ -5141,7 +5214,7 @@ int threedView;
    xyzImport->data = (long) threedView;
    
    if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN,
-                 EM_ALL, XYZ_CONVERT_WINDOW_eh, (long) xyzImport)))
+                 EM_ALL, XYZ_CONVERT_WINDOW_eh, (intptr_t) xyzImport)))
       xvt_dm_post_error("Can't open window");
 
    return (TRUE);
@@ -5255,7 +5328,7 @@ int threedView;
          if (blockDiagramData)
             initBlockDiagramData (NULL_WIN, blockDiagramData, -1.0);
             
-         xvt_vobj_set_data (boreHole3DWindow, (long) blockDiagramData);
+         xvt_vobj_set_data (boreHole3DWindow, (intptr_t) blockDiagramData);
       }
       else
          blockDiagramData = (BLOCK_DIAGRAM_DATA *) xvt_vobj_get_data(boreHole3DWindow);
@@ -5365,7 +5438,7 @@ int threedView;
       finishLongJob ();  /* take it down if one was never needed */
 #endif
 
-   xvt_vobj_set_data (boreHoleWindow, (long) boreholePixmap);
+   xvt_vobj_set_data (boreHoleWindow, (intptr_t) boreholePixmap);
 
    if (!created)
       xvt_dwin_invalidate_rect (boreHoleWindow, NULL);
@@ -5557,10 +5630,10 @@ WINDOW blockWin;
          if (oldBlockPixmap)
             xvt_pmap_destroy (oldBlockPixmap);
       }
-      xvt_vobj_set_data (blockWin, (long) blockDiagramData);
+      xvt_vobj_set_data (blockWin, (intptr_t) blockDiagramData);
    }
    else
-      xvt_vobj_set_data (blockWin, (long) blockDiagramData);
+      xvt_vobj_set_data (blockWin, (intptr_t) blockDiagramData);
 
    if (!created)
       xvt_dwin_invalidate_rect (blockWin, NULL);
@@ -5785,7 +5858,7 @@ FILE_SPEC *filename;
 
          prevMovieData = movieData;
          
-         xvt_vobj_set_data (movieWindow, (long) movieData);
+         xvt_vobj_set_data (movieWindow, (intptr_t) movieData);
          updateMovieTitle (movieWindow);
 
          if (!interpolateEvent (object, frame, framesPerEvent))
@@ -6162,7 +6235,7 @@ FILE_SPEC *filename;
                      movieData->prev = prevMovieData;
                   }
                   else
-                     xvt_vobj_set_data (movieWindow, (long) movieData);
+                     xvt_vobj_set_data (movieWindow, (intptr_t) movieData);
                   prevMovieData = movieData;
                }
                else
@@ -6382,7 +6455,7 @@ WINDOW win;
    tempObject->drawEvent = TRUE;
    tempObject->previewWin = win;
 
-   if (!(createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (long) tempObject)))
+   if (!(createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (intptr_t) tempObject)))
       xvt_dm_post_error("Can't open window");
 
    return (TRUE);

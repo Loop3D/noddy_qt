@@ -269,7 +269,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN ALT_ALTERATION_EDIT EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 1;
-			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data))
+			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END ALT_ALTERATION_EDIT EVNT:Control */
 			}

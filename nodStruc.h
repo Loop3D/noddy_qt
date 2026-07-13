@@ -1083,7 +1083,17 @@ typedef struct _pixel {
    }
 #endif
 
-#if ((XVTWS != WIN32WS) && (XVTWS != WIN16WS))
+/* [Qt port fix] this whole block (glxcColorInfo/GLXC_*) is real,
+** genuinely-used-elsewhere X11/Xt/GLX code (nodLib3.c's CopyGlColormap),
+** but that function itself is only ever compiled under #ifdef OPENGL
+** (which this build never defines) -- this #include is the ONLY
+** unconditional part, pulled in by every .c file in the app via
+** noddy.h. Harmless on Linux (X11 dev headers happen to be present via
+** Qt5's own dependencies) but a hard compile error on native Windows/
+** MinGW (no X11 at all) for a header nothing in the Qt port ever uses.
+** XVTWS == 0 is qt_compat/xvt_env.h's dedicated "the Qt window system"
+** value (matches no real platform constant), so exclude it here too. */
+#if ((XVTWS != WIN32WS) && (XVTWS != WIN16WS) && (XVTWS != 0))
 #include <X11/Intrinsic.h>
 /*
  * This file contains information used for cloning colors from

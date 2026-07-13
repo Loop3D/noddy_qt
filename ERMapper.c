@@ -677,7 +677,7 @@ char *filename;
                    WSF_NO_MENUBAR | WSF_CLOSE | WSF_SIZE |
                    WSF_INVISIBLE | WSF_ICONIZABLE,
 #endif
-                   EM_ALL, anomImageEventHandler, (long) anomImageData)))
+                   EM_ALL, anomImageEventHandler, (intptr_t) anomImageData)))
    {
       finishLongJob ();
       xvt_dm_post_error("Cannot Create Image Display Window.");
@@ -728,7 +728,7 @@ char *filename;
    if (!updateAnomaliesImageDisplay(imageWindow))
 	{
       xvt_dm_post_error("Try reducing the Geophysics Display Scale.");
-      xvt_vobj_set_data (imageWindow, (long) 0L);
+      xvt_vobj_set_data (imageWindow, (intptr_t) 0L);
       destroy2DArray ((char **) imageData, ny, nx);
       xvt_mem_free ((char *) anomImageData);
 		xvt_vobj_destroy(imageWindow);
@@ -736,7 +736,7 @@ char *filename;
 		return (NULL_WIN);
 	}
    
-   xvt_vobj_set_data (imageWindow, (long) anomImageData);
+   xvt_vobj_set_data (imageWindow, (intptr_t) anomImageData);
 
    finishLongJob ();
 

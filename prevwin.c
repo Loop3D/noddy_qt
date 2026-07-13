@@ -164,7 +164,7 @@ EVENT *xdEvent;
 		draw_scene_callback ((Widget) glWidget, (caddr_t) 0, (caddr_t) 0);
 #endif
 #else
-		long data;
+		intptr_t data;  /* [Qt port fix] long -> intptr_t, see PTR_LONG's comment in qt_compat/xvt_types.h -- was truncating object on LLP64 Windows */
 		data = xvt_vobj_get_data(xvt_vobj_get_parent(xdWindow));
 		if (xdWindow == (WINDOW) data)
 		   update3dPreview (xdWindow, (OBJECT *) NULL);

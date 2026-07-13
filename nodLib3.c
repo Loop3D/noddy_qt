@@ -161,7 +161,7 @@ void setWindowState ( WINDOW, int );
 double setBlockSize (int);
 int displayHelp (char *);
 void processCommandLine (char **, int, char **, char **, char **,
-                                                char *, OPERATIONS *);
+                                                char *, OPERATIONS *, int *);
 void displayUsage (char *);
 int performBatchOperations (char *, char *, OPERATIONS);
 int noddy (DATA_INPUT, DATA_OUTPUT, int, char *, char *,
@@ -455,17 +455,17 @@ OBJECT *object;
 #endif
 {
    NODDY_COLOUR *options = NULL;
-   
+
    if (!object)
       return (options);
-   
+
    if (object->shape == STRATIGRAPHY)
    {
       STRATIGRAPHY_OPTIONS *tempOptions;
       int layer;
 
       tempOptions = (STRATIGRAPHY_OPTIONS *) object->options;
-         
+
       if (object->generalData > 0)
          layer = object->generalData - 1;
       else     /* -ve to go from other end (generalData = -1, -2 etc) */
@@ -3280,15 +3280,17 @@ void
 #if XVT_CC_PROTO
 processCommandLine (char **argv, int argc,
                     char **historyFile, char **outputFile, char **blockFile,
-                    char *operationName, OPERATIONS *operation)
+                    char *operationName, OPERATIONS *operation,
+                    int *randomHistory)
 #else
 processCommandLine (argv, argc, historyFile, outputFile, blockFile,
-                                operationName, operation)
+                                operationName, operation, randomHistory)
 char **argv;
 int argc;
 char **historyFile, **outputFile, **blockFile;
 char *operationName;
 OPERATIONS *operation;
+int *randomHistory;
 #endif
 {
    int option;
@@ -3364,6 +3366,12 @@ OPERATIONS *operation;
          *operation = ANOMALIES_IMAGE;
          strcpy (operationName,"Anomalies Image");
          recognised = TRUE;
+      }        /* [Qt port ADDITION] todo.txt #41 -- -random means generate
+                ** a random history instead of reading one from a file */
+      else if (strcmp(argv[option], "-random") == 0)
+      {
+         *randomHistory = TRUE;
+         recognised = TRUE;
       }                        /* -h also means next option is history file */
       else if ((argv[option][0] == '-') && (argv[option][1] == 'h'))
       {
@@ -3419,6 +3427,7 @@ char *commandName;
 #endif
 {
    fprintf (stderr,"\nUSAGE: %s <history_file> [options]", commandName);
+   fprintf (stderr,"\n   or: %s -random [options]", commandName);
    fprintf (stderr,"\n");
    fprintf (stderr,"\nOptions Include:");
    fprintf (stderr,"\n\t-h history_file");
@@ -3434,6 +3443,7 @@ char *commandName;
    fprintf (stderr,"\n\t-anomFromBlock same as -anom but from a specified block file");
    fprintf (stderr,"\n\t-profile force anomalies profile to be produced");
    fprintf (stderr,"\n\t-image force anomalies image to be produced");
+   fprintf (stderr,"\n\t-random generate a random history instead of reading one -- writes a timestamped .his file plus a block export and anomalies");
 #ifndef _MPL
    fprintf (stderr,"\n\t-parallel do on parallel machine (if available)");
 #endif

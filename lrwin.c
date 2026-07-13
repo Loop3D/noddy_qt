@@ -246,7 +246,7 @@ EVENT *xdEvent;
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			xdCheckRadioButton(xdWindow, LOCAL_REMOTE_REMOTE,
 				LOCAL_REMOTE_REMOTE, LOCAL_REMOTE_LOCAL);
-			if (!(win = createCenteredWindow(PARALLEL_OPTIONS_WINDOW, TASK_WIN, EM_ALL, PARALLEL_OPTIONS_WINDOW_eh, (long) xdWindow)))
+			if (!(win = createCenteredWindow(PARALLEL_OPTIONS_WINDOW, TASK_WIN, EM_ALL, PARALLEL_OPTIONS_WINDOW_eh, (intptr_t) xdWindow)))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END LOCAL_REMOTE_REMOTE EVNT:Control */
 			}

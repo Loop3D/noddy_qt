@@ -35,7 +35,7 @@
 #define __huge		
 
 typedef long           WINDOW;    /* window descriptor */
-typedef long           PICTURE;   /* encapsulated picture descriptor */
+typedef intptr_t       PICTURE;   /* encapsulated picture descriptor -- see qt_compat/xvt_types.h's PICTURE comment (long truncated real clipboard pointers on LLP64 Windows) */
 typedef unsigned long  COLOR;     /* color encapsulation */
 typedef unsigned long  EVENT_MASK;/* event delivery mask */
 typedef unsigned long  GHANDLE;   /* handle to global memory block */

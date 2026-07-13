@@ -1048,7 +1048,7 @@ EVENT *ep;
               ep->v.mouse.where.v -= 10;
               createPopupWindow (win, ep->v.mouse.where,
                           LAYER_DISPLAY_WINDOW, LAYER_DISPLAY_WINDOW_eh,
-                          (long) xvt_vobj_get_data (win));
+                          (intptr_t) xvt_vobj_get_data (win));
            }
            break;
       case E_MOUSE_DBL:
@@ -1305,7 +1305,7 @@ EVENT *ep;
 				  if (movieData->next)  /* move along to the next frame */
 				  {
 					  movieData = movieData->next;
-					  xvt_vobj_set_data (win, (long) movieData);
+					  xvt_vobj_set_data (win, (intptr_t) movieData);
 					  updateMovieTitle (win);
 					  xvt_dwin_invalidate_rect (win, NULL);
 					  xvt_dwin_update (win);
@@ -1318,7 +1318,7 @@ EVENT *ep;
 				  if (movieData->prev)  /* move along to the prev frame */
 				  {
 					  movieData = movieData->prev;
-					  xvt_vobj_set_data (win, (long) movieData);
+					  xvt_vobj_set_data (win, (intptr_t) movieData);
 					  updateMovieTitle (win);
 					  xvt_dwin_invalidate_rect (win, NULL);
 					  xvt_dwin_update (win);
@@ -1349,7 +1349,7 @@ EVENT *ep;
 
               if (projectOptions.moviePlaySpeed)
               {
-                 xvt_vobj_set_data (win, (long) movieData);
+                 xvt_vobj_set_data (win, (intptr_t) movieData);
 					  xvt_dwin_invalidate_rect (win, NULL);
                  updateMovieTitle (win);
 					  xvt_dwin_update (win);
@@ -1362,7 +1362,7 @@ EVENT *ep;
 					  {
 						  do     /* play the movie */
 						  {
-							  xvt_vobj_set_data (win, (long) movieData);
+							  xvt_vobj_set_data (win, (intptr_t) movieData);
 							  xvt_dwin_invalidate_rect (win, NULL);
 							  updateMovieTitle (win);
 							  xvt_dwin_update (win);
@@ -1373,7 +1373,7 @@ EVENT *ep;
 					  {
 						  do     /* play the movie backwards */
 						  {
-							  xvt_vobj_set_data (win, (long) movieData);
+							  xvt_vobj_set_data (win, (intptr_t) movieData);
 							  xvt_dwin_invalidate_rect (win, NULL);
 							  updateMovieTitle (win);
 							  xvt_dwin_update (win);
@@ -1406,7 +1406,7 @@ EVENT *ep;
               }
               
               if (movieData)
-                 xvt_vobj_set_data (win, (long) movieData);
+                 xvt_vobj_set_data (win, (intptr_t) movieData);
            
               updateMovieTitle (win);
               xvt_dwin_invalidate_rect (win, NULL);
@@ -1515,19 +1515,19 @@ EVENT *ep;
                  traceData->menuWindow = createPositionedWindow (FOLD_TRACE_WINDOW,
                                          TASK_WIN, position.left/4, position.top,
                                          EM_ALL, FOLD_TRACE_WINDOW_eh,
-                                         (long) traceData, (RCT *) NULL);
+                                         (intptr_t) traceData, (RCT *) NULL);
                  break;
               case (FAULT):
                  traceData->menuWindow = createPositionedWindow (FAULT_TRACE_WINDOW,
                                          TASK_WIN, position.left/4, position.top,
                                          EM_ALL, FAULT_TRACE_WINDOW_eh,
-                                         (long) traceData, (RCT *) NULL);
+                                         (intptr_t) traceData, (RCT *) NULL);
                  break;
               case (SHEAR_ZONE):
                  if (traceData->menuWindow = createPositionedWindow (FAULT_TRACE_WINDOW,
                                          TASK_WIN, position.left/4, position.top,
                                          EM_ALL, FAULT_TRACE_WINDOW_eh,
-                                         (long) traceData, (RCT *) NULL))
+                                         (intptr_t) traceData, (RCT *) NULL))
                     xvt_vobj_set_title (traceData->menuWindow, "Shear Trace Control");                        
                  break;
            }
@@ -1929,7 +1929,7 @@ EVENT *ep;
                     lastActiveWindow = win;
                     createPopupWindow (win, ep->v.mouse.where,
                                 IMAGE_OPTION_WINDOW, IMAGE_OPTION_WINDOW_eh,
-                                (long) &(anomImageData->imageDisplay));
+                                (intptr_t) &(anomImageData->imageDisplay));
                  }
               }
            }

@@ -72,7 +72,7 @@ EVENT *xdEvent;
 		memcpy (tempDatabase->database, rockDatabase.database, rockDatabase.numProps*sizeof(LAYER_PROPERTIES));
 		tempDatabase->numProps = rockDatabase.numProps;
 		
-		xvt_vobj_set_data (xdWindow, (long) tempDatabase);
+		xvt_vobj_set_data (xdWindow, (intptr_t) tempDatabase);
 		
 		updateRocksInDatabase (xdWindow);
 		/* TAG END EVNT:Create */

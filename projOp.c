@@ -326,7 +326,7 @@ EVENT *xdEvent;
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			xdCheckRadioButton(xdWindow, PROJECT_OPTIONS_REMOTE,
 				PROJECT_OPTIONS_REMOTE, PROJECT_OPTIONS_LOCAL);
-			if (!(win = createCenteredWindow(PARALLEL_OPTIONS_WINDOW, TASK_WIN, EM_ALL, PARALLEL_OPTIONS_WINDOW_eh, (long) data)))
+			if (!(win = createCenteredWindow(PARALLEL_OPTIONS_WINDOW, TASK_WIN, EM_ALL, PARALLEL_OPTIONS_WINDOW_eh, (intptr_t) data)))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END PROJECT_OPTIONS_REMOTE EVNT:Control */
 			}
@@ -416,7 +416,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN PROJECT_MOVIE_OPTIONS_BUT EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			WINDOW win;
-			if (!(win = createCenteredWindow(MOVIE_OPTIONS, TASK_WIN, EM_ALL, MOVIE_OPTIONS_eh, (long) data)))
+			if (!(win = createCenteredWindow(MOVIE_OPTIONS, TASK_WIN, EM_ALL, MOVIE_OPTIONS_eh, (intptr_t) data)))
 				 xvt_dm_post_error("Can't open window");
 			 
 			/* TAG END PROJECT_MOVIE_OPTIONS_BUT EVNT:Control */
@@ -429,7 +429,7 @@ EVENT *xdEvent;
 			WINDOW win;
 			if (!(win = createCenteredWindow(IMAGE_OPTION_WINDOW,
 			                            TASK_WIN, EM_ALL, IMAGE_OPTION_WINDOW_eh,
-			                           (long) &(projectOptions.gravityDisplay))))
+			                           (intptr_t) &(projectOptions.gravityDisplay))))
 				 xvt_dm_post_error("Can't open window");
 			/* TAG END PROJECT_GRV_DISP_OPTIONS EVNT:Control */
 			}
@@ -451,7 +451,7 @@ EVENT *xdEvent;
 			WINDOW win;
 			if (!(win = createCenteredWindow(IMAGE_OPTION_WINDOW,
 			                            TASK_WIN, EM_ALL, IMAGE_OPTION_WINDOW_eh,
-			                           (long) &(projectOptions.magneticsDisplay))))
+			                           (intptr_t) &(projectOptions.magneticsDisplay))))
 				 xvt_dm_post_error("Can't open window");
 			/* TAG END PROJECT_MAG_DISP_OPTIONS EVNT:Control */
 			}

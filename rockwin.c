@@ -329,7 +329,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN ROCK_COLOR EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			WINDOW win;
-			if (!(win = createCenteredWindow(DEFINE_COLOUR_WINDOW, TASK_WIN, EM_ALL, DEFINE_COLOUR_WINDOW_eh, (long) data)))
+			if (!(win = createCenteredWindow(DEFINE_COLOUR_WINDOW, TASK_WIN, EM_ALL, DEFINE_COLOUR_WINDOW_eh, (intptr_t) data)))
 				xvt_dm_post_error("Can't open window");
 			/* TAG END ROCK_COLOR EVNT:Control */
 			}

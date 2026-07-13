@@ -246,7 +246,7 @@ EVENT *xdEvent;
 			WINDOW win;
 			if (!(win = createCenteredWindow(LAYER_DISPLAY_WINDOW,
 			                            TASK_WIN, EM_ALL, LAYER_DISPLAY_WINDOW_eh,
-			                           (long) &(geologyOptions.blockDiagram))))
+			                           (intptr_t) &(geologyOptions.blockDiagram))))
 				 xvt_dm_post_error("Can't open window");
 			/* TAG END VOLUME_EDIT EVNT:Control */
 			}

@@ -8,11 +8,14 @@
  * ============================================================================
  */
 #include "noddy.h"
-#if (XVTWS == XOLWS) || (XVTWS == MTFWS)
+/* [Qt port ADDITION] todo.txt #41 -- needed unconditionally now for the
+** -random flag's timestamped output filename (gettimeofday/struct
+** timeval), not just the XOLWS/MTFWS TIMER() macro below. */
 #include <sys/time.h>
+#if (XVTWS == XOLWS) || (XVTWS == MTFWS)
 #define TIMER(X)  X
 #else
-#define TIMER(X)  
+#define TIMER(X)
 #endif
 
 #define DEBUG(X)  
@@ -68,6 +71,7 @@ char **argv;
    char *blockFile = NULL;
    char operationName[100];
    OPERATIONS operation;
+   int randomHistory = FALSE; /* [Qt port ADDITION] todo.txt #41 -- -random flag */
    TIMER(double time;)
 
    TIMER(timeStart ();)
@@ -77,7 +81,7 @@ char **argv;
    fprintf (stdout,"\n************************************************************");
    fprintf (stdout,"\n***                     - Noddy -                        ***");
    fprintf (stdout,"\n***                  Batch Execution                     ***");
-   fprintf (stdout,"\n***             (c) 1994 Monash University               ***");
+   fprintf (stdout,"\n***                     MIT Licence                      ***");
    fprintf (stdout,"\n");
 
    if (!checkLicence())
@@ -91,9 +95,39 @@ char **argv;
 
                                /* Find out what calculation to perform */
    processCommandLine (argv, argc, &historyFile, &outputFile, &blockFile,
-                                    operationName, &operation);
+                                    operationName, &operation, &randomHistory);
    if (!blockFile)
       blockFile = outputFile;
+
+   /* [Qt port ADDITION] todo.txt #41 -- -random: generate a random history
+   ** (instead of reading historyFile from disk), write it out as a
+   ** timestamped .his file, and calculate a full block export plus
+   ** gravity/magnetic anomalies from it. Skips the normal historyFile
+   ** requirement entirely -- a random run needs no input file. */
+   if (randomHistory)
+   {
+      char randomBaseName[256];
+      struct timeval randomStart;
+
+      gettimeofday (&randomStart, NULL);
+      sprintf (randomBaseName, "random_%ld_%ld",
+                     (long) randomStart.tv_sec, (long) randomStart.tv_usec);
+      if (outputFile == defaultOutputFile) /* -o was not given */
+         outputFile = randomBaseName;
+
+      fprintf (stdout,"\nOutput File is : %s  (extensions may be appended)",outputFile);
+      fprintf (stdout,"\nOperation is : Generating a Random History, Block Export and Anomalies\n");
+      fflush(stdout);
+
+      RandomNoddy (outputFile, 0);
+
+      DEBUG(printf ("\n*************** END \n");)
+      TIMER(timeEnd ();)
+      TIMER(time = timeElapsed ();)
+      TIMER(fprintf(stdout,"\nProcessing took %.1lf sec.",time);)
+      fprintf(stdout,"\n");
+      exit (EXIT_SUCESS_VALUE);
+   }
 
    if (!historyFile)
    {

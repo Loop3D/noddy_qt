@@ -145,9 +145,9 @@ void log_invalidate_rect(WINDOW, RCT *);
 /* ####################### General Utility Functions ######################## */
 WINDOW createPreviewWindow (WINDOW, WINDOW);
 WINDOW createEventWindow (OBJECT *);
-WINDOW createPositionedWindow (int, WINDOW, int, int, EVENT_MASK, EVENT_HANDLER, long, RCT *);
-WINDOW createCenteredWindow (int, WINDOW, EVENT_MASK, EVENT_HANDLER, long);
-WINDOW createCenteredDialog (int, EVENT_MASK, EVENT_HANDLER, long);
+WINDOW createPositionedWindow (int, WINDOW, int, int, EVENT_MASK, EVENT_HANDLER, intptr_t, RCT *);
+WINDOW createCenteredWindow (int, WINDOW, EVENT_MASK, EVENT_HANDLER, intptr_t);
+WINDOW createCenteredDialog (int, EVENT_MASK, EVENT_HANDLER, intptr_t);
 void tidyObjects (WINDOW);
 void copyUndoPositions (WINDOW_INFO *, int);
 void copyUndoAdditions (OBJECT *, int);
@@ -1859,7 +1859,7 @@ OBJECT *object;
 
    object->previewWin = NULL_WIN;  /* make sure no old preview windows are left */
    eventWin = (WINDOW) xvt_win_create_def (windowDefinition, TASK_WIN,
-                           EM_ALL, EVENT_WINDOW_eh, (long) object);
+                           EM_ALL, EVENT_WINDOW_eh, (intptr_t) object);
    xvt_res_free_win_def (windowDefinition);
 
                          /* Add in the preview window a the correct pos */
@@ -1867,7 +1867,6 @@ OBJECT *object;
       object->previewWin = createPreviewWindow(eventWin, previewPosWin);
    else
       object->previewWin = NULL_WIN;
-
 
                     /* Show all that we have done */
    if (eventWin && object->previewWin)
@@ -1899,7 +1898,7 @@ DESCRIPTION
 WINDOW
 #if XVT_CC_PROTO
 createPositionedWindow (int windowId, WINDOW parent, int posX, int posY,
-          EVENT_MASK mask, EVENT_HANDLER eventHandler, long appData,
+          EVENT_MASK mask, EVENT_HANDLER eventHandler, intptr_t appData,
           RCT *posRect)
 #else
 createPositionedWindow (windowId, parent, posX, posY, mask,
@@ -1909,7 +1908,7 @@ WINDOW parent;
 int posX, posY;
 EVENT_MASK mask;
 EVENT_HANDLER eventHandler;
-long appData;
+intptr_t appData;
 RCT *posRect;
 #endif
 {
@@ -1953,14 +1952,14 @@ DESCRIPTION
 WINDOW
 #if XVT_CC_PROTO
 createCenteredWindow (int windowId, WINDOW parent, EVENT_MASK mask,
-                      EVENT_HANDLER eventHandler, long appData)
+                      EVENT_HANDLER eventHandler, intptr_t appData)
 #else
 createCenteredWindow (windowId, parent, mask, eventHandler, appData)
 int windowId;
 WINDOW parent;
 EVENT_MASK mask;
 EVENT_HANDLER eventHandler;
-long appData;
+intptr_t appData;
 #endif
 {
    WINDOW popupWin = NULL_WIN;
@@ -2020,13 +2019,13 @@ DESCRIPTION
 WINDOW
 #if XVT_CC_PROTO
 createCenteredDialog (int windowId, EVENT_MASK mask,
-                      EVENT_HANDLER eventHandler, long appData)
+                      EVENT_HANDLER eventHandler, intptr_t appData)
 #else
 createCenteredDialog (windowId, mask, eventHandler, appData)
 int windowId;
 EVENT_MASK mask;
 EVENT_HANDLER eventHandler;
-long appData;
+intptr_t appData;
 #endif
 {
    WINDOW popupWin = NULL_WIN;

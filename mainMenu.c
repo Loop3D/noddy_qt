@@ -726,7 +726,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_148 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) PROJECT_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) PROJECT_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_148 EVNT:Select */
 		}
@@ -735,7 +735,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_150 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) BLOCK_VIEW_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) BLOCK_VIEW_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_150 EVNT:Select */
 		}
@@ -744,7 +744,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_151 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) MOVIE_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) MOVIE_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_151 EVNT:Select */
 		}
@@ -753,7 +753,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_46 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) GEOLOGY_DISPLAY_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) GEOLOGY_DISPLAY_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_46 EVNT:Select */
 		}
@@ -762,7 +762,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_152 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) BOREHOLE_SECTION_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) BOREHOLE_SECTION_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_152 EVNT:Select */
 		}
@@ -771,7 +771,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_153 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) VOLUME_SURFACE_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) VOLUME_SURFACE_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_153 EVNT:Select */
 		}
@@ -780,7 +780,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_145 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) GEOPHYSICS_CALC_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) GEOPHYSICS_CALC_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_145 EVNT:Select */
 		}
@@ -789,7 +789,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_146 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) GEOPHYSICS_SURVEY_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) GEOPHYSICS_SURVEY_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_146 EVNT:Select */
 		}
@@ -798,7 +798,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_147 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) GEOPHYSICS_DISPLAY_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) GEOPHYSICS_DISPLAY_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_147 EVNT:Select */
 		}
@@ -807,7 +807,7 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_2_149 EVNT:Select */
 		WINDOW win;
-		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (long) WINDOW_POSITION_OP)))
+		if (!(win = createCenteredWindow(OPTIONS_WINDOW, TASK_WIN, EM_ALL, OPTIONS_WINDOW_eh, (intptr_t) WINDOW_POSITION_OP)))
 		   xvt_dm_post_error("Can't open window");
 		/* TAG END TASK_MENUBAR_2_149 EVNT:Select */
 		}
@@ -1271,7 +1271,7 @@ EVENT *xdEvent;
 		            setDefaultDirectory(&(fs.dir));
 		            memcpy (&(xyzImport->fileSpec), &fs, sizeof(FILE_SPEC));
 		            xyzImport->type = XYZ_GEO_IMPORT;
-		            if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN, EM_ALL, XYZ_CONVERT_WINDOW_eh, (long) xyzImport)))
+		            if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN, EM_ALL, XYZ_CONVERT_WINDOW_eh, (intptr_t) xyzImport)))
 		            {
 		               xvt_mem_free ((char *) xyzImport);
 		               xvt_dm_post_error("Can't open window");
@@ -1313,7 +1313,7 @@ EVENT *xdEvent;
 		            setDefaultDirectory(&(fs.dir));
 		            memcpy (&(xyzImport->fileSpec), &fs, sizeof(FILE_SPEC));
 		            xyzImport->type = XYZ_GEO_IMPORT;
-		            if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN, EM_ALL, XYZ_CONVERT_WINDOW_eh, (long) xyzImport)))
+		            if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN, EM_ALL, XYZ_CONVERT_WINDOW_eh, (intptr_t) xyzImport)))
 		            {
 		               xvt_mem_free ((char *) xyzImport);
 		               xvt_dm_post_error("Can't open window");
@@ -1876,7 +1876,7 @@ EVENT *xdEvent;
 		            if (dxfFile = (FILE_SPEC *) xvt_mem_zalloc(sizeof(FILE_SPEC)))
 		            {
 		               memcpy (dxfFile, &fs, sizeof (FILE_SPEC));
-		               if (!(win = createCenteredWindow(DXF_IMPORT_WINDOW, TASK_WIN, EM_ALL, DXF_IMPORT_WINDOW_eh, (long) dxfFile)))
+		               if (!(win = createCenteredWindow(DXF_IMPORT_WINDOW, TASK_WIN, EM_ALL, DXF_IMPORT_WINDOW_eh, (intptr_t) dxfFile)))
 		                  xvt_dm_post_error("Can't open window");
 		            }
 		            break;
@@ -1942,7 +1942,7 @@ EVENT *xdEvent;
 		            setDefaultDirectory(&(fs.dir));
 		            memcpy (&(xyzImport->fileSpec), &fs, sizeof(FILE_SPEC));
 		            xyzImport->type = XYZ_IMAGE_IMPORT;
-		            if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN, EM_ALL, XYZ_CONVERT_WINDOW_eh, (long) xyzImport)))
+		            if (!(win = createCenteredWindow(XYZ_CONVERT_WINDOW, TASK_WIN, EM_ALL, XYZ_CONVERT_WINDOW_eh, (intptr_t) xyzImport)))
 		            {
 		               xvt_mem_free ((char *) xyzImport);
 		               xvt_dm_post_error("Can't open window");
@@ -2017,7 +2017,7 @@ EVENT *xdEvent;
 		fileFormat->xDirection = WEST_EAST;
 		fileFormat->yDirection = SOUTH_NORTH;
 		fileFormat->zDirection = DOWN_UP;
-		if (!(win = createCenteredWindow(FILE_FORMAT_WINDOW, TASK_WIN, EM_ALL, FILE_FORMAT_WINDOW_eh, (long) fileFormat)))
+		if (!(win = createCenteredWindow(FILE_FORMAT_WINDOW, TASK_WIN, EM_ALL, FILE_FORMAT_WINDOW_eh, (intptr_t) fileFormat)))
 		{
 		   xvt_dm_post_error("Can't open window");
 		   xvt_mem_free ((char *) fileFormat);
@@ -2044,7 +2044,7 @@ EVENT *xdEvent;
 		fileFormat->xDirection = WEST_EAST;
 		fileFormat->yDirection = SOUTH_NORTH;
 		fileFormat->zDirection = DOWN_UP;
-		if (!(win = createCenteredWindow(FILE_FORMAT_WINDOW, TASK_WIN, EM_ALL, FILE_FORMAT_WINDOW_eh, (long) fileFormat)))
+		if (!(win = createCenteredWindow(FILE_FORMAT_WINDOW, TASK_WIN, EM_ALL, FILE_FORMAT_WINDOW_eh, (intptr_t) fileFormat)))
 		{
 		   xvt_dm_post_error("Can't open window");
 		   xvt_mem_free ((char *) fileFormat);

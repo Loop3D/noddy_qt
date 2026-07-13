@@ -270,7 +270,7 @@ EVENT *xdEvent;
 				/*
 					double click
 				*/
-				if (!createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (long) data))
+				if (!createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (intptr_t) data))
 					xvt_dm_post_error("Can't open window");
 			} else {
 				/*
@@ -311,7 +311,7 @@ EVENT *xdEvent;
 			else
 			{
 				data->generalData =  total - index;
-				if (!(win = createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (long) data)))
+				if (!(win = createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (intptr_t) data)))
 					xvt_dm_post_error("Can't open window");
 			}
 			/* TAG END STRATIGRAPHY_EDIT EVNT:Control */

@@ -535,6 +535,13 @@ extern long XVT_CALLCONV1
 #ifndef TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS
 #define TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS 1200
 #endif
+/* [Qt port ADDITION] todo.txt #41 -- NEW File menu item, not part of the
+** original XVT-Design .rc resource. 1201 is in the same deliberately-clear
+** range as 1200 above, for the same reason (never collides with a real
+** .rc-derived tag). */
+#ifndef TASK_MENUBAR_1_RANDOM_HISTORY
+#define TASK_MENUBAR_1_RANDOM_HISTORY 1201
+#endif
 #ifndef TASK_MENUBAR_5
 #define TASK_MENUBAR_5 1005
 #endif

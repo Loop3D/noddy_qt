@@ -252,7 +252,7 @@ EVENT *xdEvent;
 			WINDOW win, ctlwin;
 			ctlwin = xvt_win_get_ctl (xdWindow, xdControlId);
 			data->generalData = xvt_list_get_sel_index (ctlwin);	/* store which layer it is in the general Data */
-			if (!(win = createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (long) data)))
+			if (!(win = createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (intptr_t) data)))
 				xvt_dm_post_error("Can't open window");
 			/* TAG END IPROP_PROPERTIES EVNT:Control */
 			}

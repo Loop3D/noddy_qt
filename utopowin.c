@@ -280,7 +280,7 @@ EVENT *xdEvent;
 			            ** the stale WIN_116_CHECKBOX_68/stackParentWin lookup
 			            ** left over from an older, pre-tabbed-Options-dialog
 			            ** version of this UI (see topoOp.c's own comment). */
-			            if (!(win = createCenteredWindow(TOPO_OPTIONS_WINDOW, TASK_WIN, EM_ALL, TOPO_OPTIONS_WINDOW_eh, (long) ctl_win)))
+			            if (!(win = createCenteredWindow(TOPO_OPTIONS_WINDOW, TASK_WIN, EM_ALL, TOPO_OPTIONS_WINDOW_eh, (intptr_t) ctl_win)))
 			            xvt_dm_post_error("Can't open window");
 			         }
 			         else

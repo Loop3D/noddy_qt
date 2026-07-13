@@ -249,7 +249,7 @@ EVENT *xdEvent;
 			lastActiveWindow = NULL_WIN;
 			if (!(win = createCenteredWindow(IMAGE_OPTION_WINDOW,
 			                            TASK_WIN, EM_ALL, IMAGE_OPTION_WINDOW_eh,
-			                           (long) &(projectOptions.gravityDisplay))))
+			                           (intptr_t) &(projectOptions.gravityDisplay))))
 				 xvt_dm_post_error("Can't open window");
 			/* TAG END GEOPHYSICS_GRAVITY_IDISPLAY EVNT:Control */
 			}
@@ -264,7 +264,7 @@ EVENT *xdEvent;
 			lastActiveWindow = NULL_WIN;
 			if (!(win = createCenteredWindow(IMAGE_OPTION_WINDOW,
 			                            TASK_WIN, EM_ALL, IMAGE_OPTION_WINDOW_eh,
-			                           (long) &(projectOptions.magneticsDisplay))))
+			                           (intptr_t) &(projectOptions.magneticsDisplay))))
 				 xvt_dm_post_error("Can't open window");
 			/* TAG END GEOPHYSICS_MAGNETICS_IDISPLAY EVNT:Control */
 			}

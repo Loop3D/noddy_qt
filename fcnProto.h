@@ -219,7 +219,7 @@ void assignNoddyColourStructure (NODDY_COLOUR *, char *, int, int, int);
 void addWinToStack (WINDOW);
 void takeWinFromStack (WINDOW);
 WINDOW stackParentWin (WINDOW);
-WINDOW createPopupWindow (WINDOW, PNT, int, EVENT_HANDLER, long);
+WINDOW createPopupWindow (WINDOW, PNT, int, EVENT_HANDLER, intptr_t); /* [Qt port fix] long -> intptr_t, see PTR_LONG's comment in qt_compat/xvt_types.h */
 void copyOptions (int, OBJECT *, OPTION_OPERATIONS);
 void updateDykeOptions (WINDOW);
 void updatePlugOptions (WINDOW);
@@ -535,9 +535,12 @@ void deleteSelectedObjects (WINDOW, BOOLEAN);
 void deleteObject (WINDOW, OBJECT *);
 void log_invalidate_rect(WINDOW, RCT *);
 WINDOW createPreviewWindow (WINDOW, WINDOW);
-WINDOW createPositionedWindow (int, WINDOW, int, int, EVENT_MASK, EVENT_HANDLER, long, RCT *);
-WINDOW createCenteredWindow (int, WINDOW, EVENT_MASK, EVENT_HANDLER, long);
-WINDOW createCenteredDialog (int, EVENT_MASK, EVENT_HANDLER, long);
+WINDOW createPositionedWindow (int, WINDOW, int, int, EVENT_MASK, EVENT_HANDLER, intptr_t, RCT *); /* [Qt port fix] long -> intptr_t, see PTR_LONG's comment in qt_compat/xvt_types.h */
+/* [Qt port fix] appData param widened long -> intptr_t; see PTR_LONG's
+** comment in qt_compat/xvt_types.h (confirmed real pointer-truncation
+** crash on native 64-bit Windows). */
+WINDOW createCenteredWindow (int, WINDOW, EVENT_MASK, EVENT_HANDLER, intptr_t);
+WINDOW createCenteredDialog (int, EVENT_MASK, EVENT_HANDLER, intptr_t);
 void tidyObjects (WINDOW);
 void copyUndoPositions (WINDOW_INFO *, int);
 void copyUndoAdditions (OBJECT *, int);

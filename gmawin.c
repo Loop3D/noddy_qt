@@ -258,7 +258,7 @@ EVENT *xdEvent;
 			   if (strcmp (option, "Curved") == 0)
 			   {
 			      data->generalData = 0;
-			      if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data)))
+			      if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data)))
 				 xvt_dm_post_error("Can't open window");
 			   }
 			}
@@ -288,7 +288,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN GMA_ALTERATION_EDIT EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 1;
-			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data))
+			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END GMA_ALTERATION_EDIT EVNT:Control */
 			}
@@ -298,7 +298,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN GMA_COLOR_BUTTON EVNT:Control */
 			char *data = (char *) xvt_vobj_get_data (xdWindow);
 			WINDOW win;
-			if (!(win = createCenteredWindow(DEFINE_COLOUR_WINDOW, TASK_WIN, EM_ALL, DEFINE_COLOUR_WINDOW_eh, (long) data)))
+			if (!(win = createCenteredWindow(DEFINE_COLOUR_WINDOW, TASK_WIN, EM_ALL, DEFINE_COLOUR_WINDOW_eh, (intptr_t) data)))
 				xvt_dm_post_error("Can't open window");
 			/* TAG END GMA_COLOR_BUTTON EVNT:Control */
 			}
@@ -311,7 +311,7 @@ EVENT *xdEvent;
 			WINDOW win;
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 0;
-			if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data)))
+			if (!(win = createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data)))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END GMA_PROFILE_BUTTON EVNT:Control */
 			}

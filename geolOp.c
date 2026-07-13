@@ -515,7 +515,7 @@ EVENT *xdEvent;
 			         }
 			         if (gotTopo)
 			         {
-			            if (!(win = createCenteredWindow(TOPO_OPTIONS_WINDOW, TASK_WIN, EM_ALL, TOPO_OPTIONS_WINDOW_eh, (long) data)))
+			            if (!(win = createCenteredWindow(TOPO_OPTIONS_WINDOW, TASK_WIN, EM_ALL, TOPO_OPTIONS_WINDOW_eh, (intptr_t) data)))
 			            xvt_dm_post_error("Can't open window");
 			         }
 			         else

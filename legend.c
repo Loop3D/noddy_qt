@@ -1068,7 +1068,7 @@ LEGEND_TYPES type;
 		legendData = nextLegendData;
 	}
 
-	xvt_vobj_set_data(legendWindow, (long) newLegendData);
+	xvt_vobj_set_data(legendWindow, (intptr_t) newLegendData);
 
 	xvt_dwin_invalidate_rect(legendWindow, NULL);
 	xvt_dwin_update(legendWindow);

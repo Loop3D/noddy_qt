@@ -275,7 +275,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN FDYKE_ALTERATION_EDIT EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			data->generalData = 1;
-			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (long) data))
+			if (!createCenteredWindow(PROFILE_WINDOW, TASK_WIN, EM_ALL, profileEventHandler, (intptr_t) data))
 			   xvt_dm_post_error("Can't open window");
 			/* TAG END FDYKE_ALTERATION_EDIT EVNT:Control */
 			}
@@ -285,7 +285,7 @@ EVENT *xdEvent;
 			/* TAG BEGIN FDYKE_PROP_BUTTON EVNT:Control */
 			OBJECT *data = (OBJECT *) xvt_vobj_get_data (xdWindow);
 			WINDOW win;
-			if (!(win = createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (long) data)))
+			if (!(win = createCenteredWindow(ROCK_WINDOW, TASK_WIN, EM_ALL, ROCK_WINDOW_eh, (intptr_t) data)))
 				xvt_dm_post_error("Can't open window");
 			/* TAG END FDYKE_PROP_BUTTON EVNT:Control */
 			}

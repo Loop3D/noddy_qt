@@ -2329,7 +2329,7 @@ WINDOW parentWin;
    BLOCK_DIAGRAM_DATA *diagram = (BLOCK_DIAGRAM_DATA *) xvt_vobj_get_data (parentWin);
    WINDOW typeList, layerList, lutStretchList;
    WIN_TYPE winType;
-   
+
    if (!diagram)
       return (FALSE);
 
@@ -2365,13 +2365,13 @@ WINDOW parentWin;
    }
    
    layerList = xvt_win_get_ctl (parentWin, LAYER_DISPLAY_LIST);
-   
+
              /* Setup things to reflect current values */
    switch (diagram->type)
    {
       case (UNDEFINED_BLOCK):
          xvt_list_set_sel (typeList, 0, TRUE);
-         diagram->type = SOLID_BLOCK; 
+         diagram->type = SOLID_BLOCK;
          break;
       case (SOLID_BLOCK):
          xvt_list_set_sel (typeList, 0, TRUE);
