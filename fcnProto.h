@@ -438,7 +438,7 @@ void setWindowState ( WINDOW, int );
 double setBlockSize (int);
 int displayHelp (char *);
 void processCommandLine (char **, int, char **, char **, char **,
-                                                char *, OPERATIONS *);
+                                                char *, OPERATIONS *, int *);
 void displayUsage (char *);
 int performBatchOperations (char *, char *, OPERATIONS);
 int noddy (DATA_INPUT, DATA_OUTPUT, int, char *, char *,
@@ -935,6 +935,18 @@ int view3dSurface (WINDOW, OBJECT *);
 void saveOrientationFile (WINDOW, char *);
 void plotOrientations (WINDOW);
 void saveSurfaceOrientations (void); /* [Qt port ADDITION] todo.txt #43, lineEvnt.c */
+/* [Qt port ADDITION] todo.txt #41, RandomNoddy.c -- ported from the
+** "Noddyverse" ML-training-dataset random-history generator. readRandomHist()
+** builds a random event list into the current window (interactive Random
+** History menu item, or -random batch flag); RandomNoddy() is the batch-only
+** entry point that also writes the generated history to a timestamped file
+** and runs a full block + anomaly calculation on it. readRandomHist's int
+** arg (todo.txt #59): whether to also apply the reference generator's
+** block/geology/geophysics/3D/project/window-position option side effects
+** -- TRUE for -random (batch, self-contained run), FALSE for the
+** interactive menu item (don't clobber the user's own app settings). */
+int readRandomHist (int);
+int RandomNoddy (char *, int);
 void updateStratColumns ();
 void updateLineMap (int);
 void invalidateCurrentLineMap ();
@@ -994,6 +1006,8 @@ int view3dSurface ();
 void saveOrientationFile ();
 void plotOrientations ();
 void saveSurfaceOrientations ();
+int readRandomHist ();
+int RandomNoddy ();
 void updateStratColumns ();
 void updateLineMap ();
 void invalidateCurrentLineMap ();

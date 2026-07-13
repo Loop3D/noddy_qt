@@ -273,7 +273,14 @@ EVENT *xdEvent;
 			         }
 			         if (gotTopo)
 			         {
-			            if (!(win = createCenteredWindow(TOPO_OPTIONS_WINDOW, TASK_WIN, EM_ALL, TOPO_OPTIONS_WINDOW_eh, 0L)))
+			            /* [Qt port fix] todo.txt #58 -- pass the real "Use
+			            ** Topography" checkbox handle through as this window's
+			            ** app data, so TOPO_OPTIONS_WINDOW's own OK/Cancel
+			            ** handlers (topoOp.c) can look it up directly instead of
+			            ** the stale WIN_116_CHECKBOX_68/stackParentWin lookup
+			            ** left over from an older, pre-tabbed-Options-dialog
+			            ** version of this UI (see topoOp.c's own comment). */
+			            if (!(win = createCenteredWindow(TOPO_OPTIONS_WINDOW, TASK_WIN, EM_ALL, TOPO_OPTIONS_WINDOW_eh, (long) ctl_win)))
 			            xvt_dm_post_error("Can't open window");
 			         }
 			         else

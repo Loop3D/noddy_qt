@@ -1,0 +1,22 @@
+COMMENTS IN ALL CAPS. 
+
+
+41) DON'T DO YET! In /home/mark/noddyverse-Tomofast-x_noddy/src/ there is a variant of Noddy that generates random histories new files include:
+
+petrophy_defs.h
+petrophysics.h
+RandomNoddy.c
+
+can you add a new menu item to File menu  called Random History (after Read History) that when selected clears the current history and generates a new random one using RandomNoddy.c code. Also add a new command line flag -random that generates a random history file, writes it to disk with a time-stamp and also calculates a full noddy block export and calculates the geophsyical anomalies. Not 100% sure I captured all the files required to be copied across!
+
+
+44) Don't do yet! So that when a petrophysical value is retrieved prior to building a density or susceptibilty volume for calculating an anomaly, add check box and editable sigma value to the geophsyics calc options and if checked then add gaussian noise to each voxel's density and susceptiblity. 
+
+45) Don't do yet! When a petrophysical value is retrieved prior to building a density or susceptibilty volume for calculating an anomaly, add check box and editable parameters value to the geophsyics calc options that will add plurigaussian 3D geospatial noise to each voxels density and susceptiblity (ie all values will vary in a way to make a "patchy" petrophysics dataset). Each stratigraphic unit will have its own pattern that randomly varies the chosen upper and lower limits.
+
+46) Don't do yet! WHen calculating triagulated surfaces for discontinuities (faults, dykes, unconformities, plugs), currently the code applies a fixed routine for discontinuities that results in an "egg carton" roughness. Local surfaces use a modified marching cube algoithm that splits a cube into 5 tetrahedra, and the codes at each vertex are used to decide what to do. Instead for tetrahedra that have vertices one side or other of the disctonitutiy, we can use the calcs to go back from the current xyz position and calculate how far the back in time point is from the discintinuity surface (with sign showing aboveor below the surface) and then we could fit a plane through the dist=0 values (just like we do for the stratigraphic surfaces) Maybe read this paper first to get an understanding of the logic of eulerian kinematics calcsc\ C:\Users\00073294\Dropbox\noddy\noddy_papers\jessell_valenta_1996.pdf I guess any tetrahedra that share a face with such modified calcs will also have to be modified somehow as the resulting traingles edges need to be coincident.
+
+The code too look at for this change is in AlphaTet.c and beta, gamma, delta. To start with just change surface where one or two vertices have one disconitunity code and the oterhs another, and the stratigraphic codes either side are uniform 9ie if we have two vertices with a discontinuity code, they must also share the same strat code.
+
+
+59) When a randon history is selected, it sesm to randomaise teh options as well eg WIndow sizes and even the names in the winodws types selector; also defomrable remannce is checked on and default colour scheme for geophsyics images becomes pseudocolor

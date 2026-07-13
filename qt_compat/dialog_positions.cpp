@@ -1131,6 +1131,35 @@ static const DialogCtlPosition g_pos_207[] = {
 };
 
 /* ----------------------------------------------------------------------
+ * todo.txt #55: TOPO_OPTIONS_WINDOW(125), "Topography Options" -- the
+ * dialog USE_TOPOGRAPHY_WINDOW(207)'s checkbox handler (utopowin.c) opens
+ * after a *.TOP file is successfully loaded. Had no position entry before
+ * (fell back to the crude auto-flow stack), reconstructed from the
+ * real screenshot the user provided directly in-conversation (matches
+ * noddy_help_lowercase/Image5.gif, blockop.htm's second image). Two
+ * dynamic labels (ctl 12/14, titles set at runtime by
+ * loadGeologyTopoOptions/setGeologyTopoRange in nodLib2.c -- labelOverride
+ * left null here since it's immediately overwritten) sit above an
+ * "Options" groupbox with 4 label+edit rows, with OK/Help/Cancel stacked
+ * vertically on the right (not a bottom button row, per the screenshot). */
+static const DialogCtlPosition g_pos_125[] = {
+    { 12,  8,  6, 304,  24, WC_TEXT },                              /* TOPO_OPTIONS_FULL_RANGE, dynamic */
+    { 14,  8, 28, 304,  46, WC_TEXT },                              /* TOPO_OPTIONS_ADJ_RANGE, dynamic */
+    { 13,  7, 50, 232, 182, WC_GROUPBOX, "Options" },               /* TOPO_OPTIONS_WINDOW_GROUPBOX_42 */
+    {  1, 18, 64, 140,  82, WC_TEXT, "Scale Factor :" },            /* TOPO_OPTIONS_WINDOW_TEXT_2 */
+    {  5,145, 62, 225,  80, WC_EDIT },                              /* TOPO_OPTIONS_SCALE */
+    {  2, 18, 92, 140, 110, WC_TEXT, "Offset Amount :" },           /* TOPO_OPTIONS_WINDOW_TEXT_3 */
+    {  6,145, 90, 225, 108, WC_EDIT },                              /* TOPO_OPTIONS_OFFSET */
+    {  3, 18,120, 140, 138, WC_TEXT, "Low Contour Value :" },       /* TOPO_OPTIONS_WINDOW_TEXT_4 */
+    {  7,145,118, 225, 136, WC_EDIT },                              /* TOPO_OPTIONS_CONTOUR */
+    {  4, 18,148, 140, 166, WC_TEXT, "Contour Interval :" },        /* TOPO_OPTIONS_WINDOW_TEXT_5 */
+    {  8,145,146, 225, 164, WC_EDIT },                              /* TOPO_OPTIONS_INTERVAL */
+    {  9,245, 62, 320,  84, WC_PUSHBUTTON, "OK" },                  /* TOPO_OPTIONS_OK */
+    { 11,245, 94, 320, 116, WC_PUSHBUTTON, "Help..." },             /* TOPO_OPTIONS_HELP */
+    { 10,245,126, 320, 148, WC_PUSHBUTTON, "Cancel" },              /* TOPO_OPTIONS_CANCEL */
+};
+
+/* ----------------------------------------------------------------------
  * OPTIONS_WINDOW's "Volume/Surface" tab (optnlib.c VOLUME_SURFACE_OP
  * case): VOLUME_WINDOW(216) then SURFACE_SELECTION_WINDOW(215) stacked
  * vertically. Reconstructed from noddy_help_lowercase/IMG00088.GIF
@@ -1555,6 +1584,7 @@ extern const DialogPositionEntry g_dialogPositions[] = {
     { 204, 175,  75, g_pos_204, (int)(sizeof(g_pos_204)/sizeof(g_pos_204[0])) },
     { 208, 175,  75, g_pos_208, (int)(sizeof(g_pos_208)/sizeof(g_pos_208[0])) },
     { 207, 200,  20, g_pos_207, (int)(sizeof(g_pos_207)/sizeof(g_pos_207[0])) },
+    { 125, 335, 200, g_pos_125, (int)(sizeof(g_pos_125)/sizeof(g_pos_125[0])), "Topography Options" },
     { 216, 360,  55, g_pos_216, (int)(sizeof(g_pos_216)/sizeof(g_pos_216[0])) },
     { 215, 360, 230, g_pos_215, (int)(sizeof(g_pos_215)/sizeof(g_pos_215[0])) },
     { 209, 360, 165, g_pos_209, (int)(sizeof(g_pos_209)/sizeof(g_pos_209[0])) },

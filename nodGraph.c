@@ -91,7 +91,9 @@ extern double winPositionScale;
 static RCT *predefinedColorSamples = NULL; /* [NUM_PREDEFINED_COLORS]; */
 static RCT *customColorSamples = NULL;     /* [NUM_CUSTOM_COLORS]; */
 static XVT_PIXMAP stratLayersPicture = NULL_PIXMAP;
-COLOR backgroundColor = COLOR_BLACK;
+/* [Qt port change] todo.txt #56: white default for geology displays (was
+** COLOR_BLACK). */
+COLOR backgroundColor = COLOR_WHITE;
 
 static NODDY_COLOUR *customColors = NULL;
 static NODDY_COLOUR *predefinedColors = NULL;

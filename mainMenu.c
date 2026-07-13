@@ -97,6 +97,36 @@ EVENT *xdEvent;
 		/* TAG END TASK_MENUBAR_1_33 EVNT:Select */
 		}
 		break;
+	/* [Qt port ADDITION] todo.txt #41 -- NEW menu item, not part of the
+	** original XVT-Design .rc resource. Clears the current history and
+	** generates a new random one via the ported RandomNoddy.c. */
+	case TASK_MENUBAR_1_RANDOM_HISTORY: /* Menu "Random History" */
+		{
+		/* TAG BEGIN TASK_MENUBAR_1_RANDOM_HISTORY EVNT:Select */
+		ASK_RESPONSE response;
+
+		response = xvt_dm_post_ask("Cancel", "Generate", NULL,
+		             "The Current History will be destroyed. Are you sure you want to generate a Random History ?");
+
+		if (response == RESP_2)  /* Generate */
+		{
+			initProject (FALSE, TRUE);   /* clear all events, factory-default option structs */
+			readRandomHist (FALSE);      /* build a random event list only -- see readRandomHist's own comment for why FALSE (todo.txt #59) */
+			/* [Qt port ADDITION] todo.txt #59 -- same tidy-up "Tidy Window"
+			** (Edit menu, TASK_MENUBAR_2_61) itself performs: readRandomHist()
+			** assigns each event a column/row, but never snaps their on-screen
+			** icon positions to that grid the way loading a real history file
+			** with saved icon positions would -- without this they render at
+			** whatever raw pixel positions their bound rects were zero-
+			** initialized to, all stacked on top of each other. */
+			tidyObjects (getEventDrawingWindow ());
+			invalidateCurrentLineMap ();
+			setCurrentFileName (NULL);
+			updateMenuOptions (TASK_MENUBAR, NULL_WIN);
+		}
+		/* TAG END TASK_MENUBAR_1_RANDOM_HISTORY EVNT:Select */
+		}
+		break;
 	case TASK_MENUBAR_1_82: /* Menu "Save History" */
 		{
 		/* TAG BEGIN TASK_MENUBAR_1_82 EVNT:Select */

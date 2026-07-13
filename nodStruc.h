@@ -823,8 +823,10 @@ typedef struct s_project_ops {
 #define DEFAULT_VIEW_LENGTH_X   10000.0
 #define DEFAULT_VIEW_LENGTH_Y   7000.0
 #define DEFAULT_VIEW_LENGTH_Z   5000.0
-#define DEFAULT_VIEW_GEOL_CUBE  200.0
-#define DEFAULT_VIEW_GEOP_CUBE  200.0
+/* [Qt port change] todo.txt #57: default block size 100m (was 200.0) for
+** both geology and geophysics. */
+#define DEFAULT_VIEW_GEOL_CUBE  100.0
+#define DEFAULT_VIEW_GEOP_CUBE  100.0
 typedef struct s_block_view_ops {
    
    char viewName[OBJECT_TEXT_LENGTH];

@@ -24,6 +24,13 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "1", nullptr, "File", 0, false },
     { "1.1", "1", "New History", 1144, true },
     { "1.2", "1", "Read History...", 1033, true },
+    /* [Qt port ADDITION] todo.txt #41 -- NEW menu item, not part of the
+     * original XVT-Design .rc resource this tree was parsed from (see
+     * TASK_MENUBAR_1_RANDOM_HISTORY, nodInc.h). Clears the current history
+     * and generates a new random one, via the ported RandomNoddy.c
+     * (originally from the "Noddyverse" ML-training-dataset generator).
+     * Dispatched in mainMenu.c. */
+    { "1.2r", "1", "Random History", TASK_MENUBAR_1_RANDOM_HISTORY, true },
     { "1.3", "1", "Save History", 1082, true },
     { "1.4", "1", "Save History As...", 1026, true },
     { "1.5", "1", "Save as Defaults", 1098, true },
@@ -77,7 +84,12 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "3.2", "3", "Map", 0, false },
     { "3.2.1", "3.2", "Solid Colours...", 1053, true },
     { "3.2.2", "3.2", "Lines...", 1054, true },
-    { "3.3", "3", "Topo Map", 1029, true },
+    /* [Qt port change] todo.txt #55: only enabled once a topography file has
+     * been loaded -- nodLib1.c's updateTaskMenuOptions already drives this
+     * item's enabled state off geologyOptions.useTopography at runtime (see
+     * TASK_MENUBAR_4_29), this just matches the true startup default
+     * (no topography loaded yet) instead of always-enabled. */
+    { "3.3", "3", "Topo Map", 1029, true, true },
     { "3.4", "3", "Section", 0, false },
     { "3.4.1", "3.4", "Solid Colours...", 1055, true },
     { "3.4.2", "3.4", "Lines...", 1056, true },
@@ -89,7 +101,9 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "3.6.2", "3.6", "Import", 0, false },
     { "3.6.2.1", "3.6.2", "3D...", 1115, true },
     { "3.6.2.2", "3.6.2", "Schematic...", 1116, true },
-    { "3.7", "3", "3D Topo", 1049, true },
+    /* [Qt port change] todo.txt #55: same as "Topo Map" above -- matches
+     * updateTaskMenuOptions's TASK_MENUBAR_4_49 (topoPresent && historyPresent). */
+    { "3.7", "3", "3D Topo", 1049, true, true },
     { "3.8", "3", "3D Triangulation", 1050, true },
     { "3.9", "3", "Plot Orientations", 1069, true },
     { "4", nullptr, "Geophysics", 0, false },

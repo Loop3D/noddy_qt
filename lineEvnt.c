@@ -1625,6 +1625,7 @@ int numData;
    int kk;
    FILE *out;
    int DP, DDnPDn, SL, E1, E2, Fm;
+   double xLoc, yLoc, zLoc;
    char SLName[21], FmName[21];
    char names1[OBJECT_TEXT_LENGTH];
    char names2[OBJECT_TEXT_LENGTH];
@@ -1634,7 +1635,14 @@ int numData;
       out = (FILE *) fopen(filename,"w");
       if (out != 0L)
       {
-         fprintf(out,"Dip/Plunge\tDipDn/PlDn\tType\tFeature\tAge1\tAge2\n\n");
+         /* [Qt port ADDITION] todo.txt #54 -- X/Y/Z columns, same values
+         ** already computed per click by getSectionLocOfPoint (nodwork2.c's
+         ** E_MOUSE_UP "mark a point" case) and stored at plotdt[][5..7] by
+         ** symbolPlot itself (see refreshSectionSymbols's identical
+         ** plotdt[i][5], [6], [7] usage above, commented there as X, Y, Z)
+         ** -- previously computed and kept in memory for redrawing the
+         ** symbol, but never written out here. */
+         fprintf(out,"Dip/Plunge\tDipDn/PlDn\tType\tFeature\tAge1\tAge2\tX\tY\tZ\n\n");
       for (kk = 0; kk < numData; kk++)
       {
          DP = (int)  plotdt[kk][1];
@@ -1643,6 +1651,9 @@ int numData;
             E1 = ((int) plotdt[kk][0])%100;
          E2 = ((int) plotdt[kk][0]-E1)/100;
          Fm = (int)  plotdt[kk][4];
+         xLoc = plotdt[kk][5];
+         yLoc = plotdt[kk][6];
+         zLoc = plotdt[kk][7];
 
                                          /* Setup SL Name */
             if (SL == 1)
@@ -1678,17 +1689,18 @@ int numData;
 
          if (Fm == 3)
             {
-            fprintf(out,"%d\t%d\t%s\t%s\n", DP, DDnPDn, SLName, FmName);
+            fprintf(out,"%d\t%d\t%s\t%s\t\t\t%.3f\t%.3f\t%.3f\n", DP, DDnPDn,
+                                   SLName, FmName, xLoc, yLoc, zLoc);
             }
          if (Fm > 3 && Fm < 7)
             {
-               fprintf(out,"%d\t%d\t%s\t%s\t%d %s\t\n", DP, DDnPDn,
-                                      SLName, FmName, E1, names1);
+               fprintf(out,"%d\t%d\t%s\t%s\t%d %s\t\t%.3f\t%.3f\t%.3f\n", DP, DDnPDn,
+                                      SLName, FmName, E1, names1, xLoc, yLoc, zLoc);
             }
             else if (Fm == 7)
             {
-               fprintf(out,"%d\t%d\t%s\t%s\t%d %s\t%d %s\n", DP, DDnPDn,
-                                      SLName, FmName, E1, names1, E2, names2);
+               fprintf(out,"%d\t%d\t%s\t%s\t%d %s\t%d %s\t%.3f\t%.3f\t%.3f\n", DP, DDnPDn,
+                                      SLName, FmName, E1, names1, E2, names2, xLoc, yLoc, zLoc);
             }
          }
          fclose(out);
@@ -1948,12 +1960,12 @@ int offsetX, offsetY;
  * originZ, Block Options, defaults to 5000 -- "Upper South West Corner
  * (MinX, MinY, MaxZ)" per that struct's own comment, nodStruc.h), NOT
  * onedotmp's own view-relative Z formula (that one's specific to
- * interactive map-click coordinate conversion, not "the surface").
- *
- * Known limitation: does not yet account for GEOLOGY_OPTIONS::useTopography
- * -- always evaluates at the flat originZ surface -- ready to extend once
- * real topography support exists, per the CSV's own z column (kept
- * separate from x/y for exactly this reason).
+ * interactive map-click coordinate conversion, not "the surface") --
+ * EXCEPT wherever a topography is loaded (GEOLOGY_OPTIONS::useTopography),
+ * per todo.txt #55: each grid point then uses the real terrain elevation
+ * there instead (same getTopoValueAtLoc lookup a Map click's Z uses, see
+ * getSectionLocOfPoint above), falling back to the flat originZ surface
+ * outside the loaded topography's extent -- see pointZ, below.
  * ============================================================================
  */
 void saveSurfaceOrientations(void)
@@ -2034,7 +2046,9 @@ void saveSurfaceOrientations(void)
                         ** 5000), NOT onedotmp's originZ-lengthZ formula
                         ** (that's a different, view-relative Z onedotmp
                         ** uses for interactive map clicks, not "the
-                        ** surface" -- confirmed wrong by the user). */
+                        ** surface" -- confirmed wrong by the user). Used as
+                        ** a flat fallback surface, and as-is whenever no
+                        ** topography is loaded -- see pointZ below. */
    surfaceZ = viewOptions->originZ;
 
    nx = (int) (viewOptions->lengthX / cubeSize) + 1;
@@ -2054,6 +2068,7 @@ void saveSurfaceOrientations(void)
       for (iy = 0; iy < ny; iy++)
       {
          double dip = -99.0, dipdir = -99.0;
+         double pointZ = surfaceZ;
          unsigned int flavor;
          int index;
          LAYER_PROPERTIES *layerProp;
@@ -2061,13 +2076,33 @@ void saveSurfaceOrientations(void)
 
          worldY = absy + ((double) iy * cubeSize);
 
+                        /* [Qt port fix] todo.txt #55: this used to always
+                        ** evaluate at the flat originZ surface even when a
+                        ** topography was loaded (flagged as a known
+                        ** limitation when this function was first written,
+                        ** see this function's own top-of-file comment) --
+                        ** use the real terrain elevation at this X/Y, same
+                        ** lookup a Map click's Z uses (getSectionLocOfPoint,
+                        ** above), falling back to the flat surface wherever
+                        ** the point falls outside the loaded topography's
+                        ** extent. */
+         if (geologyOptions.useTopography && topographyMap)
+         {
+            int topoErr;
+            double topoZ = getTopoValueAtLoc (topographyMap, TopoCol, TopoRow,
+                                 TopomapYW, TopomapYE, TopomapXW, TopomapXE,
+                                 worldX, worldY, &topoErr);
+            if (!topoErr)
+               pointZ = topoZ;
+         }
+
                         /* same dots[1][1]/histoire[1][1] construction as
                         ** onedotmp() (ldotmap2.c), except Z is the real
                         ** block-top surface (see surfaceZ's own comment
                         ** above), not onedotmp's view-relative formula */
          dots[1][1][1] = worldX;
          dots[1][1][2] = worldY;
-         dots[1][1][3] = surfaceZ;
+         dots[1][1][3] = pointZ;
          histoire[1][1].again = 1;
          izero (histoire[1][1].sequence);
          reverseEvents (dots, histoire, 1, 1);
@@ -2095,7 +2130,7 @@ void saveSurfaceOrientations(void)
          lithoName[UNIT_NAME_LENGTH] = '\0';
 
                         /* bedding dip/dip-direction -- same call BedDip() makes */
-         find (dots, histoire, worldX, worldY, surfaceZ, 3, 0, FOLIATION, &dip, &dipdir);
+         find (dots, histoire, worldX, worldY, pointZ, 3, 0, FOLIATION, &dip, &dipdir);
          if (!good)
          {
             dip = -99.0;
@@ -2103,7 +2138,7 @@ void saveSurfaceOrientations(void)
          }
 
          fprintf (outFile, "%.3f,%.3f,%.3f,%.3f,%.3f,%s\n",
-                  worldX, worldY, surfaceZ, dip, dipdir, lithoName);
+                  worldX, worldY, pointZ, dip, dipdir, lithoName);
       }
 
       incrementLongJob (INCREMENT_JOB);

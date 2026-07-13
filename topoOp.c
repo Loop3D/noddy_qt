@@ -357,7 +357,21 @@ EVENT *xdEvent;
 			{
 			/* TAG BEGIN TOPO_OPTIONS_OK EVNT:Control */
 			WINDOW useTopoWin;
-			useTopoWin = xvt_win_get_ctl(stackParentWin(xdWindow), WIN_116_CHECKBOX_68);
+			/* [Qt port fix] todo.txt #58 -- was xvt_win_get_ctl(stackParentWin
+			** (xdWindow), WIN_116_CHECKBOX_68): a stale reference to the
+			** checkbox's control ID (18) inside the OLD, pre-tabbed-Options-
+			** dialog standalone GEOLOGY_OPTIONS_WINDOW(116) this dialog used to
+			** be opened from. The real "Use Topography" checkbox now lives in
+			** USE_TOPOGRAPHY_WINDOW(207), embedded as one of OPTIONS_WINDOW's
+			** "Block" tab sub-panels (optnlib.c) -- not a standalone window
+			** stackParentWin can find, and WIN_116_CHECKBOX_68(18) isn't even
+			** a control that exists there (that window has only ctl 1,
+			** USE_TOPOGRAPHY). Net effect: this never actually found the
+			** checkbox, so OK/Cancel silently failed to re-sync its checked
+			** state. Fixed by having utopowin.c pass the real checkbox handle
+			** through as this window's own app data (createCenteredWindow's
+			** last arg) instead of re-deriving it here. */
+			useTopoWin = (WINDOW) xvt_vobj_get_data(xdWindow);
 			if (useTopoWin)
 			   xvt_ctl_set_checked(useTopoWin, TRUE);
 						/* ********************************** */
@@ -371,7 +385,8 @@ EVENT *xdEvent;
 			{
 			/* TAG BEGIN TOPO_OPTIONS_CANCEL EVNT:Control */
 			WINDOW useTopoWin;
-			useTopoWin = xvt_win_get_ctl(stackParentWin(xdWindow), WIN_116_CHECKBOX_68);
+			/* [Qt port fix] todo.txt #58 -- see TOPO_OPTIONS_OK's comment above. */
+			useTopoWin = (WINDOW) xvt_vobj_get_data(xdWindow);
 			if (useTopoWin)
 			   xvt_ctl_set_checked(useTopoWin, FALSE);
 			xvt_vobj_destroy(xdWindow);
