@@ -195,4 +195,4 @@ the original XVT-based GUI).
 
 
 ## Qt distribution
-Qt is used ot build the GUI for this code. Distribution of Qt libraries for Open Source codes is allowed as long as the source code for the Qt libraries is made available (here https://download.qt.io/). The Qt code is ditributed under a LGPLv3 license [lgpl-3.0](lgpl-3.0.txt).
+Qt is used to build the GUI for this code. Distribution of Qt libraries for Open Source codes is allowed as long as the source code for the Qt libraries is made available (here https://download.qt.io/). The Qt code is ditributed under a LGPLv3 license [lgpl-3.0](lgpl-3.0.txt).

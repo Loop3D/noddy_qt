@@ -4146,6 +4146,35 @@ OBJECT *object;
    static WINDOW pendingPrevWin;
    static OBJECT *pendingObject;
 
+   /* [Qt port defensive fix] `object` sporadically arrives here truncated
+   ** to 32 bits and re-widened with garbage/inconsistent upper bits (seen
+   ** both sign-extended, e.g. a real pointer 0x26e3d86dd20 showing up as
+   ** 0xffffffffbd86dd20, and zero-extended, e.g. 0x3d86dd20) even though
+   ** the caller's own xvt_vobj_get_data(xdWindow) -- the expression the
+   ** app always builds `object` from -- reads back correct immediately
+   ** beforehand, and xvt_vobj_get_data/set_data's storage was confirmed
+   ** clean via canary logging every step of the way. The exact mechanism
+   ** wasn't pinned down despite extensive tracing (moves to a different
+   ** scrollbar's window each time new logging changes timing -- a Qt
+   ** signal-delivery race of some kind between this call and the
+   ** window's own creation/data-attach, not a storage bug). Every caller
+   ** of update3dPreview derives `object` from prevWin's own
+   ** xvt_vobj_get_data in the first place (see e.g. fsclwin.c,
+   ** ddpwin.c), so re-fetch that directly here and compare: a truncation
+   ** always preserves the low 32 bits (only the upper half gets mangled
+   ** on the way back to 64), so a low-32-bit match with a full-64-bit
+   ** mismatch is an unambiguous corruption signature regardless of how
+   ** the upper bits got filled in -- trust the freshly re-fetched value
+   ** instead, sidestepping whatever is corrupting the argument in
+   ** transit using data already proven reliable. */
+   if (object && prevWin)
+   {
+      intptr_t realData = xvt_vobj_get_data (prevWin);
+      if (realData && (OBJECT *) realData != object &&
+          (unsigned)(intptr_t) realData == (unsigned)(intptr_t) object)
+         object = (OBJECT *) realData;
+   }
+
    if (inUpdate3dPreview)
    {
       pendingPrevWin = prevWin;
