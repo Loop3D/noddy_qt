@@ -908,6 +908,13 @@ static void ensureQApp()
     g_app = new QApplication(fakeArgc, fakeArgv);
 }
 
+/* [Qt port ADDITION] todo.txt #67 -- xvt_hide_console_if_owned() itself
+ * lives in win_console.cpp, a standalone translation unit with NO other
+ * includes from this codebase, since <windows.h> collides with xvt.h's
+ * own BOOLEAN typedef even when included after it in the SAME file (both
+ * are already-active by the time any code here would use them -- the
+ * only fix is a completely separate .cpp, see that file's own comment). */
+
 int xvt_app_create(int argc, char **argv, long /*flags*/, WIN_EVENT_HANDLER task_eh, XVT_CONFIG *cfg)
 {
     if (cfg) xvt_config = *cfg;

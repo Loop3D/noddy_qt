@@ -96,7 +96,7 @@ int number1(double, double, double, double, double, int);
 void PutNum(double, int, int);
 void PutIntNum(int, int, int);
 void PutLongNum(long, int, int);
-int dipddir(WINDOW, double, double, double, double, double);
+int dipddir(WINDOW, double, double, double, double, double, BOOLEAN);
 int nsymbl(double, double, double, char *, double, int);
 void DrawGraph(int, double *, float, int, int, int, double *, double *);
 void PlotTravLegend (int, int, long, int, int, int, float *, float *, float,

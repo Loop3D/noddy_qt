@@ -177,6 +177,17 @@ static int loadRandomHistory(numEvents)
 	int type, type2;
 	int baseHeight = 0, baseWidth = 0;
 	struct timeval start;
+	/* [Qt port change] todo.txt #69 -- name each random event after its
+	** own type (e.g. "Fold_01") instead of the shared "Event_NN" counter,
+	** so the History window's icon labels distinguish events at a
+	** glance. One counter per OBJECTS shape, incremented only for events
+	** of that type. */
+	int typeCounters[GENERIC + 1] = { 0 };
+	static const char *typeNames[GENERIC + 1] = {
+		"Strat", "Fold", "Fault", "Unconformity", "Shear", "Dyke",
+		"Plug", "Strain", "Tilt", "Foliation", "Lineation", "Import",
+		"Stop", "Generic"
+	};
 
 	gettimeofday(&start, NULL);
 
@@ -438,7 +449,7 @@ static int loadRandomHistory(numEvents)
 				break;
 			}
 			if (p) {
-				sprintf(p->text, "Event_%02d", event);
+				sprintf(p->text, "%s_%02d", typeNames[p->shape], ++typeCounters[p->shape]);
 				p->row = 1;
 				p->column = numEvents + event + 1;
 				p->bound.top = baseHeight;
@@ -1120,7 +1131,17 @@ int loadRandomProperties(layer, options)
 			PPHYS_ROCK[lithocode].lithoname, unitNumber++);
 
 	if (layer == 0)
+	{
+		/* [Qt port fix] todo.txt #72 -- cum_height is `static`, so without
+		** resetting it here it kept accumulating across separate Random
+		** History invocations in the same session (each new stratigraphy's
+		** layers piling on top of the previous one's already-huge heights)
+		** instead of starting fresh -- eventually the top layer's height
+		** dwarfed everything else, so the block model showed only the
+		** lowest/base layer. */
+		cum_height = 0;
 		options->height = -31000;
+	}
 	else {
 		options->height = 50 + (950.0 * xrshr128p_next_double(&state));
 		cum_height += options->height;

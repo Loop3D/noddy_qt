@@ -33,7 +33,7 @@ extern double TopomapXW, TopomapYW, TopomapXE, TopomapYE, minTopoValue, maxTopoV
 #if XVT_CC_PROTO
 int symbolPlot(WINDOW, double, double, double, double, double, double,
                double, double, double, int, int, double, double,
-					double [MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]);
+					double [MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS], BOOLEAN);
 void DoMapping (int, int, int, int, int, double [MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]);
 void find (double ***, struct story **, double, double, double, int, int, int, double *, double *);
 #else
@@ -195,12 +195,13 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
 /* *************************************************************** **
 
 ****************************************************************** */
-int refreshSectionSymbols (win, sectionData, sectionSize, plotdt, countt)
+int refreshSectionSymbols (win, sectionData, sectionSize, plotdt, countt, solidColorMap)
 WINDOW win;
 BLOCK_SURFACE_DATA *sectionData;
 RCT *sectionSize;
 double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
 int countt;
+BOOLEAN solidColorMap;
 {
    int i;
    double topLeftX, topLeftY, topLeftZ;
@@ -229,7 +230,7 @@ int countt;
       symbolPlot(win, topLeftX, topLeftY, topLeftZ, botRightX, botRightY, botRightZ,
                       plotdt[i][5], plotdt[i][6], plotdt[i][7],  /* X, Y, Z */
                       (int) plotdt[i][4], (int) plotdt[i][3],    /* sox, type */
-                      plotdt[i][1], plotdt[i][2], plotdt);       /* dip, dipDir */
+                      plotdt[i][1], plotdt[i][2], plotdt, solidColorMap); /* dip, dipDir */
    }
    return (TRUE);
 }
@@ -238,7 +239,7 @@ int countt;
 
 ****************************************************************** */
 int symbolPlot(win, topLeftX, topLeftY, topLeftZ, botRightX, botRightY, botRightZ,
-               xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt)
+               xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, solidColorMap)
 WINDOW win;
 double topLeftX, topLeftY, topLeftZ;
 double botRightX, botRightY, botRightZ;
@@ -246,6 +247,7 @@ double xLoc, yLoc, zLoc;
 int sox, type;
 double dip, dipdir;
 double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
+BOOLEAN solidColorMap;
 {
    double delx,dely;
    double xDist, yDist, zDist, width, height;
@@ -295,27 +297,27 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
                      /* Draw the symbol */
       if (map)
       {
-         drawSectionSymbol(win, x, y, 15.0, dipdir, icode[sox]);
+         drawSectionSymbol(win, x, y, 15.0, dipdir, icode[sox], solidColorMap);
       }
       else
       {
          int symbolNumber = icode[sox];
          double drawDip;
 
-         
+
          if (symbolNumber == 3)        /* Bedding */
             symbolNumber = 8;
          else if (symbolNumber == 4)   /* Foliation */
             symbolNumber = 9;
-         
+
          if ((dipdir >= 0.0) && (dipdir < 180.0))
             drawDip = dip + 180.0;
          else
             drawDip = -dip;
 
-         drawSectionSymbol(win, x, y, 15.0, drawDip, symbolNumber);
+         drawSectionSymbol(win, x, y, 15.0, drawDip, symbolNumber, solidColorMap);
       }
-      
+
                 /* Work out the position to draw the label */
       if (dipdir > 135.0 && dipdir < 315.0)
       {
@@ -328,7 +330,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
          dely = 5;
       }
                               /* Label the dip and dipDir */
-      dipddir(win, x+delx, y+dely, 1.0, dipdir, dip);
+      dipddir(win, x+delx, y+dely, 1.0, dipdir, dip, solidColorMap);
    }
    
    if (count)  /* Save Data for later drawing if needed */
@@ -345,11 +347,12 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
    return (TRUE);
 }
 
-int drawSectionSymbol(win, x, y, height, angle, icode)
+int drawSectionSymbol(win, x, y, height, angle, icode, solidColorMap)
 WINDOW win;
 int x, y;
 double height, angle;
 int icode;
+BOOLEAN solidColorMap;
 {
 #define MOVE   3
 #define LINE   2
@@ -428,10 +431,19 @@ c
    };
 
 	xvt_dwin_get_draw_ctools(win, &drawTools);
-	if (backgroundColor == 0L)
+	/* [Qt port change] todo.txt #68 -- symbol colour previously ignored
+	** the actual background colour (just white-vs-fixed-dark-gray).
+	** Solid-colour maps/sections are filled with varying geology
+	** colours, so there's no single background to contrast against --
+	** white reads reliably there. Line maps have one flat background,
+	** so the true negative (inverse RGB) always contrasts with it. */
+	if (solidColorMap)
 		drawTools.pen.color = COLOR_WHITE;
 	else
-		drawTools.pen.color = COLOR_DKGRAY;
+		drawTools.pen.color = XVT_MAKE_COLOR (
+			255 - XVT_COLOR_GET_RED (backgroundColor),
+			255 - XVT_COLOR_GET_GREEN (backgroundColor),
+			255 - XVT_COLOR_GET_BLUE (backgroundColor));
 	xvt_dwin_set_draw_ctools(win, &drawTools);
    icode--;
    DEBUG(printf("\nCYMBAL: height = %f, angle = %f, icode = %d",height, angle, icode);)
@@ -656,7 +668,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
    DEBUG(printf("\nBEDDIP: dip = %f, dipDir = %f (X,Y) = %f, %f",dip,dipdir,hx,vy);)
    if (good)
       symbolPlot(NULL_WIN, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt);
+                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, FALSE);
    return (TRUE);
 }
 
@@ -678,7 +690,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
    find (dots, histoire, xLoc, yLoc, zLoc, sox, age, type, &dip, &dipdir);
    if (good)
       symbolPlot(NULL_WIN, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt);
+                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, FALSE);
    return (TRUE);
 }
 
@@ -719,7 +731,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
       type = LINEATION;
       if (good)
          symbolPlot(NULL_WIN, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt);
+                    xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, FALSE);
    }
    else /* inherent linn */
    {      
@@ -743,7 +755,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
       type = LINEATION;
       if (good)
          symbolPlot(NULL_WIN, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt);
+                    xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, FALSE);
    }
    return (TRUE);
 }
@@ -778,7 +790,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
    sox=6;
    if (good)
       symbolPlot(NULL_WIN, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt);
+                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, FALSE);
    return (TRUE);
 }
 
@@ -819,7 +831,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
    sox=7;
    if (good)
       symbolPlot(NULL_WIN, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt);
+                 xLoc, yLoc, zLoc, sox, type, dip, dipdir, plotdt, FALSE);
 }
 
 
@@ -1366,7 +1378,7 @@ double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS]; /* array of symbol data */
       dely=0.2;
    }
 
-   dipddir(getCurrentDrawingWindow(), hx+delx, vy+dely, 0.1, dipdir, dip);
+   dipddir(getCurrentDrawingWindow(), hx+delx, vy+dely, 0.1, dipdir, dip, FALSE);
 
    if (count)
    {

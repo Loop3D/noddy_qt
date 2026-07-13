@@ -352,17 +352,24 @@ int h,v;
 *  dipddir() returns no value             *
 *                          *
 ************************************************************************/
-int dipddir(win, x, y, h, dd, d)                                            
+int dipddir(win, x, y, h, dd, d, solidColorMap)
 WINDOW win;
 double x, y, h, dd, d;
-{      
+BOOLEAN solidColorMap;
+{
    char numText[255];
    int ixcur, iycur;
 
-	if (backgroundColor == 0L)
+	/* [Qt port change] todo.txt #68 -- see drawSectionSymbol's matching
+	** comment (lineEvnt.c): white for solid-colour maps/sections, true
+	** negative of the flat background for line maps. */
+	if (solidColorMap)
 		xvt_dwin_set_fore_color(win, COLOR_WHITE);
 	else
-		xvt_dwin_set_fore_color(win, COLOR_DKGRAY);
+		xvt_dwin_set_fore_color(win, XVT_MAKE_COLOR (
+			255 - XVT_COLOR_GET_RED (backgroundColor),
+			255 - XVT_COLOR_GET_GREEN (backgroundColor),
+			255 - XVT_COLOR_GET_BLUE (backgroundColor)));
 
    ixcur = (int) x;
    iycur = (int) y;

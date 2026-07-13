@@ -1257,7 +1257,7 @@ int eventNum;
 {
    LAYER_PROPERTIES *properties = (LAYER_PROPERTIES *) NULL;
    int layer, layersBefore;
-   
+
    if (object->generalData == 0)
    {
 #ifdef OLD

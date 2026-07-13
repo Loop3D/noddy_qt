@@ -2458,7 +2458,23 @@ OPTION_TYPE type;
          }
       }
       xvt_list_resume (cwin);
-                                           /* The type of surface informat to output selection window */      
+                                           /* [Qt port fix] todo.txt #61 -- this checkbox was
+                                           ** never initialised from the real current state, so
+                                           ** it always started unchecked (Qt's own default for
+                                           ** a freshly-created QCheckBox), and saving the
+                                           ** Options Window (saveVolumeSurfaceOptions, below)
+                                           ** unconditionally read it back -- silently clobbering
+                                           ** threedViewOptions.allLayers to FALSE (and, via the
+                                           ** untouched-but-still-read layer list, layerOn[] to
+                                           ** all-FALSE) any time this window was opened and
+                                           ** saved, even for changes unrelated to 3D view layers
+                                           ** (e.g. just changing the geology cube size) -- which
+                                           ** then made every subsequent 3D Triangulation render
+                                           ** zero layers (renderLayer, allSurf.c, found nothing
+                                           ** "on" to draw), matching the reported "blank grid
+                                           ** after changing geology cube size and recalculating". */
+      xvt_ctl_set_checked (xvt_win_get_ctl (win, SURFACE_SELECTION_ALL), threedViewOptions.allLayers);
+                                           /* The type of surface informat to output selection window */
       cwin = xvt_win_get_ctl (win, SURFACE_SELECTION_TYPE);
       xvt_list_suspend (cwin);
       xvt_list_add (cwin, 0, "XYZ Color");

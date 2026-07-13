@@ -65,7 +65,7 @@ extern void xyToLineMapCoords();
 extern void lineMapCoordsToXY();
 extern int mapLocation ();
 extern int refreshSectionSymbols (WINDOW, BLOCK_SURFACE_DATA *, RCT *,
-                           double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS], int);
+                           double plotdt[MAX_LINEMAP_EVENTS][NUM_LINEMAP_TERMS], int, BOOLEAN);
 extern int previewBlockDiagram (BLOCK_DIAGRAM_DATA *);
 extern int overlayAnomGrid (WINDOW, ANOMIMAGE_DATA *);
 #else
@@ -772,7 +772,8 @@ EVENT *ep;
             xvt_dwin_draw_pmap (win, sectionData->pixmap,
                                                &position, &pixmapSize);
             refreshSectionSymbols (win, sectionData->surfaceData, &position,
-                   sectionData->orientations, sectionData->count);
+                   sectionData->orientations, sectionData->count,
+                   sectionData->solidColorMap);
 
             if (objectBeingPositioned)
             {

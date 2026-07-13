@@ -2598,7 +2598,8 @@ char *filename;
 
             xvt_dwin_draw_pmap (sectionPixmap, pixmap, &position, &pixmapSize);
             refreshSectionSymbols(sectionPixmap, sectionData->surfaceData, &position,
-                                  sectionData->orientations, sectionData->count);
+                                  sectionData->orientations, sectionData->count,
+                                  sectionData->solidColorMap);
             pixmap = sectionPixmap;
          }
       }
@@ -2922,7 +2923,8 @@ WINDOW win;
 
             xvt_dwin_draw_pmap (sectionPixmap, pixmap, &position, &pixmapSize);
             refreshSectionSymbols(sectionPixmap, sectionData->surfaceData, &position,
-                                  sectionData->orientations, sectionData->count);
+                                  sectionData->orientations, sectionData->count,
+                                  sectionData->solidColorMap);
             pixmap = sectionPixmap;
          }
       }
@@ -4776,6 +4778,7 @@ int solidColor;
       lineMapData->pixmap = (XVT_PIXMAP) NULL;
       xvt_vobj_set_data (lineMapWindow, 0L);
    }
+   lineMapData->solidColorMap = (BOOLEAN) solidColor;
    setStratPalet (lineMapWindow);
 
          /* put the position rectange back to zero for the drawing */
@@ -4965,6 +4968,7 @@ BLOCK_SURFACE_DATA *surface;
 
    if (!(sectionData = (SECTION_DATA *) xvt_mem_zalloc(sizeof(SECTION_DATA))))
       return;
+   sectionData->solidColorMap = (BOOLEAN) solidColor;
                   /* [Qt port] re-enabled this session -- was previously
                   ** skipped due to menu-bar-height/client-rect-offset bugs
                   ** (window mispositioned on resize/Default Size/Tile, a

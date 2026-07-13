@@ -117,13 +117,8 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "4.1.5", "4.1", "XYZ Point Data", 0, false },
     { "4.1.5.1", "4.1.5", "Import From File...", 1091, true },
     { "4.1.5.2", "4.1.5", "Generate...", 1092, true },
-    { "4.2", "4", "Vertical Derivatives", 0, false },
-    { "4.2.1", "4.2", "First", 0, false },
-    { "4.2.1.1", "4.2.1", "Gravity...", 1123, true },
-    { "4.2.1.2", "4.2.1", "Magnetics...", 1124, true },
-    { "4.2.2", "4.2", "Second", 0, false },
-    { "4.2.2.1", "4.2.2", "Gravity...", 1125, true },
-    { "4.2.2.2", "4.2.2", "Magnetics...", 1126, true },
+    /* [Qt port REMOVAL] todo.txt #71 -- "Vertical Derivatives" submenu
+     * (was "4.2", tags 1123-1126) removed per explicit request. */
     { "4.3", "4", "Difference with Reference", 0, false },
     { "4.3.1", "4.3", "Gravity...", 1135, true },
     { "4.3.2", "4.3", "Magnetics...", 1136, true },

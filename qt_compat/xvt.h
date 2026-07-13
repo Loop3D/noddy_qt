@@ -32,6 +32,12 @@ extern "C" {
 /* ==================== Application / task window ========================= */
 extern XVT_CONFIG xvt_config;                          /* [DONE] app defines this global, matches real XVT */
 int  xvt_app_create(int argc, char **argv, long flags, WIN_EVENT_HANDLER task_eh, XVT_CONFIG *cfg); /* [DONE] */
+/* [Qt port ADDITION] todo.txt #67 -- hides the console window MinGW's
+ * console-subsystem link gives noddy.exe, but only if this process is the
+ * SOLE owner of it (i.e. Windows auto-allocated a fresh one because we
+ * were double-clicked/launched with none of our own) -- never touches a
+ * console shared with a parent shell. No-op on non-Windows platforms. */
+void xvt_hide_console_if_owned(void);
 void xvt_app_destroy(void);                             /* [DONE] */
 BOOLEAN xvt_app_allow_quit(void);                        /* [DONE] */
 void xvt_app_process_pending_events(void);               /* [DONE] */

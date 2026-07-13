@@ -100,7 +100,7 @@ TETINFO *t;
    taste (numEvents,
           (unsigned char *) &(t->cypher[SeqCode[TETAPICES[t->tinc][0]]][0]),
           &flavor, &index);
-    
+
                         /* if all same value exit (too hard to deal with!) */
    if (Values[TETAPICES[t->tinc][0]] == Values[TETAPICES[t->tinc][1]] &&
        Values[TETAPICES[t->tinc][0]] == Values[TETAPICES[t->tinc][2]] &&
@@ -110,8 +110,8 @@ TETINFO *t;
    if (!(event = (OBJECT *) nthObject (NULL_WIN, index)))
       return;
 
-   if (flavor != IGNEOUS_STRAT) 
-   {                                                 
+   if (flavor != IGNEOUS_STRAT)
+   {
       event->generalData = 0;
       while (properties = renderLayer(event, index))
       {

@@ -144,10 +144,21 @@ xvtcm_set_src_char_size(xdSrcCharSize);
 	   }
 	}
 
-	if (argc > 1) 
+	if (argc > 1)
 		commandLine = argv[1];
 	else
 		commandLine = 0;
+
+	/* [Qt port ADDITION] todo.txt #67 -- hide the console window for the
+	** interactive/GUI path so noddy behaves like a normal Windows app
+	** instead of always showing a console behind it. A no-op on
+	** non-Windows platforms. Implemented in qt_compat/win_console.cpp
+	** (not here) since it needs <windows.h>, which collides badly with
+	** this file's own macros/types (BOOLEAN, LineTo, INPUT, all redefined
+	** by nodStruc.h/3d.h with different meanings) -- isolating the real
+	** Win32 call in its own standalone translation unit keeps noddy.c
+	** itself portable. */
+	xvt_hide_console_if_owned ();
 
    xvt_app_create(1/*argc*/, argv, 0L, task_eh, &xvt_config);
 	return (0);

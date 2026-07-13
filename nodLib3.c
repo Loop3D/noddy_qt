@@ -1444,7 +1444,7 @@ OBJECT *object;
             options->positionY = 0.0;
             options->positionZ = 5000.0;
             options->dipDirection = 90.0;
-            options->dip = 45.0;
+            options->dip = 10.0;
 
                    /* setup The profiles or Alterations this event has */
             initAllProfiles (object);
@@ -3444,9 +3444,6 @@ char *commandName;
    fprintf (stderr,"\n\t-profile force anomalies profile to be produced");
    fprintf (stderr,"\n\t-image force anomalies image to be produced");
    fprintf (stderr,"\n\t-random generate a random history instead of reading one -- writes a timestamped .his file plus a block export and anomalies");
-#ifndef _MPL
-   fprintf (stderr,"\n\t-parallel do on parallel machine (if available)");
-#endif
    fprintf (stderr,"\n\t-help or -? show this USAGE");
    fprintf (stderr,"\n\n");
 }

@@ -326,7 +326,13 @@ typedef struct s_section_data {
    int event1, event2;
    int define;
    BLOCK_SURFACE_DATA *surfaceData;
-   
+   /* [Qt port change] todo.txt #68 -- remembers whether this map/section's
+   ** pixmap was rendered solid-colour (updateLineMap/updateSection's own
+   ** `solidColor` argument) or line-style, so the orientation symbols
+   ** drawn on top of it (drawSectionSymbol/dipddir, lineEvnt.c) can pick
+   ** an appropriate contrasting colour for each style. */
+   BOOLEAN solidColorMap;
+
 } SECTION_DATA;
 
 /*

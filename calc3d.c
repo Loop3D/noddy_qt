@@ -836,7 +836,26 @@ char *filename;
    xMax = (int) (viewOptions->lengthX / blockSize) + 1;
    yMax = (int) (viewOptions->lengthY / blockSize) + 1;
    zMax = (int) (viewOptions->lengthZ / blockSize) + 1;
-   
+
+   /* [Qt port fix] todo.txt #61 -- if the geology cube size is set close
+   ** to or larger than one of the model's own dimensions, the
+   ** corresponding xMax/yMax/zMax collapses to 1, and allSurface's
+   ** triangulation loops (allSurf.c, `for (ii = nx-1; ii >= 1; ii--)` and
+   ** the nz equivalent) never execute even once when nx/ny/nz == 1 --
+   ** allSurface silently produces zero triangles while gridBase() still
+   ** draws the bounding grid unconditionally, so the window shows only
+   ** the background grid with no geology, and does so near-instantly
+   ** (matches the report of "does not seem to do any calculations").
+   ** Catch it here with a clear message instead of silently proceeding. */
+   if (xMax < 2 || yMax < 2 || zMax < 2)
+   {
+      if (batchExecution)
+         fprintf (stderr, "Geology cube size is too large for this model's dimensions -- reduce it and try again.");
+      else
+         xvt_dm_post_error ("Geology cube size is too large for this model's dimensions -- reduce it and try again.");
+      return;
+   }
+
    initLongJob (0, zMax + zMax*yMax*(numEvents-1) + xMax*yMax,
                 "Calculating 3D Stratigraphy", NULL);
 

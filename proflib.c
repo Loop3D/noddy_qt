@@ -558,9 +558,16 @@ PNT *canvasLoc;
    profOptions = getCurrentProfileOptions (win,
                   (PROFILE_OPTIONS *) xvt_vobj_get_data (win));
 
+   /* [Qt port defensive fix] profOptions can come back NULL if the
+   ** owning event's alteration-profile data was never allocated (e.g.
+   ** loaded from an older-version .his file, see getEvent.c's
+   ** version-gated loadAlteration) -- NULL-deref otherwise. */
+   if (!profOptions)
+      return ((PROFILE_POINT *) NULL);
+
    xvt_vobj_get_client_rect (win, &bound);
    point = profOptions->points;
-   
+
    while (point)
    {
       arrayPntToCanvas (&bound, &(point->point), &canvasPoint, profOptions);
@@ -605,8 +612,12 @@ PNT *canvasLoc;
    profOptions = getCurrentProfileOptions (win,
                   (PROFILE_OPTIONS *) xvt_vobj_get_data (win));
 
+   /* [Qt port defensive fix] see profilePointSelect above. */
+   if (!profOptions)
+      return (FALSE);
+
    xvt_vobj_get_client_rect (win, &bound);
-   
+
    pointAfter = point->next;
    pointBefore = profOptions->points;
    while (pointBefore && (pointBefore->next != point))
@@ -664,6 +675,10 @@ PROFILE_POINT *point;
 
    profOptions = getCurrentProfileOptions (win,
                   (PROFILE_OPTIONS *) xvt_vobj_get_data (win));
+
+   /* [Qt port defensive fix] see profilePointSelect above. */
+   if (!profOptions)
+      return (FALSE);
 
    xvt_vobj_get_client_rect (win, &bound);
    xvt_dwin_get_draw_ctools (win, &tools);
@@ -737,6 +752,10 @@ PNT *canvasLoc;
 
    profOptions = getCurrentProfileOptions (win,
                   (PROFILE_OPTIONS *) xvt_vobj_get_data (win));
+
+   /* [Qt port defensive fix] see profilePointSelect above. */
+   if (!profOptions)
+      return (FALSE);
 
    xvt_vobj_get_client_rect (win, &bound);
 
@@ -846,18 +865,31 @@ PROFILE_POINT *point;
    beforePoint = profOptions->points;
    while (beforePoint && (beforePoint->next != searchPoint))
       beforePoint = beforePoint->next;
-   
+
+   /* [Qt port fix] refuse to delete the last remaining point -- the two
+   ** boundary-reset branches below each assume there is still at least
+   ** one neighbour point left after the deletion (writing through
+   ** afterPoint when there's nothing before, or through beforePoint when
+   ** there's nothing after) and NULL-deref when both are absent, i.e.
+   ** searchPoint was the ONLY point left. Confirmed crash: delete points
+   ** one at a time (e.g. repeatedly clicking "Delete Point") down to the
+   ** last one, in either the Fold profile editor or an Alteration-zone
+   ** profile editor -- both share this exact code path via graph.c. A
+   ** profile needs at least one point to stay meaningful anyway. */
+   if (!beforePoint && !afterPoint)
+      return (FALSE);
+
    if (beforePoint)
       beforePoint->next = afterPoint;
-   else   
+   else
    {      /* nothing before so move point to start */
       profOptions->points = afterPoint;
       afterPoint->point.h = 0;
    }
-      
+
    if (!afterPoint)  /* nothing after so move point to end */
       beforePoint->point.h = X_PROFILE_RESOLUTION;
-      
+
    xvt_mem_free ((char *) searchPoint);
       
    return (TRUE);
