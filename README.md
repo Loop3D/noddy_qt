@@ -1,7 +1,7 @@
 # Noddy (Qt port)
 
 Noddy is a geological forward-modelling application originally developed at Imperial College, University of London (created 1981-2) and then updated at
-Monash University (first released 1994), latest changes carried out at The University f Western Australia. It builds a 3D geological model
+Monash University (first released 1994), latest changes carried out at The University of Western Australia. It builds a 3D geological model
 from a user-specified sequence of tectonic/depositional events (folds,
 faults, unconformities, dykes, plugs, ...), voxelises the result into a
 block model, and forward-calculates gravity and magnetic anomalies from it.
