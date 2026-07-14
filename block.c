@@ -1075,6 +1075,8 @@ double originX, originY, originZ, cubeSize;
 int nx, ny, nz;
 #endif
 {
+   /* [Qt port ADDITION] todo.txt #44 follow-up -- geophy.c */
+   extern void resetGaussianNoiseRngIfSeeded (void);
    short ***indexData = NULL;
    float ***densityData = NULL,    ***magSusData = NULL,     ***remSusDecData = NULL;
    float ***remSusAziData = NULL,  ***remSusStrData = NULL,  ***aniSusDipData = NULL;
@@ -1086,7 +1088,9 @@ int nx, ny, nz;
    int numProps, altZones, x, y, z;
    double halfBlockSize, zLoc;
    int calcValueData = TRUE;
-   
+
+   resetGaussianNoiseRngIfSeeded ();
+
    switch (dataType)
    {
       case (ROCK_PROP): /* Density */

@@ -883,6 +883,28 @@ typedef struct s_geophysics_ops {
    int spectralFence, spectralPercent;
 	double spectralSusX, spectralSusY, spectralSusZ, spectralDensity;
 
+   /* [Qt port ADDITION] todo.txt #44 -- when set, a relative Gaussian
+   ** noise is applied wherever petrophysical values are read into a
+   ** density/susceptibility volume (geophy.c's assignLayerInBlockModels):
+   ** density/susceptibility *= max(0, 1 + (gaussianNoiseSigmaPercent/100)
+   ** * N(0,1)), independently per voxel -- clamped at 0 so a large sigma
+   ** can never flip a value negative. gaussianNoiseSigmaPercent is
+   ** entered/stored as a PERCENTAGE (e.g. 5.0 = 5%), not a raw fraction --
+   ** see CLAUDE.md's warning on this struct: load/save (getHist.c/
+   ** reporter.c) and VERSION_NUMBER (noddy.h) were updated together with
+   ** these two fields. */
+   BOOLEAN addGaussianNoise;
+   double  gaussianNoiseSigmaPercent;
+   /* [Qt port ADDITION] todo.txt #44 follow-up -- 0 means "random": the RNG
+   ** is time-seeded once per noddy.exe run and never reseeded, so repeated
+   ** calculations (block diagram preview, block export, actual anomaly
+   ** calc) each get a different noise draw. Any non-zero value reseeds the
+   ** RNG from exactly this value at the start of every volume-build entry
+   ** point (geophy.c's doGeophysics, block.c's calcBlockPropertiesData),
+   ** so the SAME seed always reproduces the SAME noise across separate
+   ** invocations. */
+   int gaussianNoiseSeed;
+
 } GEOPHYSICS_OPTIONS;
 
 typedef struct s_geology_ops {

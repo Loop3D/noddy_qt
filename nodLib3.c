@@ -5025,6 +5025,9 @@ int confirm, factorySettings;
                                        ** RAMP_PADDING) */
       geophysicsOptions.spectralFence = 50;
       geophysicsOptions.spectralPercent = 100;
+      geophysicsOptions.addGaussianNoise = FALSE; /* [Qt port ADDITION] todo.txt #44 */
+      geophysicsOptions.gaussianNoiseSigmaPercent = 1.0; /* 1% */
+      geophysicsOptions.gaussianNoiseSeed = 0; /* 0 = random */
 
                                                           /* threedView Options */
       threedViewOptions.declination = 150.0;

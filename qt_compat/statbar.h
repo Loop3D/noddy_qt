@@ -29,6 +29,14 @@ WINDOW statbar_create(int id, int left, int top, int right, int bottom,
 void statbar_set_default_title(WINDOW sb, const char *title);
 void statbar_set_title(WINDOW sb, const char *title);
 void statbar_autosize(WINDOW win);
+/* todo.txt #83 -- shows/hides a "Cancel" button docked in the status bar's
+ * permanent-widget area, for use while a long calculation (nodLib2.c's
+ * initLongJob/incrementLongJob/finishLongJob) is running in place of the
+ * old JOB_STATUS_WINDOW popup's own Cancel button. Clicking it calls
+ * setAbortLongJob() directly (see xvt_compat.cpp) -- the one place this
+ * compat layer calls back into application logic, since this button has
+ * no ctlId/WIN_EVENT_HANDLER of its own to dispatch an E_CONTROL through. */
+void statbar_set_cancel_visible(WINDOW sb, BOOLEAN visible);
 
 #ifdef __cplusplus
 }

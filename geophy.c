@@ -28,8 +28,10 @@
 #endif
 #include "noddy.h"
 #include <math.h>
+#include <sys/time.h>
+#include "xoroshiro128plus.h"
 
-#define DEBUG(X)  
+#define DEBUG(X)
 
 #define TOLERANCE 0.1
 #define STRAT_LIMIT  200      /* number of indivdual strat layers */
@@ -40,6 +42,63 @@ extern GEOLOGY_OPTIONS geologyOptions;
 extern GEOPHYSICS_OPTIONS geophysicsOptions;
 extern PROJECT_OPTIONS projectOptions;
 extern int batchExecution;
+
+                 /* ********************************************* */
+                 /* [Qt port ADDITION] todo.txt #44 -- own RNG state
+                 ** for optional Gaussian noise on density/susceptibility
+                 ** voxels (see assignLayerInBlockModels below). Same
+                 ** Box-Muller transform as RandomNoddy.c's petrophysics(),
+                 ** lazily seeded once per process run rather than once per
+                 ** voxel/layer. */
+static xrshr128p_state_t noiseRngState;
+static BOOLEAN noiseRngSeeded = FALSE;
+
+static double
+gaussianNoiseDraw (void)
+{
+   double U, V;
+   struct timeval tv;
+
+   if (!noiseRngSeeded)
+   {
+      gettimeofday (&tv, NULL);
+      xrshr128p_init ((uint64_t) (tv.tv_sec * 1000000 + tv.tv_usec), &noiseRngState);
+      noiseRngSeeded = TRUE;
+   }
+   U = xrshr128p_next_double (&noiseRngState);
+   V = xrshr128p_next_double (&noiseRngState);
+   return sqrt (-2.0 * log (U)) * cos (2.0 * 3.1415927 * V);
+}
+
+/* [Qt port ADDITION] todo.txt #44 -- multiplier for a single noised
+** voxel value: geophysicsOptions.gaussianNoiseSigmaPercent is a
+** PERCENTAGE (e.g. 5.0 = 5%), so divide by 100 for the fraction used
+** here. Clamped at 0 so a large sigma can never flip density or
+** susceptibility negative (user-requested safeguard). */
+static double
+gaussianNoiseMultiplier (void)
+{
+   double multiplier = 1.0 + (geophysicsOptions.gaussianNoiseSigmaPercent / 100.0) * gaussianNoiseDraw ();
+   return (multiplier < 0.0) ? 0.0 : multiplier;
+}
+
+/* [Qt port ADDITION] todo.txt #44 follow-up -- reproducible-seed option.
+** Called (non-static, see fcnProto.h) at the start of every entry point
+** that builds a density/susceptibility volume from scratch (this file's
+** doGeophysics, and block.c's calcBlockPropertiesData) so a non-zero
+** gaussianNoiseSeed always reproduces the identical noise sequence
+** across separate invocations (e.g. a Block Diagram preview and the
+** later real anomaly calculation). A seed of 0 ("random") is a no-op --
+** the RNG stays on its existing time-seeded, ever-advancing stream. */
+void
+resetGaussianNoiseRngIfSeeded (void)
+{
+   if (geophysicsOptions.gaussianNoiseSeed != 0)
+   {
+      xrshr128p_init ((uint64_t) geophysicsOptions.gaussianNoiseSeed, &noiseRngState);
+      noiseRngSeeded = TRUE;
+   }
+}
 
 
                  /* ************************* */
@@ -575,15 +634,25 @@ float ***densityData,     ***magSusData,      ***remSusDecData,
       for (x = 0; x < nx; x++)
          for (y = 0; y < ny; y++)
             if (blockLayer[x][y])
+            {
                densityData[z][x][y] = (float) (1000.0*blockLayer[x][y]->density);
+               /* [Qt port ADDITION] todo.txt #44 */
+               if (geophysicsOptions.addGaussianNoise)
+                  densityData[z][x][y] *= (float) gaussianNoiseMultiplier ();
+            }
    }
-   
+
    if (magSusData)
    {
       for (x = 0; x < nx; x++)
          for (y = 0; y < ny; y++)
             if (blockLayer[x][y])
+            {
                magSusData[z][x][y] = (float) blockLayer[x][y]->sus_X;
+               /* [Qt port ADDITION] todo.txt #44 */
+               if (geophysicsOptions.addGaussianNoise)
+                  magSusData[z][x][y] *= (float) gaussianNoiseMultiplier ();
+            }
    }
    
    if (remSusDecData && !deformableRemanence)
@@ -666,7 +735,16 @@ float ***densityData,     ***magSusData,      ***remSusDecData,
       for (x = 0; x < nx; x++)
          for (y = 0; y < ny; y++)
             if (blockLayer[x][y])
+            {
                aniSusAxis1Data[z][x][y] = (float) blockLayer[x][y]->sus_X;
+               /* [Qt port ADDITION] todo.txt #44 -- this array (not
+               ** magSusData) is what the Block Diagram's "Sus X/Y/Z"
+               ** display options actually read (see block.c's
+               ** calcBlockPropertiesData), so it needs the same noise
+               ** treatment or it silently shows the un-noised value. */
+               if (geophysicsOptions.addGaussianNoise)
+                  aniSusAxis1Data[z][x][y] *= (float) gaussianNoiseMultiplier ();
+            }
             else
                aniSusAxis1Data[z][x][y] = (float) 0.0;
    }
@@ -681,6 +759,9 @@ float ***densityData,     ***magSusData,      ***remSusDecData,
                   aniSusAxis2Data[z][x][y] = (float) blockLayer[x][y]->sus_Y;
                else
                   aniSusAxis2Data[z][x][y] = (float) blockLayer[x][y]->sus_X;
+               /* [Qt port ADDITION] todo.txt #44 */
+               if (geophysicsOptions.addGaussianNoise)
+                  aniSusAxis2Data[z][x][y] *= (float) gaussianNoiseMultiplier ();
             }
             else
                aniSusAxis2Data[z][x][y] = (float) 0.0;
@@ -696,6 +777,9 @@ float ***densityData,     ***magSusData,      ***remSusDecData,
                   aniSusAxis3Data[z][x][y] = (float) blockLayer[x][y]->sus_Z;
                else
                   aniSusAxis3Data[z][x][y] = (float) blockLayer[x][y]->sus_X;
+               /* [Qt port ADDITION] todo.txt #44 */
+               if (geophysicsOptions.addGaussianNoise)
+                  aniSusAxis3Data[z][x][y] *= (float) gaussianNoiseMultiplier ();
             }
             else
                aniSusAxis3Data[z][x][y] = (float) 0.0;
@@ -957,7 +1041,9 @@ DOUBLE_2D_IMAGE *magImage, *grvImage;
    int defRem, defAni, altZones;
    double xLoc, yLoc, zLoc;
    int calcRangeInCubes;
-   
+
+   resetGaussianNoiseRngIfSeeded (); /* [Qt port ADDITION] todo.txt #44 follow-up */
+
    strcpy (memLabel, "Anom");
    
    if (!memManagerAddLabel (memLabel))
@@ -1151,8 +1237,17 @@ DOUBLE_2D_IMAGE *magImage, *grvImage;
 
       if ((remCalc && defRem) || (aniCalc && defAni) || altZones
                               || options->magneticVectorComponents
-                              || !options->projectVectorsOntoField)
-         indexCalc = FALSE;   /* cannot calculate by index as can vary at any loc */
+                              || !options->projectVectorsOntoField
+                              || options->addGaussianNoise)
+         indexCalc = FALSE;   /* cannot calculate by index as can vary at any loc --
+                               ** [Qt port ADDITION] todo.txt #44: also true with
+                               ** Gaussian noise enabled, since the "indexed" path
+                               ** reads propArray[index]->density/sus_X directly
+                               ** (see magCalc.c/calcanom.c/calcCompleteAnomalies),
+                               ** bypassing the noised densityData/magSusData
+                               ** arrays assignLayerInBlockModels writes into --
+                               ** noise would otherwise silently have no effect
+                               ** on the actual calculation. */
       else
          indexCalc = TRUE;  /* simplify calculation by using indexed block */
 
@@ -1210,6 +1305,17 @@ DOUBLE_2D_IMAGE *magImage, *grvImage;
                aniSusDDirData,  aniSusPitchData, aniSusAxis1Data,
                aniSusAxis2Data, aniSusAxis3Data))
             {
+               /* [Qt port FIX] todo.txt #83-adjacent -- one of the 5
+               ** initLongJob calls in the switch above always runs before
+               ** this point, but this early-return bailed out without ever
+               ** reaching the single finishLongJob() at the bottom of this
+               ** function. Same class of bug as the nodLib2.c fix just
+               ** above this one in the session: harmless under the old
+               ** popup-based implementation, but leaves the new status-bar
+               ** implementation's modal stack permanently non-empty
+               ** (main menu and other windows stuck disabled) if
+               ** calcBlockLayer ever fails here. */
+               finishLongJob ();
                memManagerFreeAfterLabel (memLabel);
                return (FALSE);
             }

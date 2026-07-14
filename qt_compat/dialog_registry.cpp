@@ -1367,6 +1367,17 @@ static const DialogCtlEntry g_ctls_217[] = {
     { 5, W_NONE, "CHOICE LAST" },
 };
 
+/* [Qt port ADDITION] todo.txt #44 -- new "Gaussian Noise" sub-panel on
+ * the Geophysics Calculation options tab (see optnlib.c/noisewin.c). */
+static const DialogCtlEntry g_ctls_218[] = {
+    { 1, WC_GROUPBOX, "NOISE GB" },
+    { 2, WC_CHECKBOX, "Add Gaussian Noise" },
+    { 3, WC_TEXT, "Sigma (%):" },
+    { 4, WC_EDIT, "NOISE SIGMA" },
+    { 5, WC_TEXT, "Seed (0=rand):" },
+    { 6, WC_EDIT, "NOISE SEED" },
+};
+
 extern const DialogEntry g_dialogRegistry[] = {
     { 104, "DEFINE COLOUR WINDOW", g_ctls_104, (int)(sizeof(g_ctls_104)/sizeof(g_ctls_104[0])) },
     { 105, "PROFILE WINDOW", g_ctls_105, (int)(sizeof(g_ctls_105)/sizeof(g_ctls_105[0])) },
@@ -1459,5 +1470,6 @@ extern const DialogEntry g_dialogRegistry[] = {
     { 215, "SURFACE SELECTION WINDOW", g_ctls_215, (int)(sizeof(g_ctls_215)/sizeof(g_ctls_215[0])) },
     { 216, "VOLUME WINDOW", g_ctls_216, (int)(sizeof(g_ctls_216)/sizeof(g_ctls_216[0])) },
     { 217, "HELP OPTION WINDOW", g_ctls_217, (int)(sizeof(g_ctls_217)/sizeof(g_ctls_217[0])) },
+    { 218, "NOISE WINDOW", g_ctls_218, (int)(sizeof(g_ctls_218)/sizeof(g_ctls_218[0])) },
 };
 extern const int g_dialogRegistryCount = (int)(sizeof(g_dialogRegistry)/sizeof(g_dialogRegistry[0]));

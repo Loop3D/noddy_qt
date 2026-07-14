@@ -2480,9 +2480,25 @@ int binary;
             {
                fscanf(in,"%lf", &value);
             }
+            /* [Qt port fix] was "else if", which only updates maxValue on
+            ** values that FAILED the minValue check -- with minValue/
+            ** maxValue sentinel-initialized to 999999.0/-999999.0 (not
+            ** both from the first real data value, unlike every other
+            ** min/max scan in this codebase), the very first value always
+            ** satisfies "value < minValue" and gets assigned to minValue
+            ** regardless of whether it's actually the smallest OR largest
+            ** value in the data -- e.g. if the true maximum appears
+            ** before minValue has settled near the true minimum, it gets
+            ** wrongly recorded as minValue instead, while maxValue stays
+            ** near its unset sentinel. Matches a user report: an Image
+            ** Options dialog showing "Range: 45.5 - 4000.0" (correct) but
+            ** Max/Min fields reading 85.070/4000 (swapped-looking,
+            ** actually just maxValue never properly tracked). Two
+            ** independent checks are unconditionally correct regardless
+            ** of how minValue/maxValue were initialized. */
             if (value < minValue)
                minValue = value;
-            else if (value > maxValue)
+            if (value > maxValue)
                maxValue = value;
          }
       }

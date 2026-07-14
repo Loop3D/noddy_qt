@@ -250,7 +250,10 @@ OBJECT *object;
     * reference screenshot: preview pane exists but shows no menus or
     * checkbox). EVENT_WINDOW's own size (g_pos_137's registry entry) was
     * widened to match. */
-   groupYPos = 16;
+   /* [Qt port change] todo.txt #80 -- groupYPos bumped 16->22 to clear
+   ** EVENT_OPTION_SELECTION's own height, grown 14->20px in
+   ** qt_compat/dialog_positions.cpp's g_pos_137 (user-requested). */
+   groupYPos = 22;
    groupXPos = 320;
 #endif
 

@@ -454,6 +454,19 @@ FILE *out;
       fprintf(out,"\tDraped Survey= \tTRUE\n");
    else
       fprintf(out,"\tDraped Survey= \tFALSE\n");
+
+   /* [Qt port ADDITION] todo.txt #44 -- version-gated on load, see
+   ** getHist.c's loadGpsOpts (version > 8.00). */
+   if (geophysicsOptions.addGaussianNoise)
+      fprintf(out,"\tAdd Gaussian Noise= \tTRUE\n");
+   else
+      fprintf(out,"\tAdd Gaussian Noise= \tFALSE\n");
+   fprintf(out,"\tGaussian Noise Sigma Percent\t= %6.4lf\n", geophysicsOptions.gaussianNoiseSigmaPercent);
+
+   /* [Qt port ADDITION] todo.txt #44 follow-up -- version-gated on load,
+   ** see getHist.c's loadGpsOpts (version > 8.01). */
+   fprintf(out,"\tGaussian Noise Seed\t= %d\n", geophysicsOptions.gaussianNoiseSeed);
+
    return (TRUE);
 }
 

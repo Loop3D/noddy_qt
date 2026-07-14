@@ -12,6 +12,7 @@
 #include "xvt.h"         /* standard XVT header */
 #include "noddy.h"       /* resource constants for this program */
 #include "nodInc.h"
+#include "status.h"      /* STATUS_BUILD_HISTORY -- see initLongJob/finishLongJob, todo.txt #83 */
 #include <math.h>
 
 #ifndef FCN_NODDY_ONLY
@@ -36,6 +37,7 @@ extern int batchExecution, noStatusWin;
 extern WINDOW lastActiveWindow;
 extern ROCK_DATABASE rockDatabase;
 extern COLOR backgroundColor;
+extern WINDOW statusBar;   /* builder.c -- TASK_WIN's status bar, see todo.txt #83 */
 
 #if XVT_CC_PROTO
 extern PROFILE_OPTIONS *getCurrentProfileOptions (WINDOW, PROFILE_OPTIONS *);
@@ -56,6 +58,11 @@ static int minPercentIncrement;
 static int lastProcessed;
 static int currentBeingProcessed;
 static BOOLEAN cancelLongJob;
+static char longJobMessage[200] = "";  /* todo.txt #83 -- kept so incrementLongJob can
+                                          ** re-prefix the status bar text with the current
+                                          ** percentage each time (statbar_set_title replaces
+                                          ** the whole string, there's no separate field to
+                                          ** update in place like the old JOB_PERCENTAGE ctl) */
 
                                 /* Functions in this file */
 #if XVT_CC_PROTO
@@ -2583,6 +2590,21 @@ BLOCK_DIAGRAM_DATA *diagram;
                           diagram->minYLoc, diagram->minZLoc, diagram->nx,
                           diagram->ny, diagram->nz, diagram->blockSize,
                           diagram->numLayersToDraw, diagram->layersToDraw);
+               /* [Qt port FIX] todo.txt #83-adjacent user report -- this
+               ** initLongJob was never matched by a finishLongJob, unlike
+               ** every other initLongJob call in this function (e.g. the
+               ** SOLID_BLOCK case above). Harmless under the old popup-based
+               ** implementation (finishLongJob unconditionally re-enabled
+               ** every window regardless of nesting depth, so the very next
+               ** initLongJob/finishLongJob pair below -- calcBlockImageValueData's
+               ** own -- papered over it), but the new status-bar
+               ** implementation (todo.txt #83) tracks nesting on a real
+               ** stack, so this leftover unmatched initLongJob left it
+               ** permanently non-empty: main menu and other windows (e.g.
+               ** the Block Diagram itself, so mouse-drag rotation) stayed
+               ** disabled forever after picking a property like Density
+               ** with specific layers selected (user report). */
+               finishLongJob();
             }
          }
 
@@ -4124,11 +4146,7 @@ int start, end;
 char *message, *cancelLabel;
 #endif
 {
-   char title[200];
-   SLIST winList;
-   SLIST_ELT element;
-   WINDOW win;
-   WINDOW messageWindow, cancelButton;
+   char title[240];
 
    if (batchExecution)
    {
@@ -4137,7 +4155,7 @@ char *message, *cancelLabel;
       rangeToProcess = end - start;
       lastProcessed = 0;
       currentBeingProcessed = 0;
-   
+
       minPercentIncrement = (rangeToProcess) / 50;  /* 2% increments */
 
       if (minPercentIncrement < 0)
@@ -4149,66 +4167,44 @@ char *message, *cancelLabel;
 
 #if (XVTWS != MTFWS) && (XVTWS != XOLWS)
    xvt_win_set_cursor (TASK_WIN, CURSOR_WAIT);
-#endif      
+#endif
 
    if (noStatusWin)
       return;
 
-   if (!jobStatusWindow)   /* create the window the first time */
-   {
-      jobStatusWindow = createCenteredWindow (JOB_STATUS_WINDOW,
-                   TASK_WIN, EM_ALL, win_124_eh, 0L);
-      percentJobWindow = xvt_win_get_ctl (jobStatusWindow, JOB_PERCENTAGE);
-      xvt_vobj_set_title (jobStatusWindow, "Calculation Status");
-   }
-
-                                      /* Include Cancel if needed */   
+                                      /* Include Cancel if needed */
    cancelLongJob = FALSE;
-   cancelButton = xvt_win_get_ctl (jobStatusWindow, JOB_STATUS_CANCEL);
-   if (cancelLabel)
-      xvt_vobj_set_visible (cancelButton, (BOOLEAN) TRUE);
-   else
-      xvt_vobj_set_visible (cancelButton, (BOOLEAN) FALSE);
+   statbar_set_cancel_visible (statusBar, (BOOLEAN) (cancelLabel != NULL));
 
-                     /* position the window in the centre of the window */
-   messageWindow = xvt_win_get_ctl (jobStatusWindow, JOB_MESSAGE);
    if (message && strlen(message))
-      strcpy (title, message);
+      strncpy (longJobMessage, message, sizeof(longJobMessage)-1);
    else
-      strcpy (title, "Calculating...");
-   xvt_vobj_set_title (messageWindow, title);
+      strcpy (longJobMessage, "Calculating...");
+   longJobMessage[sizeof(longJobMessage)-1] = '\0';
 
-   xvt_vobj_set_title (percentJobWindow, "0");
+   sprintf (title, "%s\t0 %%", longJobMessage);
+   statbar_set_title (statusBar, title);
 
    firstToProcess = start;
    lastToProcess = end;
    rangeToProcess = end - start;
    lastProcessed = 0;
    currentBeingProcessed = 0;
-   
+
    minPercentIncrement = (rangeToProcess) / 50;  /* 2% increments */
 
    if (minPercentIncrement < 0)
       minPercentIncrement = 0;
 
-   xvt_vobj_set_visible (jobStatusWindow, TRUE);
-   xvt_dwin_invalidate_rect (jobStatusWindow, NULL);  /* refresh it */
-   bringWindowToFront(jobStatusWindow);
-
-#if (XVTWS != MACWS)
-                           /* disable all other windows */
-   if ((winList = xvt_scr_list_wins ()) && (xvt_vobj_get_title (jobStatusWindow, title, 200)))
-   {
-      for (element = xvt_slist_get_first(winList); element != NULL;
-                                    element = xvt_slist_get_next (winList, element))
-      {
-         xvt_slist_get (winList, element, (long *) &win);
-         if (win != jobStatusWindow)/* disable all windows but this one */
-            xvt_vobj_set_enabled (win, FALSE);
-      }
-      xvt_slist_destroy (winList);
-   }
-#endif
+   /* [Qt port CHANGE] todo.txt #83 -- replaces both the old JOB_STATUS_WINDOW
+   ** popup AND its own "disable all other windows but me" loop that used to
+   ** follow here: xvt_begin_long_job_ui() gives the exact same protection
+   ** via the shared modal-dialog-stack machinery (every other real
+   ** top-level window disabled, plus the TASK_WIN menu bar -- see todo.txt
+   ** #84), while leaving TASK_WIN itself -- and so its status bar, where
+   ** the message/percentage/Cancel button now live -- usable. Also nests
+   ** correctly if a job is started from inside an already-open dialog. */
+   xvt_begin_long_job_ui();
 
    xvt_app_process_pending_events();
    updateMenuOptions (TASK_MENUBAR, NULL_WIN);
@@ -4232,7 +4228,7 @@ incrementLongJob (position)
 int position;
 #endif
 {
-   char percent[100]; 
+   char percent[240];
    int value;
 
 	if (batchExecution)
@@ -4285,17 +4281,14 @@ int position;
 
    if ((position-lastProcessed) > minPercentIncrement)
    {
-      if (percentJobWindow)
-      {
-         value = (int) floor((double) ((double) position
-                                           / (double) rangeToProcess) * 100.0);
-         if (value > 100) value = 100;
-         if (value < 0) value = 0;
-         sprintf (percent,"%d",value);
-         xvt_vobj_set_title (percentJobWindow, percent);
-         lastProcessed = position;
-         xvt_app_process_pending_events();
-      }
+      value = (int) floor((double) ((double) position
+                                        / (double) rangeToProcess) * 100.0);
+      if (value > 100) value = 100;
+      if (value < 0) value = 0;
+      sprintf (percent, "%s\t%d %%", longJobMessage, value);
+      statbar_set_title (statusBar, percent);
+      lastProcessed = position;
+      xvt_app_process_pending_events();
    }
    xvt_app_process_pending_events();
 
@@ -4319,10 +4312,6 @@ finishLongJob ()
 finishLongJob ()
 #endif
 {
-   WINDOW win;
-   SLIST winList;
-   SLIST_ELT element;
-
    if (batchExecution || !processingLongJob)
       return;
 
@@ -4335,30 +4324,15 @@ finishLongJob ()
       return;
 
    xvt_app_process_pending_events();
-   if (jobStatusWindow)
-   {
-#if (XVTWS == MACWS)
-      xvt_vobj_destroy (jobStatusWindow);
-      jobStatusWindow = NULL_WIN;
-#else
-      xvt_vobj_set_visible (jobStatusWindow, FALSE); 
-#endif
-   }
-                               /* enable all other windows */
-   if (winList = xvt_scr_list_wins ())
-   {
-      for (element = xvt_slist_get_first(winList); element != NULL;
-                                    element = xvt_slist_get_next (winList, element))
-      {
-         xvt_slist_get (winList, element, (long *) &win);
-         if (win != jobStatusWindow) /* disable all windows but this one */
-         {
-            xvt_vobj_set_enabled (win, TRUE);
-            xvt_app_process_pending_events();
-         }
-      }
-      xvt_slist_destroy (winList);
-   }
+
+   statbar_set_cancel_visible (statusBar, (BOOLEAN) FALSE);
+   statbar_set_title (statusBar, STATUS_BUILD_HISTORY);
+
+   /* [Qt port CHANGE] todo.txt #83 -- matching xvt_begin_long_job_ui() in
+   ** initLongJob; re-enables every window it disabled (and the TASK_WIN
+   ** menu bar) only once this is the OUTERMOST still-open job/dialog on
+   ** the shared stack. */
+   xvt_end_long_job_ui();
 
    updateMenuOptions (TASK_MENUBAR, NULL_WIN);
                    /* update the history window */

@@ -33,7 +33,7 @@
    /* flag as to weather this is only a demo version of Noddy */
 extern int DEMO_VERSION;
 #define EDUCATION FALSE
-#define VERSION_NUMBER  8.00
+#define VERSION_NUMBER  8.02
 #define VERSION_TYPE    "Release"
 
                  /* File Extensions used in Noddy */

@@ -15,8 +15,14 @@
 
 #include <stdint.h>
 
+/* [Qt port change] todo.txt #44 -- marked static so this header can be
+ * safely #include'd from a second .c file (geophy.c, for its own
+ * independent Gaussian-noise RNG state) without "multiple definition"
+ * link errors -- standard header-only-library idiom in C, no behavior
+ * change for RandomNoddy.c's existing single-translation-unit usage. */
+
 /* this function is used for expanding 64-bit seed */
-uint64_t splitmix64(uint64_t x) {
+static uint64_t splitmix64(uint64_t x) {
 	uint64_t z = (x += UINT64_C(0x9E3779B97F4A7C15));
 	z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
 	z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
@@ -27,7 +33,7 @@ typedef struct xrshr128p_state {
     uint64_t s[2];
 } xrshr128p_state_t;
 
-void xrshr128p_init(uint64_t seed, xrshr128p_state_t* state) {
+static void xrshr128p_init(uint64_t seed, xrshr128p_state_t* state) {
     state->s[0] = seed;
     state->s[1] = splitmix64(seed);
 }
@@ -35,7 +41,7 @@ void xrshr128p_init(uint64_t seed, xrshr128p_state_t* state) {
 #define _xrshr128p_rotl(x, k) (((x) << (k)) | ((x) >> (64 - (k))))
 
 /* http://xorshift.di.unimi.it/xoroshiro128plus.c */
-uint64_t xrshr128p_next(xrshr128p_state_t* state) {
+static uint64_t xrshr128p_next(xrshr128p_state_t* state) {
 	const uint64_t s0 = state->s[0];
 	uint64_t s1 = state->s[1];
 	const uint64_t result = s0 + s1;
@@ -46,7 +52,7 @@ uint64_t xrshr128p_next(xrshr128p_state_t* state) {
 }
 
 /* double in range [0,1) */
- double xrshr128p_next_double(xrshr128p_state_t* state) {
+static double xrshr128p_next_double(xrshr128p_state_t* state) {
     const uint64_t x = xrshr128p_next(state);
     const union { uint64_t i; double d; } u = { .i = UINT64_C(0x3FF) << 52 | x >> 12 };
     return u.d - 1.0;
@@ -78,7 +84,7 @@ typedef struct xrshr128p_avx2_state {
     __m256i s[2];
 } xrshr128p_avx2_state_t;
 
-void xrshr128p_avx2_init(uint64_t seed, xrshr128p_avx2_state_t* state) {
+static void xrshr128p_avx2_init(uint64_t seed, xrshr128p_avx2_state_t* state) {
     int i;
     uint64_t s[8];
     s[0] = seed;
@@ -93,7 +99,7 @@ void xrshr128p_avx2_init(uint64_t seed, xrshr128p_avx2_state_t* state) {
     rl2 = _mm256_srli_epi64((x), 64-(k)); \
     res = _mm256_or_si256(rl1, rl2);
 
-__m256i xrshr128p_avx2_next(xrshr128p_avx2_state_t* state) {
+static __m256i xrshr128p_avx2_next(xrshr128p_avx2_state_t* state) {
     __m256i s1 = state->s[0];
     __m256i s0 = state->s[1];
     const __m256i result = _mm256_add_epi64(s0, s1);

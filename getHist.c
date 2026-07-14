@@ -919,6 +919,33 @@ double version;
       else
          geophysicsOptions.drapedSurvey = FALSE;
    }
+
+   /* [Qt port ADDITION] todo.txt #44 */
+   if (version > 8.00)
+   {
+      loadit(status,"%s",(void *) temp);
+      if (strcmp (temp, "TRUE") == 0)
+         geophysicsOptions.addGaussianNoise = TRUE;
+      else
+         geophysicsOptions.addGaussianNoise = FALSE;
+
+      loadit(status,"%lf",(void *) &geophysicsOptions.gaussianNoiseSigmaPercent);
+   }
+   else
+   {
+      geophysicsOptions.addGaussianNoise = FALSE;
+      geophysicsOptions.gaussianNoiseSigmaPercent = 1.0;
+   }
+
+   /* [Qt port ADDITION] todo.txt #44 follow-up */
+   if (version > 8.01)
+   {
+      loadit(status,"%d",(void *) &geophysicsOptions.gaussianNoiseSeed);
+   }
+   else
+   {
+      geophysicsOptions.gaussianNoiseSeed = 0;
+   }
    DEBUG(printf("\nLOAD_GEOPHYSICS: FINISHED");)
    return (TRUE);
 }

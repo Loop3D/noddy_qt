@@ -372,7 +372,10 @@ static const DialogCtlPosition g_pos_137[] = {
      * to match, so the nested Stratigraphy/Fold/etc content sub-panel
      * starts clear of this rect. */
     { 6,   8, 80, 301, 352, WC_GROUPBOX, "" },
-    { 7, 320,  0, 550,  14, WC_LISTBUTTON },  /* EVENT OPTION SELECTION (Form/Scale-style dropdown) */
+    /* [Qt port change] todo.txt #80 -- grown 14->20px tall (user-requested);
+     * eventlib.c's createEventOptions groupYPos bumped 16->22 to match, so
+     * every event dialog's nested sub-panel stack starts clear of it. */
+    { 7, 320,  0, 550,  20, WC_LISTBUTTON },  /* EVENT OPTION SELECTION (Form/Scale-style dropdown) */
     { 8,   8,388, 120, 410, WC_PUSHBUTTON, "Previous Event" },  /* EVENT PREVIOUS */
     { 9, 128,388, 230, 410, WC_PUSHBUTTON, "Next Event" },      /* EVENT NEXT */
     { 1, 460,388, 510, 410, WC_PUSHBUTTON, "OK" },              /* EVENT OK */
@@ -443,10 +446,17 @@ static const DialogCtlPosition g_pos_183[] = {
      * control could intercept the click instead, an apparent "Help and
      * Cancel functions reversed" -- the underlying ctlId->action mapping
      * here is correct, verified directly against optwin.c's real
-     * E_CONTROL switch). Dialog height grown to match (415->570). */
-    { 4, 460,530, 525, 550, WC_PUSHBUTTON, "OK" },                             /* OPTIONS WINDOW PUSHBUTTON 107 */
-    { 6, 530,530, 590, 550, WC_PUSHBUTTON, "Help...", true },                 /* OPTIONS WINDOW PUSHBUTTON 109 */
-    { 5, 595,530, 655, 550, WC_PUSHBUTTON, "Cancel" },                         /* OPTIONS WINDOW PUSHBUTTON 108 */
+     * E_CONTROL switch). Dialog height grown to match (415->570).
+     * [Qt port change] todo.txt #44 follow-up: pushed again, 530->565,
+     * dialog height 570->605 -- adding the "Gaussian Noise" sub-panel
+     * (NOISE_WINDOW, 95px) to the Geophysics Calculation stack (GENERATE
+     * 95 + CALC_TYPE 85 + VARIABLE_CUBE 95 + RANGE/PADDING 175 + NOISE 95
+     * = 545px) made IT the new tallest stack, past the previous 510px
+     * high-water mark this button row was sized for -- same "buttons
+     * covered by other widgets" symptom, matching a user screenshot. */
+    { 4, 460,565, 525, 585, WC_PUSHBUTTON, "OK" },                             /* OPTIONS WINDOW PUSHBUTTON 107 */
+    { 6, 530,565, 590, 585, WC_PUSHBUTTON, "Help...", true },                 /* OPTIONS WINDOW PUSHBUTTON 109 */
+    { 5, 595,565, 655, 585, WC_PUSHBUTTON, "Cancel" },                         /* OPTIONS WINDOW PUSHBUTTON 108 */
 };
 /* [Qt port change] todo.txt #53: the "Windows" sub-panel
  * (WINPOSITION_WINDOW, 202) is registered 400px wide and positioned at
@@ -581,6 +591,20 @@ static const DialogCtlPosition g_pos_194[] = {
     { 11, 75, 110, 140, 128 },
     { 3, 150, 112, 190, 127, WC_TEXT, "Sus Z" },
     { 9, 195, 110, 265, 128 },
+};
+
+/* [Qt port ADDITION] todo.txt #44 -- new "Gaussian Noise" sub-panel,
+ * appended after RANGE_WINDOW/PADDING_WINDOW in the Geophysics
+ * Calculation tab's stack (optnlib.c's createOptions). Kept compact
+ * (95px tall) since it's a new addition alongside four other
+ * pixel-reconstructed panels sharing this tab's vertical space. */
+static const DialogCtlPosition g_pos_218[] = {
+    { 1, 0, 0, 280, 95, WC_GROUPBOX, "Gaussian Noise" },
+    { 2, 15, 20, 260, 38, WC_CHECKBOX, "Add Gaussian Noise" },
+    { 3, 15, 47, 100, 62, WC_TEXT, "Sigma (%):" },
+    { 4, 105, 45, 200, 65 },
+    { 5, 15, 72, 130, 87, WC_TEXT, "Seed (0=rand):" },
+    { 6, 135, 70, 200, 90 },
 };
 
 /* ----------------------------------------------------------------------
@@ -766,17 +790,31 @@ static const DialogCtlPosition g_pos_174[] = {
  * eventlib.c's own panel-stacking code (`newGroupYPos = groupYPos +
  * xvt_rect_get_height(&posRect)`) correctly pushes whatever's stacked
  * below this panel down by the right amount. */
+/* [Qt port change] todo.txt #81 -- value-edit fields widened 35->96px
+ * and groupbox widened to match (198->260) -- user-requested so
+ * Orientation/Scale fields show as much text as Position's X/Y/Z
+ * fields do instead of truncating. Applied identically across every
+ * shared Orientation/Scale sub-panel (g_pos_140/141/142/145/155/156/
+ * 158/160/161).
+ * [Qt port change] todo.txt #81 follow-up -- labels ALSO widened
+ * (34px->85px column) after a user screenshot showed "Amplitude"/
+ * "Cyl Index"/"Prof.Pitch"-style labels truncating ("Amplitu", "Cyl
+ * Ind", "Prof.Pit") even after the edit-field fix above -- Position's
+ * own short "X (E)"-style labels never needed this, so #81's original
+ * "match X/Y/Z" fix didn't cover it. New uniform column layout for
+ * every row in these 9 panels: label 7-92, HSCROLL 95-180, edit
+ * 183-253. */
 static const DialogCtlPosition g_pos_140[] = {
-    { 1,   7,  0, 198,  98, WC_GROUPBOX, "Orientation" },  /* WIN 140 GROUPBOX 42 */
-    { 5,  18, 14,  52,  32, WC_TEXT, "Dip Dir." },          /* WIN 140 TEXT 46 */
-    { 2,  52, 14, 158,  32, WC_HSCROLL },                   /* DDP DDIR BAR */
-    { 8, 158, 12, 193,  32 },  /* DDP DDIR (value edit) */
-    { 6,  19, 42,  52,  60, WC_TEXT, "Dip" },               /* WIN 140 TEXT 47 */
-    { 3,  52, 42, 158,  60, WC_HSCROLL },                   /* DDP DIP BAR */
-    { 10,158, 40, 193,  60 },  /* DDP DIP (value edit) */
-    { 7,  17, 70,  52,  88, WC_TEXT, "Pitch" },             /* DDP PITCH LABEL */
-    { 4,  52, 70, 158,  88, WC_HSCROLL },                   /* DDP PITCH BAR */
-    { 9, 158, 68, 193,  88 },  /* DDP PITCH (value edit) */
+    { 1,   7,  0, 260,  98, WC_GROUPBOX, "Orientation" },  /* WIN 140 GROUPBOX 42 */
+    { 5,  15, 14,  92,  32, WC_TEXT, "Dip Dir." },          /* WIN 140 TEXT 46 */
+    { 2,  95, 14, 180,  32, WC_HSCROLL },                   /* DDP DDIR BAR */
+    { 8, 183, 12, 253,  32 },  /* DDP DDIR (value edit) */
+    { 6,  15, 42,  92,  60, WC_TEXT, "Dip" },               /* WIN 140 TEXT 47 */
+    { 3,  95, 42, 180,  60, WC_HSCROLL },                   /* DDP DIP BAR */
+    { 10,183, 40, 253,  60 },  /* DDP DIP (value edit) */
+    { 7,  15, 70,  92,  88, WC_TEXT, "Pitch" },             /* DDP PITCH LABEL */
+    { 4,  95, 70, 180,  88, WC_HSCROLL },                   /* DDP PITCH BAR */
+    { 9, 183, 68, 253,  88 },  /* DDP PITCH (value edit) */
 };
 
 /* TRACE_BUTTON_WINDOW (168): the lone "Trace From Image..." button
@@ -799,11 +837,11 @@ static const DialogCtlPosition g_pos_168[] = {
  * overlapped the slider row. Gave each caption line a full 16px and
  * vertically centered the slider/edit across both. */
 static const DialogCtlPosition g_pos_141[] = {
-    { 1,   7,  0, 198,  50, WC_GROUPBOX, "Scale" },          /* ROTATION WINDOW GROUPBOX */
-    { 3,   7, 10,  51,  26, WC_TEXT, "Rotation" },           /* ROTATION ROT LABEL */
-    { 5,   7, 26,  51,  42, WC_TEXT, "Around Axis" },        /* ROTATION WINDOW TEXT 51 */
-    { 2,  51, 16, 157,  34, WC_HSCROLL },                    /* ROTATION ROT BAR */
-    { 4, 157, 14, 192,  34 },  /* ROTATION ROT (value edit) */
+    { 1,   7,  0, 260,  50, WC_GROUPBOX, "Scale" },          /* ROTATION WINDOW GROUPBOX */
+    { 3,  15, 10,  92,  26, WC_TEXT, "Rotation" },           /* ROTATION ROT LABEL */
+    { 5,  15, 26,  92,  42, WC_TEXT, "Around Axis" },        /* ROTATION WINDOW TEXT 51 */
+    { 2,  95, 16, 180,  34, WC_HSCROLL },                    /* ROTATION ROT BAR */
+    { 4, 183, 14, 253,  34 },  /* ROTATION ROT (value edit) */
 };
 
 /* PP_WINDOW (142): Plunge Dir./Plunge -- Lineation's sole "Orientation"
@@ -811,13 +849,13 @@ static const DialogCtlPosition g_pos_141[] = {
  * IDD_LINEATION_PAGE1. [Qt port fix] todo.txt #49 -- same row-pitch fix
  * as g_pos_140 above (28px pitch instead of 15px), see its comment. */
 static const DialogCtlPosition g_pos_142[] = {
-    { 1,   7,  0, 198,  70, WC_GROUPBOX, "Orientation" },   /* PP GROUPBOX */
-    { 4,  13, 14,  52,  32, WC_TEXT, "Plunge Dir." },        /* PP PDIR LABEL */
-    { 2,  52, 14, 158,  32, WC_HSCROLL },                    /* PP PDIR BAR */
-    { 6, 158, 12, 193,  32 },  /* PP PDIR (value edit) */
-    { 5,  19, 42,  52,  60, WC_TEXT, "Plunge" },             /* PP PLUNGE LABEL */
-    { 3,  52, 42, 158,  60, WC_HSCROLL },                    /* PP PLUNGE BAR */
-    { 7, 158, 40, 193,  60 },  /* PP PLUNGE (value edit) */
+    { 1,   7,  0, 260,  70, WC_GROUPBOX, "Orientation" },   /* PP GROUPBOX */
+    { 4,  15, 14,  92,  32, WC_TEXT, "Plunge Dir." },        /* PP PDIR LABEL */
+    { 2,  95, 14, 180,  32, WC_HSCROLL },                    /* PP PDIR BAR */
+    { 6, 183, 12, 253,  32 },  /* PP PDIR (value edit) */
+    { 5,  15, 42,  92,  60, WC_TEXT, "Plunge" },             /* PP PLUNGE LABEL */
+    { 3,  95, 42, 180,  60, WC_HSCROLL },                    /* PP PLUNGE BAR */
+    { 7, 183, 40, 253,  60 },  /* PP PLUNGE (value edit) */
 };
 
 /* DDD_WINDOW (145): Dip Dir./Dip -- Foliation's sole "Orientation" tab
@@ -825,13 +863,13 @@ static const DialogCtlPosition g_pos_142[] = {
  * IDD_FOLIATION_PAGE1. [Qt port fix] todo.txt #49 -- same row-pitch fix
  * as g_pos_140 above (28px pitch instead of 15px), see its comment. */
 static const DialogCtlPosition g_pos_145[] = {
-    { 1,   7,  0, 198,  70, WC_GROUPBOX, "Orientation" },  /* DDD GROUPBOX */
-    { 4,  18, 14,  52,  32, WC_TEXT, "Dip Dir." },          /* DDD DDIR LABEL */
-    { 2,  52, 14, 158,  32, WC_HSCROLL },                   /* DDD DDIR BAR */
-    { 6, 158, 12, 193,  32 },  /* DDD DDIR (value edit) */
-    { 5,  19, 42,  52,  60, WC_TEXT, "Dip" },               /* DDD DIP LABEL */
-    { 3,  52, 42, 158,  60, WC_HSCROLL },                   /* DDD DIP BAR */
-    { 7, 158, 40, 193,  60 },  /* DDD DIP (value edit) */
+    { 1,   7,  0, 260,  70, WC_GROUPBOX, "Orientation" },  /* DDD GROUPBOX */
+    { 4,  15, 14,  92,  32, WC_TEXT, "Dip Dir." },          /* DDD DDIR LABEL */
+    { 2,  95, 14, 180,  32, WC_HSCROLL },                   /* DDD DDIR BAR */
+    { 6, 183, 12, 253,  32 },  /* DDD DDIR (value edit) */
+    { 5,  15, 42,  92,  60, WC_TEXT, "Dip" },               /* DDD DIP LABEL */
+    { 3,  95, 42, 180,  60, WC_HSCROLL },                   /* DDD DIP BAR */
+    { 7, 183, 40, 253,  60 },  /* DDD DIP (value edit) */
 };
 
 /* MATRIX_WINDOW (146): Strain event's 3x3 deformation tensor grid (its
@@ -858,82 +896,82 @@ static const DialogCtlPosition g_pos_146[] = {
  * natural widget heights, widened to 28px here too, groupbox height
  * grown to match). */
 static const DialogCtlPosition g_pos_155[] = {
-    { 4,   7,  0, 198, 182, WC_GROUPBOX, "Scale" },  /* FSCL GROUPBOX */
-    { 6,  18, 14,  52,  32, WC_TEXT, "Rotation" },    /* FSCL ROTATION LABEL */
-    { 5,  52, 14, 158,  32, WC_HSCROLL },             /* FSCL ROTATION BAR */
-    { 7, 158, 12, 193,  32 },  /* FSCL ROTATION (value edit) */
-    { 2,  19, 42,  52,  60, WC_TEXT, "Slip" },        /* FSCL SLIP LABEL */
-    { 1,  52, 42, 158,  60, WC_HSCROLL },             /* FSCL SLIP BAR */
-    { 3, 158, 40, 193,  60 },  /* FSCL SLIP (value edit) */
-    { 9,  17, 70,  52,  88, WC_TEXT, "Amplitude" },   /* FSCL AMPLITUDE LABEL */
-    { 8,  52, 70, 158,  88, WC_HSCROLL },             /* FSCL AMPLITUDE BAR */
-    { 10,158, 68, 193,  88 },  /* FSCL AMPLITUDE (value edit) */
-    { 12, 17, 98,  51, 116, WC_TEXT, "Radius" },      /* FSCL RADIUS LABEL */
-    { 11, 51, 98, 157, 116, WC_HSCROLL },             /* FSCL RADIUS BAR */
-    { 13,157, 96, 192, 116 },  /* FSCL RADIUS (value edit) */
-    { 15, 18,126,  51, 144, WC_TEXT, "Cyl Index" },   /* FSCL CYL LABEL */
-    { 14, 51,126, 157, 144, WC_HSCROLL },             /* FSCL CYL BAR */
-    { 16,157,124, 192, 144 },  /* FSCL CYL (value edit) */
-    { 18, 16,154,  51, 172, WC_TEXT, "Prof.Pitch" },  /* FSCL PP LABEL */
-    { 17, 51,154, 157, 172, WC_HSCROLL },             /* FSCL PP BAR */
-    { 19,157,152, 192, 172 },  /* FSCL PP (value edit) */
+    { 4,   7,  0, 260, 182, WC_GROUPBOX, "Scale" },  /* FSCL GROUPBOX */
+    { 6,  15, 14,  92,  32, WC_TEXT, "Rotation" },    /* FSCL ROTATION LABEL */
+    { 5,  95, 14, 180,  32, WC_HSCROLL },             /* FSCL ROTATION BAR */
+    { 7, 183, 12, 253,  32 },  /* FSCL ROTATION (value edit) */
+    { 2,  15, 42,  92,  60, WC_TEXT, "Slip" },        /* FSCL SLIP LABEL */
+    { 1,  95, 42, 180,  60, WC_HSCROLL },             /* FSCL SLIP BAR */
+    { 3, 183, 40, 253,  60 },  /* FSCL SLIP (value edit) */
+    { 9,  15, 70,  92,  88, WC_TEXT, "Amplitude" },   /* FSCL AMPLITUDE LABEL */
+    { 8,  95, 70, 180,  88, WC_HSCROLL },             /* FSCL AMPLITUDE BAR */
+    { 10,183, 68, 253,  88 },  /* FSCL AMPLITUDE (value edit) */
+    { 12, 15, 98,  92, 116, WC_TEXT, "Radius" },      /* FSCL RADIUS LABEL */
+    { 11, 95, 98, 180, 116, WC_HSCROLL },             /* FSCL RADIUS BAR */
+    { 13,183, 96, 253, 116 },  /* FSCL RADIUS (value edit) */
+    { 15, 15,126,  92, 144, WC_TEXT, "Cyl Index" },   /* FSCL CYL LABEL */
+    { 14, 95,126, 180, 144, WC_HSCROLL },             /* FSCL CYL BAR */
+    { 16,183,124, 253, 144 },  /* FSCL CYL (value edit) */
+    { 18, 15,154,  92, 172, WC_TEXT, "Prof.Pitch" },  /* FSCL PP LABEL */
+    { 17, 95,154, 180, 172, WC_HSCROLL },             /* FSCL PP BAR */
+    { 19,183,152, 253, 172 },  /* FSCL PP (value edit) */
 };
 
 /* SSCL_WINDOW (156): Shear Zone's "Scale" tab -- same fields as FSCL
  * plus a Width row. Source: IDD_KINK_PAGE4. [Qt port fix] todo.txt
  * #50 -- same row-pitch fix as g_pos_155 above. */
 static const DialogCtlPosition g_pos_156[] = {
-    { 4,   7,  0, 198, 210, WC_GROUPBOX, "Scale" },  /* SSCL WINDOW GROUPBOX 54 */
-    { 6,  18, 14,  52,  32, WC_TEXT, "Rotation" },    /* SSCL ROTATION LABEL */
-    { 5,  52, 14, 158,  32, WC_HSCROLL },             /* SSCL ROTATION BAR */
-    { 7, 158, 12, 193,  32 },  /* SSCL ROTATION (value edit) */
-    { 2,  19, 42,  52,  60, WC_TEXT, "Slip" },        /* SSCL SLIP LABEL */
-    { 1,  52, 42, 158,  60, WC_HSCROLL },             /* SSCL SLIP BAR */
-    { 3, 158, 40, 193,  60 },  /* SSCL SLIP (value edit) */
-    { 9,  17, 70,  52,  88, WC_TEXT, "Amplitude" },   /* SSCL AMPLITUDE LABEL */
-    { 8,  52, 70, 158,  88, WC_HSCROLL },             /* SSCL AMPLITUDE BAR */
-    { 10,158, 68, 193,  88 },  /* SSCL AMPLITUDE (value edit) */
-    { 21, 17, 98,  51, 116, WC_TEXT, "Width" },       /* SSCL WIDTH LABEL */
-    { 20, 51, 98, 157, 116, WC_HSCROLL },             /* SSCL WIDTH BAR */
-    { 22,157, 96, 192, 116 },  /* SSCL WIDTH (value edit) */
-    { 12, 17,126,  51, 144, WC_TEXT, "Radius" },      /* SSCL RADIUS LABEL */
-    { 11, 51,126, 157, 144, WC_HSCROLL },             /* SSCL RADIUS BAR */
-    { 13,157,124, 192, 144 },  /* SSCL RADIUS (value edit) */
-    { 15, 18,154,  51, 172, WC_TEXT, "Cyl Index" },   /* SSCL CYL LABEL */
-    { 14, 51,154, 157, 172, WC_HSCROLL },             /* SSCL CYL BAR */
-    { 16,157,152, 192, 172 },  /* SSCL CYL (value edit) */
-    { 18, 16,182,  51, 200, WC_TEXT, "Prof.Pitch" },  /* SSCL PP LABEL */
-    { 17, 51,182, 157, 200, WC_HSCROLL },             /* SSCL PP BAR */
-    { 19,157,180, 192, 200 },  /* SSCL PP (value edit) */
+    { 4,   7,  0, 260, 210, WC_GROUPBOX, "Scale" },  /* SSCL WINDOW GROUPBOX 54 */
+    { 6,  15, 14,  92,  32, WC_TEXT, "Rotation" },    /* SSCL ROTATION LABEL */
+    { 5,  95, 14, 180,  32, WC_HSCROLL },             /* SSCL ROTATION BAR */
+    { 7, 183, 12, 253,  32 },  /* SSCL ROTATION (value edit) */
+    { 2,  15, 42,  92,  60, WC_TEXT, "Slip" },        /* SSCL SLIP LABEL */
+    { 1,  95, 42, 180,  60, WC_HSCROLL },             /* SSCL SLIP BAR */
+    { 3, 183, 40, 253,  60 },  /* SSCL SLIP (value edit) */
+    { 9,  15, 70,  92,  88, WC_TEXT, "Amplitude" },   /* SSCL AMPLITUDE LABEL */
+    { 8,  95, 70, 180,  88, WC_HSCROLL },             /* SSCL AMPLITUDE BAR */
+    { 10,183, 68, 253,  88 },  /* SSCL AMPLITUDE (value edit) */
+    { 21, 15, 98,  92, 116, WC_TEXT, "Width" },       /* SSCL WIDTH LABEL */
+    { 20, 95, 98, 180, 116, WC_HSCROLL },             /* SSCL WIDTH BAR */
+    { 22,183, 96, 253, 116 },  /* SSCL WIDTH (value edit) */
+    { 12, 15,126,  92, 144, WC_TEXT, "Radius" },      /* SSCL RADIUS LABEL */
+    { 11, 95,126, 180, 144, WC_HSCROLL },             /* SSCL RADIUS BAR */
+    { 13,183,124, 253, 144 },  /* SSCL RADIUS (value edit) */
+    { 15, 15,154,  92, 172, WC_TEXT, "Cyl Index" },   /* SSCL CYL LABEL */
+    { 14, 95,154, 180, 172, WC_HSCROLL },             /* SSCL CYL BAR */
+    { 16,183,152, 253, 172 },  /* SSCL CYL (value edit) */
+    { 18, 15,182,  92, 200, WC_TEXT, "Prof.Pitch" },  /* SSCL PP LABEL */
+    { 17, 95,182, 180, 200, WC_HSCROLL },             /* SSCL PP BAR */
+    { 19,183,180, 253, 200 },  /* SSCL PP (value edit) */
 };
 
 /* SW_WINDOW (158): Dyke's "Scale" tab (Slip/Width). Source:
  * IDD_DYKE_PAGE3. [Qt port fix] todo.txt #50 (user follow-up: "please
  * do dyke scale as well") -- same row-pitch fix as g_pos_155 above. */
 static const DialogCtlPosition g_pos_158[] = {
-    { 1,   7,  0, 198,  70, WC_GROUPBOX, "Scale" },  /* SW GROUPBOX */
-    { 4,  18, 14,  52,  32, WC_TEXT, "Slip" },        /* SW SLIP LABEL */
-    { 2,  52, 14, 158,  32, WC_HSCROLL },             /* SW SLIP BAR */
-    { 6, 158, 12, 193,  32 },  /* SW SLIP (value edit) */
-    { 5,  19, 42,  52,  60, WC_TEXT, "Width" },       /* SW WIDTH LABEL */
-    { 3,  52, 42, 158,  60, WC_HSCROLL },             /* SW WIDTH BAR */
-    { 7, 158, 40, 193,  60 },  /* SW WIDTH (value edit) */
+    { 1,   7,  0, 260,  70, WC_GROUPBOX, "Scale" },  /* SW GROUPBOX */
+    { 4,  15, 14,  92,  32, WC_TEXT, "Slip" },        /* SW SLIP LABEL */
+    { 2,  95, 14, 180,  32, WC_HSCROLL },             /* SW SLIP BAR */
+    { 6, 183, 12, 253,  32 },  /* SW SLIP (value edit) */
+    { 5,  15, 42,  92,  60, WC_TEXT, "Width" },       /* SW WIDTH LABEL */
+    { 3,  95, 42, 180,  60, WC_HSCROLL },             /* SW WIDTH BAR */
+    { 7, 183, 40, 253,  60 },  /* SW WIDTH (value edit) */
 };
 
 /* PSCL_WINDOW (160): Plug's first "Scale" sub-panel (Radius/Angle/
  * BValue). Source: IDD_PLUG_PAGE3's top groupbox. [Qt port fix]
  * todo.txt #50 -- same row-pitch fix as g_pos_155 above. */
 static const DialogCtlPosition g_pos_160[] = {
-    { 1,   7,  0, 198,  98, WC_GROUPBOX, "Scale" },  /* PSCL GROUPBOX */
-    { 4,  18, 14,  52,  32, WC_TEXT, "Radius" },      /* PSCL RADIUS LABEL */
-    { 2,  52, 14, 158,  32, WC_HSCROLL },             /* PSCL RADIUS BAR */
-    { 6, 158, 12, 193,  32 },  /* PSCL RADIUS (value edit) */
-    { 5,  19, 42,  52,  60, WC_TEXT, "Angle" },       /* PSCL ANGLE LABEL */
-    { 3,  52, 42, 158,  60, WC_HSCROLL },             /* PSCL ANGLE BAR */
-    { 7, 158, 40, 193,  60 },  /* PSCL ANGLE (value edit) */
-    { 9,  18, 70,  51,  88, WC_TEXT, "B Value" },     /* PSCL BVALUE LABEL */
-    { 8,  51, 70, 157,  88, WC_HSCROLL },             /* PSCL BVALUE BAR */
-    { 10,157, 68, 192,  88 },  /* PSCL BVALUE (value edit) */
+    { 1,   7,  0, 260,  98, WC_GROUPBOX, "Scale" },  /* PSCL GROUPBOX */
+    { 4,  15, 14,  92,  32, WC_TEXT, "Radius" },      /* PSCL RADIUS LABEL */
+    { 2,  95, 14, 180,  32, WC_HSCROLL },             /* PSCL RADIUS BAR */
+    { 6, 183, 12, 253,  32 },  /* PSCL RADIUS (value edit) */
+    { 5,  15, 42,  92,  60, WC_TEXT, "Angle" },       /* PSCL ANGLE LABEL */
+    { 3,  95, 42, 180,  60, WC_HSCROLL },             /* PSCL ANGLE BAR */
+    { 7, 183, 40, 253,  60 },  /* PSCL ANGLE (value edit) */
+    { 9,  15, 70,  92,  88, WC_TEXT, "B Value" },     /* PSCL BVALUE LABEL */
+    { 8,  95, 70, 180,  88, WC_HSCROLL },             /* PSCL BVALUE BAR */
+    { 10,183, 68, 253,  88 },  /* PSCL BVALUE (value edit) */
 };
 
 /* AXIS_WINDOW (161): "Scale (Ellipsoid)" X/Y/Z axis lengths -- shared by
@@ -941,16 +979,16 @@ static const DialogCtlPosition g_pos_160[] = {
  * IDD_FAULT_PAGE4 (identical in KINK_PAGE5 and PLUG_PAGE3's 2nd panel).
  * [Qt port fix] todo.txt #50 -- same row-pitch fix as g_pos_155 above. */
 static const DialogCtlPosition g_pos_161[] = {
-    { 1,   7,  0, 198,  98, WC_GROUPBOX, "Scale (Axis of Ellipsoid)" },  /* AXIS GROUPBOX */
-    { 5,  18, 14,  52,  32, WC_TEXT, "X Axis" },      /* AXIS X LABEL */
-    { 2,  52, 14, 158,  32, WC_HSCROLL },             /* AXIS X BAR */
-    { 8, 158, 12, 193,  32 },  /* AXIS X (value edit) */
-    { 6,  19, 42,  52,  60, WC_TEXT, "Y Axis" },      /* AXIS Y LABEL */
-    { 3,  52, 42, 158,  60, WC_HSCROLL },             /* AXIS Y BAR */
-    { 10,158, 40, 193,  60 },  /* AXIS Y (value edit) */
-    { 7,  17, 70,  52,  88, WC_TEXT, "Z Axis" },      /* AXIS Z LABEL */
-    { 4,  52, 70, 158,  88, WC_HSCROLL },             /* AXIS Z BAR */
-    { 9, 158, 68, 193,  88 },  /* AXIS Z (value edit) */
+    { 1,   7,  0, 260,  98, WC_GROUPBOX, "Scale (Axis of Ellipsoid)" },  /* AXIS GROUPBOX */
+    { 5,  15, 14,  92,  32, WC_TEXT, "X Axis" },      /* AXIS X LABEL */
+    { 2,  95, 14, 180,  32, WC_HSCROLL },             /* AXIS X BAR */
+    { 8, 183, 12, 253,  32 },  /* AXIS X (value edit) */
+    { 6,  15, 42,  92,  60, WC_TEXT, "Y Axis" },      /* AXIS Y LABEL */
+    { 3,  95, 42, 180,  60, WC_HSCROLL },             /* AXIS Y BAR */
+    { 10,183, 40, 253,  60 },  /* AXIS Y (value edit) */
+    { 7,  15, 70,  92,  88, WC_TEXT, "Z Axis" },      /* AXIS Z LABEL */
+    { 4,  95, 70, 180,  88, WC_HSCROLL },             /* AXIS Z BAR */
+    { 9, 183, 68, 253,  88 },  /* AXIS Z (value edit) */
 };
 
 /* ISCL_WINDOW (164) + IPROP_WINDOW (163): Import's "Scale/Properties"
@@ -1342,9 +1380,19 @@ static const DialogCtlPosition g_pos_177[] = {
     {  5, 15,122, 158, 142, WC_PUSHBUTTON, "Calc Real Values" },
     {  6, 15,150,  60, 166, WC_TEXT, "Range:" },
     { 18, 65,150, 158, 166, WC_TEXT },
-    { 11, 15,172,  50, 188, WC_TEXT, "Max" },
+    /* [Qt port FIX] todo.txt #85-adjacent user report -- LAYER_LUT_START
+     * (ctlId 13) is populated from diagram->minValueData and LAYER_LUT_END
+     * (ctlId 14) from diagram->maxValueData (see nodLib2.c's
+     * drawBlockImageColorScale: `dStartIndex = diagram->minValueData +
+     * startIndex*valueInc`, `dEndIndex = diagram->minValueData +
+     * endIndex*valueInc` with endIndex > startIndex), so START is the LOW/
+     * Min value and END is the HIGH/Max value -- these two labels were
+     * previously swapped ("Max" next to START, "Min" next to END), which
+     * is why Calc Real Values showed e.g. Max=2020/Min=4000 for a real
+     * 2000-4000 density range (user report, screenshot). */
+    { 11, 15,172,  50, 188, WC_TEXT, "Min" },
     { 13, 55,170, 158, 188, WC_EDIT },
-    { 12, 15,195,  50, 211, WC_TEXT, "Min" },
+    { 12, 15,195,  50, 211, WC_TEXT, "Max" },
     { 14, 55,193, 158, 211, WC_EDIT },
     { 15,150,285, 230, 307, WC_PUSHBUTTON, "OK" },
     { 16,240,285, 320, 307, WC_PUSHBUTTON, "Help..." },
@@ -1539,20 +1587,20 @@ extern const DialogPositionEntry g_dialogPositions[] = {
      * x<=460 so nothing else moves. */
     { 104, 520, 315, g_pos_104, (int)(sizeof(g_pos_104)/sizeof(g_pos_104[0])), "Define Colour" },
     { 116, 280, 250, g_pos_116, (int)(sizeof(g_pos_116)/sizeof(g_pos_116[0])) },
-    { 140, 205,  98, g_pos_140, (int)(sizeof(g_pos_140)/sizeof(g_pos_140[0])) },
+    { 140, 260,  98, g_pos_140, (int)(sizeof(g_pos_140)/sizeof(g_pos_140[0])) },
     { 168, 205,  20, g_pos_168, (int)(sizeof(g_pos_168)/sizeof(g_pos_168[0])) },
-    { 141, 205,  50, g_pos_141, (int)(sizeof(g_pos_141)/sizeof(g_pos_141[0])) },
-    { 142, 205,  70, g_pos_142, (int)(sizeof(g_pos_142)/sizeof(g_pos_142[0])) },
-    { 145, 205,  70, g_pos_145, (int)(sizeof(g_pos_145)/sizeof(g_pos_145[0])) },
+    { 141, 260,  50, g_pos_141, (int)(sizeof(g_pos_141)/sizeof(g_pos_141[0])) },
+    { 142, 260,  70, g_pos_142, (int)(sizeof(g_pos_142)/sizeof(g_pos_142[0])) },
+    { 145, 260,  70, g_pos_145, (int)(sizeof(g_pos_145)/sizeof(g_pos_145[0])) },
     { 146, 205,  94, g_pos_146, (int)(sizeof(g_pos_146)/sizeof(g_pos_146[0])) },
-    { 155, 205, 182, g_pos_155, (int)(sizeof(g_pos_155)/sizeof(g_pos_155[0])) },
-    { 156, 205, 210, g_pos_156, (int)(sizeof(g_pos_156)/sizeof(g_pos_156[0])) },
-    { 158, 205,  70, g_pos_158, (int)(sizeof(g_pos_158)/sizeof(g_pos_158[0])) },
-    { 160, 205,  98, g_pos_160, (int)(sizeof(g_pos_160)/sizeof(g_pos_160[0])) },
-    { 161, 205,  98, g_pos_161, (int)(sizeof(g_pos_161)/sizeof(g_pos_161[0])) },
+    { 155, 260, 182, g_pos_155, (int)(sizeof(g_pos_155)/sizeof(g_pos_155[0])) },
+    { 156, 260, 210, g_pos_156, (int)(sizeof(g_pos_156)/sizeof(g_pos_156[0])) },
+    { 158, 260,  70, g_pos_158, (int)(sizeof(g_pos_158)/sizeof(g_pos_158[0])) },
+    { 160, 260,  98, g_pos_160, (int)(sizeof(g_pos_160)/sizeof(g_pos_160[0])) },
+    { 161, 260,  98, g_pos_161, (int)(sizeof(g_pos_161)/sizeof(g_pos_161[0])) },
     { 164, 205,  24, g_pos_164, (int)(sizeof(g_pos_164)/sizeof(g_pos_164[0])) },
     { 163, 205,  74, g_pos_163, (int)(sizeof(g_pos_163)/sizeof(g_pos_163[0])) },
-    { 183, 740, 570, g_pos_183, (int)(sizeof(g_pos_183)/sizeof(g_pos_183[0])) },
+    { 183, 740, 605, g_pos_183, (int)(sizeof(g_pos_183)/sizeof(g_pos_183[0])) },
     { 211, 280, 210, g_pos_211, (int)(sizeof(g_pos_211)/sizeof(g_pos_211[0])) },
     { 210, 280, 210, g_pos_210, (int)(sizeof(g_pos_210)/sizeof(g_pos_210[0])) },
     { 187, 280,  95, g_pos_187, (int)(sizeof(g_pos_187)/sizeof(g_pos_187[0])) },
@@ -1594,6 +1642,7 @@ extern const DialogPositionEntry g_dialogPositions[] = {
     { 105, 465, 325, g_pos_105, (int)(sizeof(g_pos_105)/sizeof(g_pos_105[0])) },
     { 136, 400, 232, g_pos_136, (int)(sizeof(g_pos_136)/sizeof(g_pos_136[0])), "Profile Options" },
     { 182, 335, 305, g_pos_182, (int)(sizeof(g_pos_182)/sizeof(g_pos_182[0])), "File Format" },
+    { 218,  280,  95, g_pos_218, (int)(sizeof(g_pos_218)/sizeof(g_pos_218[0])) },
 };
 extern const int g_dialogPositionsCount =
     (int)(sizeof(g_dialogPositions) / sizeof(g_dialogPositions[0]));

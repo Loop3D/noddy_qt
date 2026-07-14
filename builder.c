@@ -4054,7 +4054,10 @@ EVENT *ep;
                 xvt_vobj_get_outer_rect (win, &outerRect);
                 getWindowStartPosition (TOOLBAR_TITLE, &menuSize.left, &menuSize.top, NULL, NULL, NULL, NULL);
                 menuSize.right = menuSize.left + NUM_MENU_OPTIONS * (ICON_SIZE+2) + 2;
-                menuSize.bottom = menuSize.top + (ICON_SIZE+4);
+                /* [Qt port change] todo.txt #86 -- 6px shorter (was
+                ** ICON_SIZE+4) so the toolbar fits its icons snugly
+                ** instead of leaving visible slack below them. */
+                menuSize.bottom = menuSize.top + (ICON_SIZE-2);
                 menuWindow = xvt_win_create(W_DOC, &menuSize, TOOLBAR_TITLE,
                                   0, TASK_WIN, WSF_NO_MENUBAR,
                                   EM_ALL, menuEventHandler, (long) win);

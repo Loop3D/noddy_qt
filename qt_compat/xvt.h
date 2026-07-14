@@ -86,6 +86,18 @@ WINDOW xvt_dlg_create_res(WIN_TYPE dlg_type, long dlg_res_id, EVENT_MASK mask,
 WINDOW xvt_dlg_create_def(WIN_DEF *def, EVENT_MASK mask,
                       WIN_EVENT_HANDLER eh, intptr_t user_data);     /* [STUB] */
 
+/* todo.txt #83 -- nodLib2.c's initLongJob/finishLongJob call these instead
+ * of creating/destroying a JOB_STATUS_WINDOW popup, so a long calculation
+ * gets the exact same "every other window (and the TASK_WIN menu bar)
+ * disabled until it's done" protection a modal dialog gets (see
+ * pushModalDialog/popModalDialog in xvt_compat.cpp), while TASK_WIN itself
+ * -- and thus its status bar, where the job's message/percentage/Cancel
+ * button now live (see statbar_set_cancel_visible in statbar.h) -- stays
+ * usable. Correctly nests if a job is started from inside an already-open
+ * dialog (shares the same stack). */
+void xvt_begin_long_job_ui(void);        /* [DONE] */
+void xvt_end_long_job_ui(void);          /* [DONE] */
+
 /* ==================== Controls ============================================= */
 WINDOW xvt_ctl_create(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
                       long flags, long font_id, int ctl_id);         /* [STUB] */

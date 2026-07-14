@@ -338,6 +338,11 @@ extern long XVT_CALLCONV1
 #define win_217_eh HELP_OPTION_WINDOW_eh
 extern long XVT_CALLCONV1
 	HELP_OPTION_WINDOW_eh XVT_CALLCONV2 XVT_CC_ARGS((WINDOW xdWindow, EVENT *xdEvent));
+/* [Qt port ADDITION] todo.txt #44 -- new sub-panel on the Geophysics
+** Calculation options tab, see optnlib.c's createOptions/noisewin.c */
+#define win_218_eh NOISE_WINDOW_eh
+extern long XVT_CALLCONV1
+	NOISE_WINDOW_eh XVT_CALLCONV2 XVT_CC_ARGS((WINDOW xdWindow, EVENT *xdEvent));
 
 #ifndef TASK_MENUBAR
 #define TASK_MENUBAR 1000
@@ -4354,6 +4359,31 @@ extern long XVT_CALLCONV1
 #endif
 #ifndef HELP_VIEWER_INFO
 #define HELP_VIEWER_INFO 4
+#endif
+
+/* [Qt port ADDITION] todo.txt #44 -- new sub-panel on the Geophysics
+** Calculation options tab (optnlib.c's createOptions, appended after
+** RANGE_WINDOW/PADDING_WINDOW), see noisewin.c */
+#ifndef NOISE_WINDOW
+#define NOISE_WINDOW 218
+#endif
+#ifndef NOISE_GB
+#define NOISE_GB 1
+#endif
+#ifndef NOISE_ADD
+#define NOISE_ADD 2
+#endif
+#ifndef NOISE_SIGMA_LABEL
+#define NOISE_SIGMA_LABEL 3
+#endif
+#ifndef NOISE_SIGMA
+#define NOISE_SIGMA 4
+#endif
+#ifndef NOISE_SEED_LABEL
+#define NOISE_SEED_LABEL 5
+#endif
+#ifndef NOISE_SEED
+#define NOISE_SEED 6
 #endif
 
 #define STRING_1 1

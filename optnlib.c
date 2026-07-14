@@ -69,9 +69,13 @@ extern int errorSet;
 #define BOREHOLE_SECTION_INDEX     15
 #define VOLUME_SURFACE_INDEX       17
 #define GEOPHYSICS_CALC_INDEX      19
-#define GEOPHYSICS_SURVEY_INDEX    24
-#define GEOPHYSICS_DISPLAY_INDEX   29
-#define WINDOW_POSITION_INDEX      31
+/* [Qt port change] todo.txt #44 -- GEOPHYSICS_CALC's tab group grew from
+** 5 setOptionsTab calls to 6 (added NOISE_WINDOW, createOptions), which
+** shifts every flat optionTabs[] index below by +1 since these are all
+** one shared sequential array (see setOptionsTab's `index` param). */
+#define GEOPHYSICS_SURVEY_INDEX    25
+#define GEOPHYSICS_DISPLAY_INDEX   30
+#define WINDOW_POSITION_INDEX      32
 
 #define MAX_OPTION_GROUPS   40
 
@@ -443,6 +447,15 @@ OPTION_TYPE type;
 
    setOptionsTab(win, group++, numTabs, tabLabel,
              PADDING_WINDOW, PADDING_WINDOW_eh, (RCT *) NULL, 0,
+             (long) GEOPHYSICS_CALC_OP, controlXPos, controlYPos, &posRect);
+
+   /* [Qt port ADDITION] todo.txt #44 -- RANGE_WINDOW/PADDING_WINDOW above
+   ** are alternates sharing one visual slot (not stacked on each other,
+   ** hence no controlYPos += between them), so this is the first control
+   ** actually placed below them. */
+   controlYPos += xvt_rect_get_height(&posRect);
+   setOptionsTab(win, group++, numTabs, tabLabel,
+             NOISE_WINDOW, NOISE_WINDOW_eh, (RCT *) NULL, 0,
              (long) GEOPHYSICS_CALC_OP, controlXPos, controlYPos, &posRect);
 
    numTabs++;
@@ -1233,7 +1246,18 @@ OPTION_TYPE type;
       cwin = updateFloatTextField (win, PADDING_SUSZ, geophysicsOptions.spectralSusZ, 4);
       setControlFont (cwin);
    }
-   
+
+   /* [Qt port ADDITION] todo.txt #44 */
+   if (win = optionTabs[GEOPHYSICS_CALC_INDEX+5].win)
+   {
+      xvt_ctl_set_checked(xvt_win_get_ctl (win, NOISE_ADD), geophysicsOptions.addGaussianNoise);
+      cwin = updateFloatTextField (win, NOISE_SIGMA, geophysicsOptions.gaussianNoiseSigmaPercent, 2);
+      setControlFont (cwin);
+      xvt_vobj_set_enabled (xvt_win_get_ctl (win, NOISE_SIGMA), geophysicsOptions.addGaussianNoise);
+      cwin = updateNumericTextField (win, NOISE_SEED, geophysicsOptions.gaussianNoiseSeed);
+      setControlFont (cwin);
+   }
+
    updateGeophysicsCalcOptions(type);
 
    return (TRUE);
@@ -1284,7 +1308,15 @@ OPTION_TYPE type;
       geophysicsOptions.spectralSusY = getFloatTextFieldValue (win, PADDING_SUSY);
       geophysicsOptions.spectralSusZ = getFloatTextFieldValue (win, PADDING_SUSZ);
    }
-   
+
+   /* [Qt port ADDITION] todo.txt #44 */
+   if (win = optionTabs[GEOPHYSICS_CALC_INDEX+5].win)
+   {
+      geophysicsOptions.addGaussianNoise = (BOOLEAN) xvt_ctl_is_checked(xvt_win_get_ctl (win, NOISE_ADD));
+      geophysicsOptions.gaussianNoiseSigmaPercent = getFloatTextFieldValue (win, NOISE_SIGMA);
+      geophysicsOptions.gaussianNoiseSeed = getIntegerTextFieldValue (win, NOISE_SEED);
+   }
+
    return (TRUE);
 }
 

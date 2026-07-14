@@ -108,7 +108,13 @@ struct XvtObj {
                                         * set_std_cbrush/set_draw_ctools's tools->brush.color) --
                                         * a graphics-state value that changes constantly mid-draw,
                                         * NOT the window's own background. */
-    COLOR winBackColor = COLOR_WHITE; /* the window's ATTR_BACK_COLOR (xvt_vobj_get/set_attr) --
+    /* [Qt port change] todo.txt #79 -- user-requested default dialog
+     * background of RGB(240,240,240) (a light grey, matching typical
+     * native dialog chrome) instead of pure white. No app code ever
+     * calls xvt_vobj_set_attr(..., ATTR_BACK_COLOR, ...) to override
+     * this per-window, so changing the one shared default here affects
+     * every dialog's E_UPDATE xvt_dwin_clear() uniformly. */
+    COLOR winBackColor = XVT_MAKE_COLOR(240,240,240); /* the window's ATTR_BACK_COLOR (xvt_vobj_get/set_attr) --
                                         * distinct from backColor above. These two were the same
                                         * field until this split: drawBlockImageColorScale (and
                                         * any other code looping xvt_dwin_set_draw_ctools with a
@@ -349,6 +355,13 @@ static WINDOW allocHandle(XvtObj *obj)
 static QList<WINDOW> g_modalDialogStack;
 static QList<WINDOW> g_modalDisabledWindows;
 
+/* [Qt port ADDITION] todo.txt #84 -- defined further down, after the
+ * XvtWindow class body (its full definition isn't visible yet up here,
+ * and static_cast<XvtWindow *> needs a complete type to validate the
+ * downcast), forward-declared so pushModalDialog/popModalDialog below
+ * can call it. */
+static void setTaskMenuBarEnabled(bool enabled);
+
 static void pushModalDialog(WINDOW h)
 {
     if (g_modalDialogStack.isEmpty()) {
@@ -384,6 +397,18 @@ static void pushModalDialog(WINDOW h)
                 g_modalDisabledWindows.append(it.key());
             }
         }
+        /* [Qt port ADDITION] todo.txt #84, user-requested -- TASK_WIN's
+         * own widget is deliberately EXCLUDED from the disable loop above
+         * (see this function's own comment further up: disabling it would
+         * also grey out the main menu bar, taking the whole app's menus
+         * down with it). That exclusion is still correct for the WINDOW
+         * itself (its embedded MDI children -- History, Block Diagram,
+         * etc -- must stay usable while a dialog is modal over them), but
+         * the user separately asked for the MENU BAR specifically to
+         * disable while any dialog is open -- so disable just the
+         * QMenuBar widget here, independently of TASK_WIN's own
+         * enabled state. */
+        setTaskMenuBarEnabled(false);
     }
     g_modalDialogStack.append(h);
 }
@@ -404,6 +429,12 @@ static void popModalDialog(WINDOW h)
             if (other && other->widget) other->widget->setEnabled(true);
         }
         g_modalDisabledWindows.clear();
+        /* [Qt port ADDITION] todo.txt #84 -- re-enable the menu bar
+         * disabled in pushModalDialog once the LAST dialog closes (stack
+         * genuinely empty, matching the same "only on full
+         * empty<->non-empty transition" rule as the window-disabling
+         * loop above it). */
+        setTaskMenuBarEnabled(true);
     }
 }
 
@@ -871,6 +902,22 @@ private:
     }
 };
 
+/* [Qt port ADDITION] todo.txt #84 -- defined here (not up at
+ * pushModalDialog/popModalDialog) since it needs the complete
+ * XvtWindow class body above for static_cast<XvtWindow *> to validate
+ * the QWidget* downcast; those two functions just forward-call this
+ * (see the forward declaration next to g_modalDialogStack). TASK_WIN's
+ * widget is always constructed as `new XvtWindow(nullptr)` in
+ * xvt_app_create, so an unchecked static_cast is safe here. */
+static void setTaskMenuBarEnabled(bool enabled)
+{
+    if (XvtObj *taskObj = g_objs.value(TASK_WIN, nullptr)) {
+        if (auto *taskXw = static_cast<XvtWindow *>(taskObj->widget)) {
+            if (taskXw->menuBar) taskXw->menuBar->setEnabled(enabled);
+        }
+    }
+}
+
 static XvtWindow *enclosingXvtWindow(QWidget *w)
 {
     while (w) {
@@ -952,8 +999,25 @@ int xvt_app_create(int argc, char **argv, long /*flags*/, WIN_EVENT_HANDLER task
      * generous default size by the window manager. Qt widgets default to
      * a small size otherwise -- and now that W_DOC windows created with
      * TASK_WIN as parent nest INSIDE it (see makeWindow's nestAsChild),
-     * it needs to actually be big enough to contain them. */
-    taskWidget->resize(1000, 750);
+     * it needs to actually be big enough to contain them.
+     * [Qt port change] todo.txt #82, user-requested -- start (near)
+     * full-screen instead of a fixed 1000x750: QScreen::availableGeometry()
+     * already excludes the OS taskbar, so filling it directly would
+     * already clear the taskbar; an extra 40px bottom gap is subtracted
+     * on top of that as the user explicitly asked for a visible gap
+     * (not just taskbar-clearance) so the taskbar stays comfortably
+     * clickable/visible rather than merely unobscured. Falls back to the
+     * previous fixed 1000x750 if no screen is available (e.g. headless/
+     * offscreen platform for batch-mode regression testing). */
+    if (QScreen *scr = QGuiApplication::primaryScreen())
+    {
+        QRect avail = scr->availableGeometry();
+        const int bottomGap = 40;
+        taskWidget->move(avail.left(), avail.top());
+        taskWidget->resize(avail.width(), avail.height() - bottomGap);
+    }
+    else
+        taskWidget->resize(1000, 750);
 
     XvtObj *screenObj = new XvtObj();
     screenObj->type = W_DOC;
@@ -2287,6 +2351,45 @@ void statbar_set_default_title(WINDOW sb, const char *title)
 }
 
 void statbar_autosize(WINDOW) {}
+
+/* todo.txt #83 -- nodLib2.c's setAbortLongJob() (the same function the old
+ * JOB_STATUS_WINDOW's Cancel button called via a real E_CONTROL dispatch --
+ * see jobStat.c). This button has no ctlId/WIN_EVENT_HANDLER of its own to
+ * route a synthesized event through, so it calls straight into the app's C
+ * symbol instead -- the one exception to this file's normal "app calls
+ * into Qt, never the other way" rule (see this file's header comment). */
+extern "C" void setAbortLongJob(void);
+
+static QPushButton *ensureStatbarCancelButton(QStatusBar *bar)
+{
+    QPushButton *btn = bar->findChild<QPushButton *>(QStringLiteral("xvtStatbarCancel"),
+                                                       Qt::FindDirectChildrenOnly);
+    if (!btn) {
+        btn = new QPushButton(QStringLiteral("Cancel"), bar);
+        btn->setObjectName(QStringLiteral("xvtStatbarCancel"));
+        QObject::connect(btn, &QPushButton::clicked, []() { setAbortLongJob(); });
+        bar->addPermanentWidget(btn);
+        btn->hide();
+    }
+    return btn;
+}
+
+void statbar_set_cancel_visible(WINDOW sb, BOOLEAN visible)
+{
+    auto *bar = qobject_cast<QStatusBar *>(widgetFor(sb));
+    if (!bar) return;
+    ensureStatbarCancelButton(bar)->setVisible(visible ? true : false);
+}
+
+void xvt_begin_long_job_ui(void)
+{
+    pushModalDialog(NULL_WIN);
+}
+
+void xvt_end_long_job_ui(void)
+{
+    popModalDialog(NULL_WIN);
+}
 
 WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_id,
                        WINDOW parent, unsigned long /*style*/, EVENT_MASK /*mask*/,
