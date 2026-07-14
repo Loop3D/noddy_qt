@@ -13,6 +13,7 @@
 *.g12
 *.mag
 *.grv
+*.his
 
 
 # Linker output
