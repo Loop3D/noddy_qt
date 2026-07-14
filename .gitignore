@@ -13,7 +13,7 @@
 *.g12
 *.mag
 *.grv
-*.txt
+
 
 # Linker output
 *.ilk

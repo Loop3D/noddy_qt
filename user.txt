@@ -66,49 +66,57 @@ require the target machine to have Qt5 installed at all, look into
 `linuxdeploy` or building an AppImage -- not set up in this repo yet.
 
 
-WINDOWS (MinGW build, per Makefile.qt's Windows section)
+WINDOWS (MinGW build, per Makefile's Windows section)
 ----------------------------------------------------------
-NOT verified against an actual Windows build -- written from Qt's own
-documented deployment process.
+VERIFIED against a real native build (MSYS2 MinGW64, gcc 15.1.0, Qt
+5.15.17+kde+r122). `ldd noddy.exe` from an MSYS2 MinGW64 shell reports
+these direct + transitive dependencies from `mingw64\bin\` (26 DLLs) --
+confirmed by actually copying exactly this list next to noddy.exe and
+launching it with a clean, MSYS2-free PATH, both in batch mode and the
+interactive GUI:
 
-A MinGW-built noddy.exe needs, alongside the .exe (same folder, or
-somewhere on PATH):
+  Qt5PrintSupport.dll   Qt5Core.dll         Qt5Widgets.dll
+  Qt5Gui.dll            libgcc_s_seh-1.dll  libwinpthread-1.dll
+  libstdc++-6.dll       libdouble-conversion.dll
+  libicuuc77.dll        libicuin77.dll      libicudt77.dll
+  libpcre2-16-0.dll     libpcre2-8-0.dll    zlib1.dll
+  libzstd.dll           libmd4c.dll         libpng16-16.dll
+  libharfbuzz-0.dll     libfreetype-6.dll   libgraphite2.dll
+  libglib-2.0-0.dll     libintl-8.dll       libbrotlidec.dll
+  libbrotlicommon.dll   libbz2-1.dll        libiconv-2.dll
 
-  Qt5Core.dll
-  Qt5Gui.dll
-  Qt5Widgets.dll
-  Qt5PrintSupport.dll
+(The exact ICU/harfbuzz/etc version-numbered filenames, e.g.
+`libicuuc77.dll`, will track whatever Qt5/ICU version `pacman` installs
+-- re-run `ldd noddy.exe` after any `pacman -Syu` to catch drift, rather
+than assuming this exact list stays fixed forever.)
 
-...plus a `platforms\` subfolder next to the .exe containing at least:
+...plus a `platforms\` subfolder next to the .exe containing:
 
   platforms\qwindows.dll
 
 (Qt, like on Linux, needs this "platform plugin" to actually create a
 window -- without it you'll see "This application failed to start
 because no Qt platform plugin could be initialized" and nothing else.)
+Source: `<msys2 install dir>\mingw64\share\qt5\plugins\platforms\
+qwindows.dll`.
 
-Since this is a MinGW build (not MSVC), it ALSO needs the MinGW-w64
-runtime DLLs unless statically linked:
+The easiest way to gather this list yourself after a fresh build,
+instead of copying the list above by hand, is Qt's own bundling tool --
+NOT installed by the `mingw-w64-x86_64-qt5-base` package this port
+otherwise only needs; requires the separate `mingw-w64-x86_64-qt5-tools`
+package:
 
-  libgcc_s_seh-1.dll
-  libstdc++-6.dll
-  libwinpthread-1.dll
-
-The easiest, most reliable way to gather all of the above correctly
-(rather than hunting for each DLL by hand) is Qt's own bundling tool,
-which ships with every Qt5 Windows install and is designed for exactly
-this:
-
+  pacman -S mingw-w64-x86_64-qt5-tools
   windeployqt.exe path\to\noddy.exe
 
 Run from an MSYS2 MinGW64 shell (matching the one used to build, see
-README.md) with the mingw-w64 Qt5 tools on PATH -- it inspects the
-.exe, copies every DLL and plugin it actually needs into the same
-folder, and is the standard way Qt applications are packaged for
-Windows redistribution.
+README.md) -- it inspects the .exe and copies every DLL/plugin it
+actually needs into the same folder. Not verified in this port's own
+build (windeployqt wasn't installed when this list was gathered) -- the
+manually-copied list above was what was actually tested working.
 
 
-MACOS (Homebrew Qt5 build, per Makefile.qt's macOS section)
+MACOS (Homebrew Qt5 build, per Makefile's macOS section)
 ---------------------------------------------------------------
 NOT verified against an actual macOS build -- written from Qt's own
 documented deployment process.
@@ -133,6 +141,6 @@ bundling tool handles this:
   macdeployqt Noddy.app
 
 (This assumes the build is wrapped into a Noddy.app bundle structure
-first -- Makefile.qt currently produces a bare command-line-style
+first -- Makefile currently produces a bare command-line-style
 binary, not an .app bundle; turning it into one, if full standalone
 distribution is needed, is a separate follow-up task not done yet.)

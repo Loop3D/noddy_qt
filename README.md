@@ -5,6 +5,15 @@ Monash University (first released 1994), latest changes carried out at The Unive
 from a user-specified sequence of tectonic/depositional events (folds,
 faults, unconformities, dykes, plugs, ...), voxelises the result into a
 block model, and forward-calculates gravity and magnetic anomalies from it.
+## New Features
+This port has allowed several new features to be added to the code:
+- Clicked orientations on maps and sections now include x,y,z coordinates when saved to file
+- Uniform bedding orientations and lithology can be saved as cvs for whole top surfacae of map (Save Surface Orientations... menu item)
+- Random 5-event history generator added (Random History menu item)
+- Voxels above topo surface in block diagrams can now be rendered transparent (In Display Type Dialog).
+- Gaussian noise can now be added to density and magnetic susceptibility at voxel level (In Geophysics Calculaiton Options)
+
+## Porting information
 
 The original GUI was built on **XVT**, a  cross-platform C
 toolkit that requires a commerical licence. This tree has been ported to **Qt5**
