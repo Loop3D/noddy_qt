@@ -415,6 +415,17 @@ EVENT *xdEvent;
 			/* TAG END LAYER_DISPLAY_ALL EVNT:Control */
 			}
 			break;
+		/* [Qt port ADDITION] todo.txt #87 -- "Show Topo" checkbox; just
+		** toggles here (matching LAYER_DISPLAY_ALL's own pattern), the
+		** actual cube filtering happens on OK in saveBlockImageOptions()
+		** (nodLib2.c), which is when diagram->blockData is next
+		** (re)computed anyway. */
+		case LAYER_SHOW_TOPO: /* "Show Topo" */
+			{
+			WINDOW ctl_win = xvt_win_get_ctl(xdWindow, LAYER_SHOW_TOPO);
+			xvt_ctl_set_checked(ctl_win, (BOOLEAN) (!xvt_ctl_is_checked (ctl_win)));
+			}
+			break;
 		case LAYER_LUT_START: /* "start" */
 			{
 			/* TAG BEGIN LAYER_LUT_START EVNT:Control */

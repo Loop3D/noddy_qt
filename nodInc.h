@@ -3233,6 +3233,10 @@ extern long XVT_CALLCONV1
 #ifndef LAYER_LUT_STRETCH
 #define LAYER_LUT_STRETCH 19
 #endif
+/* [Qt port ADDITION] todo.txt #87 -- "Show Topo" checkbox, blklayop.c */
+#ifndef LAYER_SHOW_TOPO
+#define LAYER_SHOW_TOPO 20
+#endif
 
 #ifndef WINPOS_WINDOW
 #define WINPOS_WINDOW 178

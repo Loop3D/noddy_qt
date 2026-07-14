@@ -33,6 +33,7 @@ extern WINDOW_POSITION_OPTIONS winPositionOptions;
 extern double minTopoValue, maxTopoValue;
 extern double **topographyMap;
 extern int TopoRow, TopoCol;
+extern double TopomapXW, TopomapYW, TopomapXE, TopomapYE;  /* todo.txt #87 -- see filterBlockDataAboveTopo() */
 extern int batchExecution, noStatusWin;
 extern WINDOW lastActiveWindow;
 extern ROCK_DATABASE rockDatabase;
@@ -2370,7 +2371,10 @@ WINDOW parentWin;
       xvt_list_add (lutStretchList, 1, "Clip within Range");
       xvt_list_resume (lutStretchList);
    }
-   
+
+   /* todo.txt #87 */
+   xvt_ctl_set_checked (xvt_win_get_ctl (parentWin, LAYER_SHOW_TOPO), diagram->showTopo);
+
    layerList = xvt_win_get_ctl (parentWin, LAYER_DISPLAY_LIST);
 
              /* Setup things to reflect current values */
@@ -2408,6 +2412,74 @@ WINDOW parentWin;
    updateBlockImageOptions (parentWin);
 
    return (result);
+}
+
+/* [Qt port ADDITION] todo.txt #87 -- called from saveBlockImageOptions()
+** right after diagram->blockData is (re)computed, when diagram->showTopo
+** is set: sets any cube whose real-world Z is above the loaded
+** topography surface at that cube's X/Y to COLOR_INVALID, the same
+** sentinel the "Turn Off layers not wanted" logic already uses, which
+** renderBlockDiagram() (DoBlock.c) already skips when drawing (and
+** correctly opens up the newly-exposed top faces of the cubes below, via
+** its existing neighbour-is-COLOR_INVALID face-culling checks). No-ops
+** silently if no topography is loaded, so the checkbox is harmless to
+** leave checked with no topography present. */
+static void
+filterBlockDataAboveTopo (BLOCK_DIAGRAM_DATA *diagram)
+{
+   int x, y, z, error;
+   double xLoc, yLoc, zLoc, topoZ;
+   double minTopoX, maxTopoX, minTopoY, maxTopoY, topoCellX, topoCellY;
+
+   if (!diagram->blockData || !topographyMap)
+      return;
+
+   /* [Qt port FIX] todo.txt #87 user report -- columns whose cube-center
+   ** X/Y fell outside the topography grid's own extent (e.g. the block
+   ** model's north/east edge, if the topo grid doesn't extend exactly as
+   ** far) made getTopoValueAtLoc return *error, which this loop originally
+   ** handled by `continue`-ing past that whole column -- silently leaving
+   ** it completely unfiltered. Clamping xLoc/yLoc into the topo grid's
+   ** bounds fixes that, EXCEPT landing EXACTLY on the half-cell boundary
+   ** still overflows: getTopoValueAtLoc's own internal index rounding
+   ** (`floor((loc-min)/cellSize + 0.5) + 1`) maps loc == max-0.5*cellSize
+   ** to floor(numTopo)+1 == numTopo+1, one past the last valid cell
+   ** (confirmed via debug trace -- every column along the north/east edge
+   ** rows errored, reproducing the bug even after a first exact-half-cell
+   ** clamp attempt). A small margin past half a cell keeps the lookup
+   ** strictly inside the last valid cell on every edge. */
+   minTopoX = MIN (TopomapXW, TopomapXE);
+   maxTopoX = MAX (TopomapXW, TopomapXE);
+   minTopoY = MIN (TopomapYW, TopomapYE);
+   maxTopoY = MAX (TopomapYW, TopomapYE);
+   topoCellX = (maxTopoX - minTopoX) / TopoCol;
+   topoCellY = (maxTopoY - minTopoY) / TopoRow;
+   minTopoX += 0.501*topoCellX; maxTopoX -= 0.501*topoCellX;
+   minTopoY += 0.501*topoCellY; maxTopoY -= 0.501*topoCellY;
+
+   for (x = 0; x < diagram->nx; x++)
+   {
+      xLoc = diagram->minXLoc + (x + 0.5)*diagram->blockSize;
+      if (xLoc < minTopoX) xLoc = minTopoX;
+      else if (xLoc > maxTopoX) xLoc = maxTopoX;
+      for (y = 0; y < diagram->ny; y++)
+      {
+         yLoc = diagram->minYLoc + (y + 0.5)*diagram->blockSize;
+         if (yLoc < minTopoY) yLoc = minTopoY;
+         else if (yLoc > maxTopoY) yLoc = maxTopoY;
+         topoZ = getTopoValueAtLoc (topographyMap, TopoCol, TopoRow,
+                           TopomapYW, TopomapYE, TopomapXW, TopomapXE,
+                           xLoc, yLoc, &error);
+         if (error)
+            continue;
+         for (z = 0; z < diagram->nz; z++)
+         {
+            zLoc = diagram->minZLoc + (z + 0.5)*diagram->blockSize;
+            if (zLoc > topoZ)
+               diagram->blockData[z][x][y] = COLOR_INVALID;
+         }
+      }
+   }
 }
 
 /* ======================================================================
@@ -2454,6 +2526,8 @@ BLOCK_DIAGRAM_DATA *diagram;
                            /* Setup things to reflect current values */
       allLayers = xvt_ctl_is_checked(xvt_win_get_ctl(parentWin, LAYER_DISPLAY_ALL));
       blockType = xvt_list_get_sel_index (xvt_win_get_ctl (parentWin, LAYER_DISPLAY_TYPE));
+      /* todo.txt #87 */
+      diagram->showTopo = xvt_ctl_is_checked(xvt_win_get_ctl(parentWin, LAYER_SHOW_TOPO));
    }
    else  /* No window so initilise according to the values in the structure */
    {
@@ -2522,6 +2596,8 @@ BLOCK_DIAGRAM_DATA *diagram;
                        diagram->ny, diagram->nz, diagram->blockSize,
                        diagram->numLayersToDraw, diagram->layersToDraw);
             finishLongJob();
+            if (diagram->showTopo)  /* todo.txt #87 */
+               filterBlockDataAboveTopo (diagram);
          }
          if (parentWin && (winType == W_DBL))
             updateBlockDiagram (lastActiveWindow);  /* Update the display in the window */
@@ -2670,6 +2746,8 @@ BLOCK_DIAGRAM_DATA *diagram;
                destroy3DArray((char ***) layerData, diagram->nz, diagram->nx, diagram->ny);
             }
             finishLongJob();
+            if (diagram->showTopo)  /* todo.txt #87 */
+               filterBlockDataAboveTopo (diagram);
          }
          else
          {
@@ -2803,6 +2881,14 @@ WINDOW parentWin;
    xvt_vobj_set_enabled(xvt_win_get_ctl(parentWin, LAYER_LUT_START), (BOOLEAN) lutGB);
    xvt_vobj_set_enabled(xvt_win_get_ctl(parentWin, LAYER_LUT_END_LABEL), (BOOLEAN) lutGB);
    xvt_vobj_set_enabled(xvt_win_get_ctl(parentWin, LAYER_LUT_END), (BOOLEAN) lutGB);
+   /* todo.txt #87 -- only meaningful for the Layered/property (cube-based)
+   ** display types (blockType 1+, the same set layersGB already gates --
+   ** NOT lutGB, which is only true for the property/LUT views and wrongly
+   ** left this disabled for "Specific Layers", a cube-based view too;
+   ** user report/screenshot). blockType 0 ("Solid Block Diagram") has no
+   ** cube data at all (uses drawBlockSurfaces' triangulated surfaces
+   ** instead, see saveBlockImageOptions' case(0)), so it's excluded here. */
+   xvt_vobj_set_enabled(xvt_win_get_ctl(parentWin, LAYER_SHOW_TOPO), (BOOLEAN) layersGB);
                      /* Turn the LAYERS GB on or off as needed */
    xvt_vobj_set_enabled(xvt_win_get_ctl(parentWin, LAYER_DISPLAY_LAYER_GB), (BOOLEAN) layersGB);
    xvt_vobj_set_enabled(xvt_win_get_ctl(parentWin, LAYER_DISPLAY_LIST), (BOOLEAN) layersGB);

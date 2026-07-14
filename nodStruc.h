@@ -546,6 +546,10 @@ typedef struct s_block_diag_data {
    double blockSize;
    THREED_IMAGE_DATA threedData;
    BLOCK_SURFACE_DATA *surfaces;
+   /* [Qt port ADDITION] todo.txt #87 -- when set, cubes above the loaded
+   ** topography surface are filtered (set COLOR_INVALID) out of blockData
+   ** so they aren't rendered; see nodLib2.c's filterBlockDataAboveTopo(). */
+   BOOLEAN showTopo;
 
 } BLOCK_DIAGRAM_DATA;
 

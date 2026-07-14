@@ -1394,6 +1394,13 @@ static const DialogCtlPosition g_pos_177[] = {
     { 13, 55,170, 158, 188, WC_EDIT },
     { 12, 15,195,  50, 211, WC_TEXT, "Max" },
     { 14, 55,193, 158, 211, WC_EDIT },
+    /* [Qt port ADDITION] todo.txt #87 -- "Show Topo" checkbox, fitted into
+     * the Lut Editing groupbox's own unused space below the Min row (its
+     * groupbox bottom is 270, the Min row ends at 211) rather than growing
+     * the dialog -- only meaningful for the Layered/property (cube-based)
+     * display types, see nodLib2.c's updateBlockImageOptions() for the
+     * enable/disable tied to lutGB. */
+    { 20, 15,220, 158, 238, WC_CHECKBOX, "Show Topo" },
     { 15,150,285, 230, 307, WC_PUSHBUTTON, "OK" },
     { 16,240,285, 320, 307, WC_PUSHBUTTON, "Help..." },
     { 17,330,285, 395, 307, WC_PUSHBUTTON, "Cancel" },

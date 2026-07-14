@@ -65,6 +65,9 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 - **(file-level, top of file)**: Added unconditional `#include <sys/time.h>` needed for the new `-random` flag's timestamped output filename, not just the old XOLWS/MTFWS TIMER macro.
 - **batchNoddy()**: Added a `-random` flag that generates a random history, writes it as a timestamped .his file, and computes a full block export plus gravity/magnetic anomalies without requiring an input history file.
 
+### blklayop.c
+- **LAYER_DISPLAY_WINDOW_eh()**: Added a `LAYER_SHOW_TOPO` case for the new "Show Topo" checkbox (Display Type popup, right-click on a Block Diagram), just toggling its checked state on click — the actual cube filtering happens on OK via nodLib2.c's `saveBlockImageOptions()` (todo #87).
+
 ### block.c
 - **calcBlockPropertiesData()**: Added a call to `resetGaussianNoiseRngIfSeeded()` (geophy.c) as a follow-up to the Gaussian noise feature.
 
@@ -75,6 +78,9 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 
 ### calc3d.c
 - **(before create3dStratMap, in the block-diagram sizing code)**: Added an explicit error message when `geologyCubeSize` is too large relative to the model's dimensions (collapsing xMax/yMax/zMax to 1), since `allSurface` silently produced zero triangles while the grid still drew, misleadingly appearing to finish instantly with no geology.
+
+### DoBlock.c
+- **renderBlockDiagram() / shadeCubeColor()**: Added `shadeCubeColor()` and used it to replace the block diagram cube face shading's raw `channel*SHADE_1`/`channel*SHADE_2` multiply-and-pack-into-`XVT_MAKE_COLOR` (unclamped -- a channel pushed past 255 silently wrapped modulo 256, corrupting bright/saturated layer colours) with a real clamped +/-10% variation (`SHADE_1`/`SHADE_2` changed from 1.2/0.8 to 1.1/0.9 to match), fixing the "colour triplet logic...poorly handled" user report (todo #88).
 
 ### eventlib.c
 - **createEventOptions()**: Widened `groupXPos` from 150 to 320 so the EVENT_PREVIEW placeholder can be a full-size preview pane, since the old width capped it too narrow to show its Preview-Type/On controls.
@@ -118,12 +124,14 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 
 ### nodGraph.c
 - **backgroundColor (global)**: Default geology display background colour changed from black to white.
+- **drawSelectedColorGrid()**: Same unclamped-shading bug and fix as DoBlock.c's `renderBlockDiagram()`/`shadeCubeColor()` -- this is the "Define Colour" dialog's own base/brighter/darker preview swatches (`SHADE_1`/`SHADE_2` changed 1.2/0.8 -> 1.1/0.9, with real per-channel clamping instead of an unclamped multiply feeding straight into `XVT_MAKE_COLOR`) (todo #88).
 
 ### nodInc.h
 - **NOISE_WINDOW_eh / win_218_eh**: Added new event-handler declaration for a new Geophysics Calculation options noise sub-panel (todo #44, noisewin.c).
 - **TASK_MENUBAR_GEOLOGY_SAVE_SURFACE_ORIENTATIONS**: Added new menu tag (value 1200, deliberately outside the real .rc-derived tag range) for a new Geology menu item (todo #43).
 - **TASK_MENUBAR_1_RANDOM_HISTORY**: Added new menu tag (value 1201, same safe range) for a new File menu item (todo #41).
 - **NOISE_WINDOW**: Added new dialog/window ID (218) for the Geophysics noise sub-panel (todo #44).
+- **LAYER_SHOW_TOPO**: Added new ctlId (20) for the "Show Topo" checkbox in LAYER_DISPLAY_WINDOW's Display Type popup (todo #87).
 
 ### nodLib1.c
 - **pasteObjects() (PASTE_OFFSET constant)**: Widened icon-spacing offset from 40 to 64 for Paste/Duplicate placement, since 40 still overlapped the icon+title label per a user screenshot.
@@ -144,6 +152,10 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 - **saveBlockImageOptions()**: Added a missing `finishLongJob()` to match an `initLongJob()` call, fixing a nesting-stack leak in the status-bar long-job UI that left the main menu/other windows permanently disabled after picking a property with specific layers selected (todo #83-adjacent).
 - **initLongJob()**: Replaced the old modal JOB_STATUS_WINDOW popup and manual "disable all other windows" loop with `xvt_begin_long_job_ui()`, using the shared modal-dialog stack for equivalent protection while keeping the status bar (in TASK_WIN) usable and properly nestable (todo #83).
 - **finishLongJob()**: Correspondingly replaced the old re-enable-all-windows logic with `xvt_end_long_job_ui()`, which only re-enables windows once the outermost job/dialog on the shared stack closes (todo #83).
+- **filterBlockDataAboveTopo()**: New function (todo #87) -- when the "Show Topo" checkbox is set, marks any cube above the loaded topography surface at its X/Y as `COLOR_INVALID` (the same sentinel "Turn Off layers not wanted" already uses), so `renderBlockDiagram()` skips drawing it. Clamps each cube-center X/Y into the topography grid's own extent (to the center of the nearest edge cell, with a small safety margin past the exact half-cell boundary -- landing exactly on it still overflowed `getTopoValueAtLoc`'s internal index rounding by one) instead of skipping unfiltered whenever a column's raw X/Y fell outside the topo grid, which had left the whole north/east edge of the model uncut.
+- **saveBlockImageOptions()**: Reads the "Show Topo" checkbox into `diagram->showTopo`, and calls `filterBlockDataAboveTopo()` after `diagram->blockData` is (re)computed for both the Layered and property-view cases (todo #87).
+- **loadBlockImageOptions()**: Syncs the "Show Topo" checkbox from `diagram->showTopo` when the Display Type popup opens (todo #87).
+- **updateBlockImageOptions()**: Enables/disables the "Show Topo" checkbox alongside `layersGB` (Layered + property views, i.e. every display type with real cube data) -- initially wired to the wrong flag (`lutGB`, property views only), which left it wrongly disabled for the Layered view (todo #87, user report).
 
 ### nodLib3.c
 - **initAlterationZones()**: Changed default alteration profile "Alteration Distance" (maxX) from 0.0 to 500.0, since a 0.0 default silently made new alteration profiles have no effect until manually edited (todo #51, user-requested).
@@ -157,6 +169,7 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 - **GEOPHYSICS_OPTIONS (addGaussianNoise/gaussianNoiseSigmaPercent fields)**: Added fields to apply relative Gaussian noise (stored as a percentage) to density/susceptibility voxel values during volume assignment (todo #44).
 - **GEOPHYSICS_OPTIONS (gaussianNoiseSeed field)**: Added a seed field where 0 means time-seeded random noise and any non-zero value reseeds the RNG for reproducible noise across runs.
 - **(X11/OpenGL include block)**: Excluded the unconditional X11/Xt include (only truly needed for OpenGL-only code) when `XVTWS == 0` (Qt), since it caused hard compile errors on native Windows/MinGW builds lacking X11.
+- **BLOCK_DIAGRAM_DATA (showTopo field)**: Added field recording whether the "Show Topo" checkbox is set for this diagram, so cubes above the loaded topography surface are filtered out of the cube-based (Layered/property) display types (todo #87).
 
 ### nodwork1.c
 - **update3dPreview()**: Fast slider/scrollbar drags could deliver overlapping calls whose `object` pointer got corrupted between calls; added a re-entrancy guard that coalesces pending updates instead of dropping or corrupting them.

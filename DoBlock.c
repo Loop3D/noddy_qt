@@ -663,6 +663,34 @@ OUTPUT
 
 RETURNED
 ====================================================================== */
+/* [Qt port FIX] todo.txt #88 -- renderBlockDiagram() shades each cube's 6
+** faces into 3 tones (unshaded top/bottom, SHADE_1-brightened south/north,
+** SHADE_2-darkened west/east) by multiplying the cube's base RGB channels
+** and feeding the result straight into XVT_MAKE_COLOR(r,g,b), whose macro
+** casts each channel to `unsigned char` with NO clamping -- a channel
+** pushed past 255 by SHADE_1 (previously 1.2x) silently WRAPS modulo 256
+** (e.g. 230*1.2=276 -> (unsigned char)276 == 20), corrupting bright/
+** saturated layer colours into visibly wrong ones rather than just
+** clipping to white, which is what user report #88 described as "shading
+** poorly handled" (a real colour-corruption bug, not just an aesthetic
+** preference) for the limited discrete per-layer colours Solid/Layered
+** views use (property/LUT views were less likely to visibly hit it, since
+** their generated gradient colours are rarely pinned at the channel
+** extremes, but share this exact same rendering path and had the same
+** latent bug). Replaced the raw multiply with this helper: a flat +/-10%
+** variation (matching the user's ask) with real per-channel clamping. */
+static COLOR
+shadeCubeColor (COLOR color, double factor)
+{
+   int r = (int) (XVT_COLOR_GET_RED(color)*factor + 0.5);
+   int g = (int) (XVT_COLOR_GET_GREEN(color)*factor + 0.5);
+   int b = (int) (XVT_COLOR_GET_BLUE(color)*factor + 0.5);
+   if (r > 255) r = 255; else if (r < 0) r = 0;
+   if (g > 255) g = 255; else if (g < 0) g = 0;
+   if (b > 255) b = 255; else if (b < 0) b = 0;
+   return XVT_MAKE_COLOR(r, g, b);
+}
+
 int
 #if XVT_CC_PROTO
 renderBlockDiagram (BLOCK_DIAGRAM_DATA *blockDiagram)
@@ -671,8 +699,8 @@ renderBlockDiagram (blockDiagram)
 BLOCK_DIAGRAM_DATA *blockDiagram;
 #endif
 {
-#define SHADE_1   1.2  /* 0.9 */
-#define SHADE_2   0.8  /* 0.8 */
+#define SHADE_1   1.1  /* 10% brighter, todo.txt #88 */
+#define SHADE_2   0.9  /* 10% darker, todo.txt #88 */
    WINDOW win;
    THREED_IMAGE_DATA *threedData;
    Point3d start;
@@ -840,9 +868,7 @@ BLOCK_DIAGRAM_DATA *blockDiagram;
                            Rect3D[2].y = zPos + blockSize;
                            Rect3D[3].y = zPos + blockSize;
          
-                           tools.brush.color = XVT_MAKE_COLOR(XVT_COLOR_GET_RED(currentColor)*SHADE_2,
-                                                              XVT_COLOR_GET_GREEN(currentColor)*SHADE_2,
-                                                              XVT_COLOR_GET_BLUE(currentColor)*SHADE_2);
+                           tools.brush.color = shadeCubeColor(currentColor, SHADE_2);
                            xvt_dwin_set_draw_ctools (win, &tools);
                            draw3dRect (win, Rect3D);
                         }
@@ -862,9 +888,7 @@ BLOCK_DIAGRAM_DATA *blockDiagram;
                            Rect3D[2].y = zPos + blockSize;
                            Rect3D[3].y = zPos + blockSize;
                      
-                           tools.brush.color = XVT_MAKE_COLOR(XVT_COLOR_GET_RED(currentColor)*SHADE_2,
-                                                              XVT_COLOR_GET_GREEN(currentColor)*SHADE_2,
-                                                              XVT_COLOR_GET_BLUE(currentColor)*SHADE_2);
+                           tools.brush.color = shadeCubeColor(currentColor, SHADE_2);
                            xvt_dwin_set_draw_ctools (win, &tools);
                            draw3dRect (win, Rect3D);
                         }
@@ -884,9 +908,7 @@ BLOCK_DIAGRAM_DATA *blockDiagram;
                            Rect3D[2].y = zPos + blockSize;
                            Rect3D[3].y = zPos;
                      
-                           tools.brush.color = XVT_MAKE_COLOR(XVT_COLOR_GET_RED(currentColor)*SHADE_1,
-                                                              XVT_COLOR_GET_GREEN(currentColor)*SHADE_1,
-                                                              XVT_COLOR_GET_BLUE(currentColor)*SHADE_1);
+                           tools.brush.color = shadeCubeColor(currentColor, SHADE_1);
                            xvt_dwin_set_draw_ctools (win, &tools);
                            draw3dRect (win, Rect3D);
                         }
@@ -906,9 +928,7 @@ BLOCK_DIAGRAM_DATA *blockDiagram;
                            Rect3D[2].y = zPos + blockSize;
                            Rect3D[3].y = zPos;
                      
-                           tools.brush.color = XVT_MAKE_COLOR(XVT_COLOR_GET_RED(currentColor)*SHADE_1,
-                                                              XVT_COLOR_GET_GREEN(currentColor)*SHADE_1,
-                                                              XVT_COLOR_GET_BLUE(currentColor)*SHADE_1);
+                           tools.brush.color = shadeCubeColor(currentColor, SHADE_1);
                            xvt_dwin_set_draw_ctools (win, &tools);
                            draw3dRect (win, Rect3D);
                         }

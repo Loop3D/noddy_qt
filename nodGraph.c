@@ -860,19 +860,42 @@ drawSelectedColorGrid (parentWin)
 WINDOW parentWin;
 #endif
 {
-#define SHADE_1   1.2  /* 0.9 */
-#define SHADE_2   0.8  /* 0.8 */
+#define SHADE_1   1.1  /* 10% brighter, todo.txt #88 */
+#define SHADE_2   0.9  /* 10% darker, todo.txt #88 */
    NODDY_COLOUR selectedColor;
    DRAW_CTOOLS tools;
    int colorSize;
    RCT colorRect, border, control;
    COLOR color, colorUp, colorDown;
 	PNT pos;
+	int r, g, b;
 
    getColorSelection (parentWin, &selectedColor);
 	color = XVT_MAKE_COLOR(selectedColor.red, selectedColor.green, selectedColor.blue);
-	colorUp = XVT_MAKE_COLOR(selectedColor.red*SHADE_1, selectedColor.green*SHADE_1, selectedColor.blue*SHADE_1);
-	colorDown = XVT_MAKE_COLOR(selectedColor.red*SHADE_2, selectedColor.green*SHADE_2, selectedColor.blue*SHADE_2);
+	/* [Qt port FIX] todo.txt #88 -- this "define colour" preview's up/down
+	** shade swatches fed SHADE_1/SHADE_2-multiplied channel values straight
+	** into XVT_MAKE_COLOR(r,g,b), whose macro casts each channel to
+	** `unsigned char` with no clamping -- a channel pushed past 255 (the
+	** old SHADE_1 was 1.2x) silently wrapped modulo 256 instead of clamping
+	** to white, corrupting bright/saturated colours' preview swatches (the
+	** exact "colour triplet logic...poorly handled" user report; see the
+	** identical fix and fuller explanation in DoBlock.c's
+	** renderBlockDiagram()/shadeCubeColor(), which shades the block diagram
+	** cube faces the same way). Clamped, flat +/-10% variation instead. */
+	r = (int) (selectedColor.red*SHADE_1 + 0.5);
+	g = (int) (selectedColor.green*SHADE_1 + 0.5);
+	b = (int) (selectedColor.blue*SHADE_1 + 0.5);
+	if (r > 255) r = 255;
+	if (g > 255) g = 255;
+	if (b > 255) b = 255;
+	colorUp = XVT_MAKE_COLOR(r, g, b);
+	r = (int) (selectedColor.red*SHADE_2 + 0.5);
+	g = (int) (selectedColor.green*SHADE_2 + 0.5);
+	b = (int) (selectedColor.blue*SHADE_2 + 0.5);
+	if (r < 0) r = 0;
+	if (g < 0) g = 0;
+	if (b < 0) b = 0;
+	colorDown = XVT_MAKE_COLOR(r, g, b);
 
    xvt_vobj_get_outer_rect(xvt_win_get_ctl(parentWin, DEFINE_COLOUR_WINDOW_GROUPBOX_44), &control);
 

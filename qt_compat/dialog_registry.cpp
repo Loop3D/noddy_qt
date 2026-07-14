@@ -923,6 +923,7 @@ static const DialogCtlEntry g_ctls_177[] = {
     { 17, W_NONE, "LAYER DISPLAY CANCEL" },
     { 18, W_NONE, "LAYER LUT VALUE" },
     { 19, W_NONE, "LAYER LUT STRETCH" },
+    { 20, W_NONE, "LAYER SHOW TOPO" },
 };
 
 static const DialogCtlEntry g_ctls_178[] = {
