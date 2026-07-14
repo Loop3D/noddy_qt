@@ -21,7 +21,7 @@ Windows (MinGW), and macOS. For what needs to be installed/bundled to
 ## Quick start
 
 ```
-make -f Makefile.qt
+make
 ```
 
 run from the appropriate shell for your platform (see below) once its
@@ -29,14 +29,14 @@ prerequisites are installed. Produces `./noddy` (or `noddy.exe` on
 Windows) in the repository root.
 
 ```
-make -f Makefile.qt clean
+make clean
 ```
 
 removes all build output.
 
-`Makefile.qt` auto-detects the host platform and adjusts Qt5 discovery,
+`Makefile` auto-detects the host platform and adjusts Qt5 discovery,
 the output filename, and a couple of compile/link flags accordingly -- the
-same `make -f Makefile.qt` command is used on every platform.
+same `make` command is used on every platform.
 
 
 ## Ubuntu / Debian
@@ -50,7 +50,7 @@ sudo apt-get install build-essential qtbase5-dev qt5-qmake pkg-config
 Then, from the repository root:
 
 ```
-make -f Makefile.qt
+make
 ./noddy
 ```
 
@@ -85,7 +85,7 @@ Visual Studio/MSVC toolchain, and not a plain cmd.exe or PowerShell prompt.
 4. From the repository root (inside that same MinGW64 shell -- doesn't
    need to be elevated for this step):
    ```
-   make -f Makefile.qt
+   make
    ./noddy.exe
    ```
 
@@ -145,13 +145,13 @@ to bundle them so the binary runs outside the MSYS2 shell.
    Homebrew's `qt@5` formula is "keg-only" -- it's deliberately not linked
    onto the default PATH/pkg-config search path, since Homebrew doesn't
    want to presume this Qt version should be the system default.
-   `Makefile.qt` adds Homebrew's Qt5 pkgconfig directory to
+   `Makefile` adds Homebrew's Qt5 pkgconfig directory to
    `PKG_CONFIG_PATH` automatically (checking both the Apple Silicon
    `/opt/homebrew` and Intel `/usr/local` prefixes), so no manual
    `brew link --force qt@5` is needed.
 3. From the repository root:
    ```
-   make -f Makefile.qt
+   make
    ./noddy
    ```
 
@@ -173,17 +173,18 @@ needs to be wrapped into a proper `.app` bundle and processed with Qt's
 - `noddylic.c` is excluded from the build -- it's a separate standalone
   license-file-generator utility with its own `main()`, not part of the
   `noddy` binary.
-- There is no header-dependency tracking in `Makefile.qt`. If you edit a
+- There is no header-dependency tracking in `Makefile`. If you edit a
   shared header (e.g. `nodStruc.h`, `qt_compat/xvt_types.h`) and a stale
   object file doesn't get rebuilt, `touch` the affected `.c`/`.cpp` files
-  (or `make -f Makefile.qt clean` first) before rebuilding.
+  (or `make clean` first) before rebuilding.
 
-Note: the repository also contains a `MAKEFILE` (no extension) -- this is
+Note: this `Makefile` was originally `Makefile.qt`, renamed once it became
+the only build path worth using so plain `make` (no `-f`) works out of the
+box. The repository used to also contain a `MAKEFILE` (no extension) --
 the **original 1994 XVT-Design-generated makefile**, targeting a
-SunOS/XVT/XOL toolchain that no longer exists, and its object-file list
-references source files that have since been reorganised or removed. It
-is kept for historical reference only; use `Makefile.qt` for an actual
-build.
+SunOS/XVT/XOL toolchain that no longer exists, with an object-file list
+referencing source files long since reorganised or removed. It has been
+removed; this `Makefile` is the only build path now.
 
 
 ## Project layout
@@ -192,6 +193,11 @@ See [CLAUDE.md](CLAUDE.md) for a full description of the codebase's
 architecture (the event-history model, voxelisation, geophysics forward
 modelling, the 3D renderer, and how the Qt compatibility layer maps onto
 the original XVT-based GUI).
+
+See [MODIFICATIONS.md](MODIFICATIONS.md) for a function-by-function list of
+every change made to the original application logic during the port (bug
+fixes, small new features, default-value changes) as opposed to the
+mechanical toolkit-call swap the port otherwise consists of.
 
 
 ## Qt distribution
