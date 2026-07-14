@@ -7,6 +7,14 @@
 *.obj
 *.elf
 
+
+# Noddy outputs
+*.g0
+*.g12
+*.mag
+*.grv
+*.txt
+
 # Linker output
 *.ilk
 *.map
@@ -21,6 +29,7 @@
 *.a
 *.la
 *.lo
+*.s
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -56,5 +65,9 @@ dkms.conf
 
 #claude stuff
 .claude/
+CLAUDE.md
+
+# QT stuff
+noddy_win.rc
 
 
