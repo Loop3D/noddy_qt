@@ -84,6 +84,7 @@ else
     TARGET := noddy
 endif
 
+
 # ---- Qt5 discovery ----------------------------------------------------------
 # All three platforms use pkg-config to find Qt5's include/lib flags -- the
 # only difference is macOS Homebrew's Qt5 formula is "keg-only" (deliberately
@@ -118,6 +119,31 @@ CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_com
 # leading `int`).
 CFLAGS   := -std=gnu17 -fPIC -Wall -Wno-implicit-function-declaration -Wno-implicit-int -g -O2 -Iqt_compat
 LDFLAGS  := $(QT_LIBS)
+
+ifeq ($(NODDY_PLATFORM),macOS)
+    # Recent clang (Apple's included) promoted several classic K&R-era C
+    # patterns from warnings to hard errors by default: calling a function
+    # with no visible prototype, a function definition with no return type
+    # (implicitly int), and passing/returning an int where a pointer is
+    # expected (or vice versa) without a cast. This 1990s/2000s codebase is
+    # full of all three, and they're truly harmless here -- everything
+    # still links and runs correctly, clang is just no longer willing to
+    # silently accept it. Downgrading them back to warnings (their
+    # behavior on Linux gcc, and on older clang) unblocks the build without
+    # touching decades-old source files.
+    CFLAGS += -Wno-error=implicit-function-declaration -Wno-error=implicit-int -Wno-error=int-conversion
+    # There's no system <malloc.h> on macOS at all, unlike Linux. However,
+    # this project already ships its OWN malloc.h alongside the .c files
+    # (clang confirms this: "file not found with <angled> include; use
+    # quotes instead" only happens when quote-form lookup -- which always
+    # checks the including file's own directory -- finds a match that
+    # angle-bracket lookup, which skips that directory, does not). Adding
+    # the current directory to the include path lets `#include <malloc.h>`
+    # find that local header on macOS too, without touching any .c files.
+    # Scoped to macOS only so Linux/Windows keep resolving <malloc.h> to
+    # their own system header as before.
+    CFLAGS += -I.
+endif
 
 # -fPIC is meaningless (and warns) when targeting Windows PE via MinGW --
 # every object is position-independent there by construction, there's no
