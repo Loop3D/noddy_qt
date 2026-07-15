@@ -104,9 +104,18 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN TASK_MENUBAR_1_RANDOM_HISTORY EVNT:Select */
 		ASK_RESPONSE response;
+		WINDOW_INFO *wip = get_win_info (getEventDrawingWindow ());
 
-		response = xvt_dm_post_ask("Cancel", "Generate", NULL,
-		             "The Current History will be destroyed. Are you sure you want to generate a Random History ?");
+		/* [Qt port ADDITION] user-requested -- skip the "will be
+		** destroyed" confirmation when there's no history loaded yet
+		** (empty event list, e.g. right at startup before anything's
+		** been read or generated): nothing would actually be lost, so
+		** the confirmation is just an extra click. */
+		if (wip && wip->head == NULL)
+			response = RESP_2;
+		else
+			response = xvt_dm_post_ask("Cancel", "Generate", NULL,
+			             "The Current History will be destroyed. Are you sure you want to generate a Random History ?");
 
 		if (response == RESP_2)  /* Generate */
 		{

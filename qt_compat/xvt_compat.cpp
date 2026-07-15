@@ -2256,16 +2256,12 @@ static void buildMenuBar(XvtWindow *win, WINDOW handle)
     QMenuBar *bar = win->menuBar;
     if (bar) bar->clear();
     else bar = new QMenuBar(win);
-    /* [Qt port fix] todo.txt #90 -- "On macOS there are no menus except one
-     * called noddy" (i.e. only the default Cocoa app-name menu appears, none
-     * of File/Edit/Geology/... show up). This QMenuBar is built dynamically,
-     * parented to a plain QWidget (not QMainWindow), and populated from
-     * inside XvtWindow::showEvent() -- an unusual construction path Qt's
-     * Cocoa native-menu-bar auto-detection isn't reliably exercised against
-     * (the documented/tested path is QMainWindow::setMenuBar() before the
-     * event loop starts). setNativeMenuBar(true) forces Qt to promote this
-     * bar to the native global menu bar explicitly rather than relying on
-     * auto-detection; a no-op everywhere except macOS. */
+    /* setNativeMenuBar(true) forces Qt to promote this bar to the native
+     * global menu bar explicitly rather than relying on auto-detection --
+     * a no-op everywhere except macOS. The OTHER half of todo.txt #90's
+     * fix (deferring this function's first call by one event-loop tick on
+     * macOS) lives at this function's call site in xvt_win_create, see
+     * that comment for the actual root cause. */
     bar->setNativeMenuBar(true);
     for (int i = 0; i < g_menuTreeCount; i++) {
         const MenuNodeEntry &n = g_menuTree[i];
@@ -2316,9 +2312,37 @@ static void statbarRebuild(QStatusBar *bar, const char *title)
         auto *lbl = new QLabel(part, bar);
         lbl->setObjectName(QStringLiteral("xvtStatbarSeg"));
         lbl->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+#ifdef __APPLE__
+        /* [Qt port fix] extra vertical breathing room for these bordered
+         * segments ("150 Rot.", "30 Az.", "100 %", ...) -- on macOS the
+         * status bar's height (locked in once at creation time by
+         * statbar_create(), from an EMPTY QStatusBar's sizeHint(), before
+         * any segment label exists to ask for more) ends up too short for
+         * the sunken frame border plus text, visibly clipping the top of
+         * the digits (matches a user screenshot). Windows/Linux weren't
+         * reported to have this problem, so scoped to macOS only. */
+        lbl->setContentsMargins(4, 6, 4, 6);
+#else
         lbl->setContentsMargins(4, 0, 4, 0);
+#endif
         bar->addPermanentWidget(lbl);
     }
+#ifdef __APPLE__
+    /* The taller margins above only help if the bar itself is resized to
+     * fit -- statbar_create()'s creation-time geometry is never otherwise
+     * revisited, so without this the extra label height would just get
+     * squeezed back down by the still-too-short bar. Re-fit the bar --
+     * and the mdiArea sitting above it -- to the real sizeHint now that
+     * the (taller) segment labels actually exist. */
+    if (auto *xvtWin = dynamic_cast<XvtWindow *>(bar->parentWidget())) {
+        int h = bar->sizeHint().height();
+        bar->setGeometry(0, xvtWin->height() - h, xvtWin->width(), h);
+        if (xvtWin->mdiArea) {
+            int top = xvtWin->menuBar ? xvtWin->menuBar->sizeHint().height() : 0;
+            xvtWin->mdiArea->setGeometry(0, top, xvtWin->width(), xvtWin->height() - top - h);
+        }
+    }
+#endif
 }
 
 WINDOW statbar_create(int, int, int, int, int, int, char **, WINDOW parent, int, long, const char *)
@@ -2437,8 +2461,40 @@ WINDOW xvt_win_create(WIN_TYPE type, RCT *rct, const char *title, long menu_res_
          * conceptually still belong to the window that requested them. */
         QWidget *parentWidget = widgetFor(parent);
         QWidget *menuHost = parentWidget ? parentWidget : widgetFor(h);
-        if (menuHost)
-            buildMenuBar(static_cast<XvtWindow *>(menuHost), h);
+        if (menuHost) {
+            auto *hostXw = static_cast<XvtWindow *>(menuHost);
+#ifdef __APPLE__
+            /* [Qt port fix] todo.txt #90 -- "On macOS there are no menus
+             * except one called noddy" (only the default Cocoa app-name
+             * menu appeared, none of File/Edit/Geology/... showed up).
+             * Root-caused by direct NSApp.mainMenu introspection (dumping
+             * its item list via the Objective-C runtime at each stage of
+             * startup): this call happens synchronously inside
+             * taskWidget->show() -- i.e. before xvt_app_create's
+             * g_app->exec() has run even one iteration of the real Cocoa
+             * event loop. A QMenuBar built+shown at that point, no matter
+             * how completely populated or how long the app runs
+             * afterward, never gets merged into the native global menu
+             * bar (confirmed: still just the bare app-name menu 3+
+             * seconds later). An otherwise-IDENTICAL QMenuBar built once
+             * exec() is actually pumping events merges immediately.
+             * Deferring this first build by a single event-loop tick
+             * (QTimer::singleShot(0, ...) only fires once the loop is
+             * running) sidesteps the bug entirely. Scoped to macOS only
+             * -- Windows/Linux never showed this symptom and don't need
+             * the extra tick of latency before the menu bar appears.
+             * QPointer guards against hostXw being destroyed before the
+             * deferred call runs (it can't be here in practice -- TASK_WIN
+             * outlives the whole app -- but MENU_BAR_2-less callers of
+             * this same xvt_win_create path aren't guaranteed to). */
+            QPointer<XvtWindow> guard(hostXw);
+            QTimer::singleShot(0, [guard, h]() {
+                if (guard) buildMenuBar(guard, h);
+            });
+#else
+            buildMenuBar(hostXw, h);
+#endif
+        }
     }
     return h;
 }
