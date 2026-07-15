@@ -180,7 +180,7 @@ endif
 APP_SOURCES := $(filter-out noddylic.c,$(wildcard *.c))
 APP_OBJECTS := $(APP_SOURCES:.c=.o)
 
-COMPAT_SOURCES := qt_compat/xvt_compat.cpp qt_compat/dialog_registry.cpp qt_compat/dialog_positions.cpp qt_compat/menu_registry.cpp qt_compat/win_console.cpp
+COMPAT_SOURCES := qt_compat/xvt_compat.cpp qt_compat/dialog_registry.cpp qt_compat/dialog_positions.cpp qt_compat/menu_registry.cpp qt_compat/win_console.cpp qt_compat/tooltip_registry.cpp
 COMPAT_OBJECTS := $(COMPAT_SOURCES:.cpp=.o)
 
 .PHONY: all clean

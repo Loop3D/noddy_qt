@@ -1501,6 +1501,24 @@ struct DialogEntry { long resId; const char *title; const DialogCtlEntry *ctls; 
 extern const DialogEntry g_dialogRegistry[];
 extern const int g_dialogRegistryCount;
 
+/* Per-control tooltip text (qt_compat/tooltip_registry.cpp, hand-written --
+ * unlike dialog_registry.cpp/dialog_positions.cpp this isn't recoverable
+ * from any header, so it's populated dialog-by-dialog directly against
+ * each one's real geological/functional meaning in its own .c file, not
+ * auto-generated). Looked up by (resId, ctlId) in createControlWidget
+ * below; a dialog/control not yet covered simply gets no tooltip. */
+struct TooltipEntry { long resId; int ctlId; const char *text; };
+extern const TooltipEntry g_tooltips[];
+extern const int g_tooltipsCount;
+
+static const char *findTooltip(long resId, int ctlId)
+{
+    if (!resId) return nullptr;
+    for (int i = 0; i < g_tooltipsCount; i++)
+        if (g_tooltips[i].resId == resId && g_tooltips[i].ctlId == ctlId) return g_tooltips[i].text;
+    return nullptr;
+}
+
 /* ==========================================================================
  * Dialog POSITION overrides -- reconstructed from the original help manual's
  * screenshots (qt_compat/gen_dialog_positions.py reads the manual's .htm/
@@ -1686,7 +1704,8 @@ static void sendScrollControlEvent(WINDOW parentWin, int ctlId, WINDOW ctlWin, W
  * handle table tagged with ctlId so xvt_win_get_ctl finds it again. */
 static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QFormLayout *layout,
                                    int ctlId, WIN_TYPE type, const QString &label,
-                                   const DialogCtlPosition *pos = nullptr, int fallbackIndex = -1)
+                                   const DialogCtlPosition *pos = nullptr, int fallbackIndex = -1,
+                                   long resId = 0)
 {
     QWidget *w = nullptr;
     switch (type) {
@@ -1729,6 +1748,8 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
     o->ctlId = ctlId;
     WINDOW h = allocHandle(o);
     w->setProperty("xvtCtlId", ctlId);
+    if (const char *tip = findTooltip(resId, ctlId))
+        w->setToolTip(QString::fromLocal8Bit(tip));
 
     /* Disable every "Help..." button app-wide (per user request: the real
      * XVT displayHelp() shells out to a hardcoded Windows browser path with
@@ -2115,7 +2136,7 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
                            : QString::fromLocal8Bit(ce.label);
             createControlWidget(h, win, layout, ce.ctlId,
                                  ctlType,
-                                 label, ctlPos, i);
+                                 label, ctlPos, i, resId);
         }
         if (!rct && posEntry && posEntry->width > 0)
             win->resize(posEntry->width, posEntry->height);
@@ -2540,7 +2561,8 @@ WINDOW xvt_win_get_ctl(WINDOW win, int ctl_id)
     const DialogCtlEntry *ce = findCtlEntry(dlg, ctl_id);
     WIN_TYPE type = (ce && ce->type != W_NONE) ? ce->type : WC_EDIT;
     QString label = ce ? QString::fromLocal8Bit(ce->label) : QString("Ctl %1").arg(ctl_id);
-    return createControlWidget(win, parent, parentObj->formLayout, ctl_id, type, label);
+    return createControlWidget(win, parent, parentObj->formLayout, ctl_id, type, label,
+                                nullptr, -1, parentObj->resId);
 }
 
 void xvt_win_set_cursor(WINDOW win, int cursor_id)
@@ -2628,7 +2650,10 @@ WINDOW xvt_ctl_create(WIN_TYPE type, RCT *rct, const char *title, WINDOW parent,
     DialogCtlPosition pos{ ctl_id, 0, 0, 0, 0 };
     if (rct) { pos.left = rct->left; pos.top = rct->top; pos.right = rct->right; pos.bottom = rct->bottom; }
     QString label = title ? QString::fromLocal8Bit(title) : QString();
-    WINDOW h = createControlWidget(parent, parentWidget, nullptr, ctl_id, type, label, rct ? &pos : nullptr);
+    XvtObj *parentObj = objFor(parent);
+    long parentResId = parentObj ? parentObj->resId : 0;
+    WINDOW h = createControlWidget(parent, parentWidget, nullptr, ctl_id, type, label,
+                                    rct ? &pos : nullptr, -1, parentResId);
     /* `flags` was previously discarded entirely -- createPreviewWindow
      * creates its "On" checkbox with CTL_FLAG_CHECKED expecting it to
      * start checked (update3dPreview immediately returns without drawing
