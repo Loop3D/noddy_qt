@@ -65,15 +65,17 @@ extern LAYER_PROPERTIES *renderLayer ();
 #if XVT_CC_PROTO
 extern double distanceToContact (double, double, double, OBJECT *);
 extern void allDrawPlane(double [4][3]);
-extern OBJECT *SetCLayer(unsigned char *, unsigned char *, int, int);
+extern OBJECT *SetCLayer(unsigned char *, unsigned char *, int, int, int *);
+extern int distanceCrossing (double [3], double [3], OBJECT *, int, double [3]);
 #else
 extern double distanceToContact ();
 extern void allDrawPlane();
 extern OBJECT *SetCLayer();
+extern int distanceCrossing ();
 #endif
 
 #if XVT_CC_PROTO
-int DeltaFindEdgeMids(double [8][3], TETINFO *);
+int DeltaFindEdgeMids(double [8][3], TETINFO *, OBJECT *, int);
 int DeltaFindMids(double, double [8], double [8][3], TETINFO *, int [8], int , int *);
 int DeltaCalcPlanes(TETINFO *, int, int);
 int DeltaBreakPlane( TETINFO *, int [8]);
@@ -110,8 +112,10 @@ TETINFO *t;
    double level;
    OBJECT *event;
    int numEvents = countObjects(NULL_WIN);
-   LAYER_PROPERTIES *properties;    
-    
+   LAYER_PROPERTIES *properties;
+   OBJECT *breakObject;         /* [Qt port ADDITION] todo.txt #46 */
+   int breakEventIndex;         /* [Qt port ADDITION] todo.txt #46 */
+
    t->pC=1;
    t->pC2=1;
             
@@ -146,8 +150,18 @@ TETINFO *t;
       t->InCode=TETAPICES[t->tinc][1];
    }
 
-   DeltaFindEdgeMids(Points,t);
-   
+   /* [Qt port ADDITION] todo.txt #46 -- resolve the discontinuity object/
+   ** event here (instead of only later, inside DeltaBreakPlane) so
+   ** DeltaFindEdgeMids can use distanceCrossing() for the break edges
+   ** instead of a fixed 0.5 midpoint. t->InCode/ExCode/cypher/SeqCode are
+   ** already set above, matching what DeltaBreakPlane's own (still
+   ** present, now-redundant-but-harmless) SetCLayer call uses. */
+   breakObject = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->InCode]]),
+                  (unsigned char *) &(t->cypher[SeqCode[t->ExCode]]),
+                   SeqCode[t->InCode], SeqCode[t->ExCode], &breakEventIndex);
+
+   DeltaFindEdgeMids(Points,t,breakObject,breakEventIndex);
+
    for(nn=0;nn<2;nn++)
    {
                                                     /* get strat info  */
@@ -187,26 +201,42 @@ TETINFO *t;
 
 int
 #if XVT_CC_PROTO
-DeltaFindEdgeMids(double Points[8][3], TETINFO *t)
+DeltaFindEdgeMids(double Points[8][3], TETINFO *t, OBJECT *breakObject, int breakEventIndex)
 #else
-DeltaFindEdgeMids(Points, t)
+DeltaFindEdgeMids(Points, t, breakObject, breakEventIndex)
 double Points[8][3];
 TETINFO *t;
+OBJECT *breakObject;
+int breakEventIndex;
 #endif
 {
    int mm;
-   
-   for(mm=0;mm<3;mm++)
-      dEdgeMids[0][mm]=MidVal(Points[t->GoodPts[0]][mm],Points[t->GoodPts[2]][mm],0.5);
-      
-   for(mm=0;mm<3;mm++)
-      dEdgeMids[1][mm]=MidVal(Points[t->GoodPts[0]][mm],Points[t->GoodPts[3]][mm],0.5);
-      
-   for(mm=0;mm<3;mm++)
-      dEdgeMids[2][mm]=MidVal(Points[t->GoodPts[1]][mm],Points[t->GoodPts[2]][mm],0.5);
-      
-   for(mm=0;mm<3;mm++)
-      dEdgeMids[3][mm]=MidVal(Points[t->GoodPts[1]][mm],Points[t->GoodPts[3]][mm],0.5);      
+
+   /* [Qt port FIX] todo.txt #46 -- these 4 edges (each running from one of
+   ** the "AA" corners to one of the "BB" corners) are exactly the ones a
+   ** Delta tet's discontinuity surface crosses -- same fixed-midpoint
+   ** roughness as Beta's break plane had, same fix: find the real
+   ** signed-distance crossing, falling back to the old MidVal(...,0.5) if
+   ** none is found (numerical edge case -- see distSurf.c). */
+   if (!distanceCrossing (Points[t->GoodPts[0]], Points[t->GoodPts[2]],
+                          breakObject, breakEventIndex, dEdgeMids[0]))
+      for(mm=0;mm<3;mm++)
+         dEdgeMids[0][mm]=MidVal(Points[t->GoodPts[0]][mm],Points[t->GoodPts[2]][mm],0.5);
+
+   if (!distanceCrossing (Points[t->GoodPts[0]], Points[t->GoodPts[3]],
+                          breakObject, breakEventIndex, dEdgeMids[1]))
+      for(mm=0;mm<3;mm++)
+         dEdgeMids[1][mm]=MidVal(Points[t->GoodPts[0]][mm],Points[t->GoodPts[3]][mm],0.5);
+
+   if (!distanceCrossing (Points[t->GoodPts[1]], Points[t->GoodPts[2]],
+                          breakObject, breakEventIndex, dEdgeMids[2]))
+      for(mm=0;mm<3;mm++)
+         dEdgeMids[2][mm]=MidVal(Points[t->GoodPts[1]][mm],Points[t->GoodPts[2]][mm],0.5);
+
+   if (!distanceCrossing (Points[t->GoodPts[1]], Points[t->GoodPts[3]],
+                          breakObject, breakEventIndex, dEdgeMids[3]))
+      for(mm=0;mm<3;mm++)
+         dEdgeMids[3][mm]=MidVal(Points[t->GoodPts[1]][mm],Points[t->GoodPts[3]][mm],0.5);
 
    return (TRUE);
 }
@@ -307,7 +337,7 @@ int SeqCode[8];
 
    if (!(object = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->InCode]]),
                   (unsigned char *) &(t->cypher[SeqCode[t->ExCode]]),
-                   SeqCode[t->InCode], SeqCode[t->ExCode])))
+                   SeqCode[t->InCode], SeqCode[t->ExCode], NULL)))
        return (FALSE);
        
    for(mm=0;mm<3;mm++)
@@ -343,10 +373,10 @@ int SeqCode[8];
             conlist[1][mm]=MidVal(dbreakmids[pp][0][0][mm],dbreakmids[pp][0][1][mm],dbreakdel[nn+1][1]);
             conlist[2][mm]=MidVal(dbreakmids[pp+1][0][0][mm],dbreakmids[pp+1][0][1][mm],dbreakdel[nn][1]);
          }
-         allDrawPlane(conlist); 
+         allDrawPlane(conlist);
          for(mm=0;mm<3;mm++)
             conlist[0][mm]=MidVal(dbreakmids[pp+1][0][0][mm],dbreakmids[pp+1][0][1][mm],dbreakdel[nn+1][1]);
-         allDrawPlane(conlist); 
+         allDrawPlane(conlist);
       }
    }
    

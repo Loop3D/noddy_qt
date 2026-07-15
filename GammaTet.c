@@ -71,16 +71,18 @@ double EdgeMids[4][3];
 #if XVT_CC_PROTO
 extern double distanceToContact (double, double, double, OBJECT *);
 extern void allDrawPlane(double [4][3]);
-extern OBJECT *SetCLayer(unsigned char *, unsigned char *, int, int);
+extern OBJECT *SetCLayer(unsigned char *, unsigned char *, int, int, int *);
+extern int distanceCrossing (double [3], double [3], OBJECT *, int, double [3]);
 #else
 extern double distanceToContact ();
 extern void allDrawPlane();
 extern OBJECT *SetCLayer();
+extern int distanceCrossing ();
 #endif
 
 #if XVT_CC_PROTO
 double MidVal(double,double, double);
-int GammaFindMids(double, double [8], double [8][3], TETINFO *, double [3], int *, int [8]);
+int GammaFindMids(double, double [8], double [8][3], TETINFO *, double [3], int *, int [8], OBJECT *, int, OBJECT *, int);
 int GammaCalcPlanes(double [8][3], TETINFO *, double [3], int);
 int oneGammaPlane(double [8][3], double [3], TETINFO *, int);
 int GammaBreakPlane( double [8][3], TETINFO *, int [8]);
@@ -89,7 +91,7 @@ int DoGammaTraps(int, int [8], TETINFO *);
 int LoneTriangle(double [8][3], TETINFO *, int, int [8]);
 int gstoreBreakMids(double [4][3],int);
 int AddEndMids(TETINFO *);
-int AddEndMidsClean(double [8][3], TETINFO *);
+int AddEndMidsClean(double [8][3], TETINFO *, OBJECT *, int, OBJECT *, int);
 #else
 double MidVal();
 int GammaFindMids();
@@ -124,8 +126,10 @@ TETINFO *t;
    double MidPoints[3],level;
    OBJECT *event;
    int numEvents = countObjects(NULL_WIN);
-   LAYER_PROPERTIES *properties;    
-    
+   LAYER_PROPERTIES *properties;
+   OBJECT *objectAB, *objectAC;   /* [Qt port ADDITION] todo.txt #46 */
+   int eventAB, eventAC;          /* [Qt port ADDITION] todo.txt #46 */
+
    t->pC=1;  /* to allow for end points in gbreakmp */
    nn=0;
             
@@ -194,9 +198,25 @@ TETINFO *t;
 
    if (!(event = (OBJECT *) nthObject (NULL_WIN, index)))
       return;
-    
-   if(flavor != IGNEOUS_STRAT) 
-   {  
+
+   /* [Qt port ADDITION] todo.txt #46 -- resolve the two discontinuity
+   ** boundaries a Gamma tet's "bow tie" break plane straddles (GoodPts[0]/1
+   ** are the shared "A" code; GoodPts[2] is a separate "B" code across the
+   ** A-B boundary, GoodPts[3] a separate "C" code across the A-C boundary --
+   ** these may be two DIFFERENT discontinuity events) here, once, instead of
+   ** only later inside DoGammaTraps (which already resolves the same two
+   ** objects redundantly, just to check they exist). Lets GammaFindMids/
+   ** AddEndMidsClean use distanceCrossing() for EdgeMids[] instead of a
+   ** fixed 0.5 midpoint. */
+   objectAB = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->GoodPts[0]]]),
+                 (unsigned char *) &(t->cypher[SeqCode[t->GoodPts[2]]]),
+                 SeqCode[t->GoodPts[0]], SeqCode[t->GoodPts[2]], &eventAB);
+   objectAC = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->GoodPts[0]]]),
+                 (unsigned char *) &(t->cypher[SeqCode[t->GoodPts[3]]]),
+                 SeqCode[t->GoodPts[0]], SeqCode[t->GoodPts[3]], &eventAC);
+
+   if(flavor != IGNEOUS_STRAT)
+   {
       event->generalData = 0;
       while (properties = renderLayer(event, index))
       {
@@ -204,19 +224,20 @@ TETINFO *t;
          layerColor=XVT_MAKE_COLOR(properties->color.red,
                                    properties->color.green,
                                    properties->color.blue);
-           
+
          sprintf(clayer,"S%02dL%02d%04d",i,m,SeqCode[t->GoodPts[0]]);
-                           
-         GammaFindMids(level,Values,Points,t, MidPoints, &NMids,SeqCode);   
+
+         GammaFindMids(level,Values,Points,t, MidPoints, &NMids,SeqCode,
+                       objectAB, eventAB, objectAC, eventAC);
                                                    /* draw strat surfaces */
          GammaCalcPlanes(Points, t,MidPoints,NMids);
       }
    }
-   
+
    if (t->pC != 1)
       AddEndMids(t); /* and end midpoints for easier splitting later on */
    else
-      AddEndMidsClean(Points,t);
+      AddEndMidsClean(Points,t,objectAB,eventAB,objectAC,eventAC);
    
                        /* draw lone tri splitting 2 single codes */
    LoneTriangle(Points, t, NMids, SeqCode);
@@ -229,18 +250,21 @@ TETINFO *t;
 */
 int
 #if XVT_CC_PROTO
-GammaFindMids(double level, double Values[8], double Points[8][3], TETINFO *t, 
-              double MidPoints[3], int *NMids, int SeqCode[8])
+GammaFindMids(double level, double Values[8], double Points[8][3], TETINFO *t,
+              double MidPoints[3], int *NMids, int SeqCode[8],
+              OBJECT *objectAB, int eventAB, OBJECT *objectAC, int eventAC)
 #else
-GammaFindMids(level, Values, Points, t, MidPoints, NMids, SeqCode)
+GammaFindMids(level, Values, Points, t, MidPoints, NMids, SeqCode, objectAB, eventAB, objectAC, eventAC)
 double level, Values[8], Points[8][3];
 TETINFO *t;
 double MidPoints[3];
 int *NMids, SeqCode[8];
+OBJECT *objectAB, *objectAC;
+int eventAB, eventAC;
 #endif
-{                        
+{
    /* int mm = 0; mwj_fix  */
-      
+
    if(Values[t->GoodPts[0]] < level && Values[t->GoodPts[1]] > level  ||
       Values[t->GoodPts[0]] > level && Values[t->GoodPts[1]] < level)
    {
@@ -252,28 +276,48 @@ int *NMids, SeqCode[8];
       MidPoints[2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[1]][2],delcon);
       /* mwj_fix  gbreakline[t->pC]=TETLINES[t->tinc][mm];*/
 
-      FaceMids[0][0]=(Points[t->GoodPts[0]][0]+ Points[t->GoodPts[2]][0]+ Points[t->GoodPts[3]][0])/3.0; 
-      FaceMids[0][1]=(Points[t->GoodPts[0]][1]+ Points[t->GoodPts[2]][1]+ Points[t->GoodPts[3]][1])/3.0; 
-      FaceMids[0][2]=(Points[t->GoodPts[0]][2]+ Points[t->GoodPts[2]][2]+ Points[t->GoodPts[3]][2])/3.0; 
+      FaceMids[0][0]=(Points[t->GoodPts[0]][0]+ Points[t->GoodPts[2]][0]+ Points[t->GoodPts[3]][0])/3.0;
+      FaceMids[0][1]=(Points[t->GoodPts[0]][1]+ Points[t->GoodPts[2]][1]+ Points[t->GoodPts[3]][1])/3.0;
+      FaceMids[0][2]=(Points[t->GoodPts[0]][2]+ Points[t->GoodPts[2]][2]+ Points[t->GoodPts[3]][2])/3.0;
 
-      FaceMids[1][0]=(Points[t->GoodPts[1]][0]+ Points[t->GoodPts[2]][0]+ Points[t->GoodPts[3]][0])/3.0; 
-      FaceMids[1][1]=(Points[t->GoodPts[1]][1]+ Points[t->GoodPts[2]][1]+ Points[t->GoodPts[3]][1])/3.0; 
-      FaceMids[1][2]=(Points[t->GoodPts[1]][2]+ Points[t->GoodPts[2]][2]+ Points[t->GoodPts[3]][2])/3.0; 
-      EdgeMids[0][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[2]][0],0.5);
-      EdgeMids[0][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[2]][1],0.5);
-      EdgeMids[0][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[2]][2],0.5);
+      FaceMids[1][0]=(Points[t->GoodPts[1]][0]+ Points[t->GoodPts[2]][0]+ Points[t->GoodPts[3]][0])/3.0;
+      FaceMids[1][1]=(Points[t->GoodPts[1]][1]+ Points[t->GoodPts[2]][1]+ Points[t->GoodPts[3]][1])/3.0;
+      FaceMids[1][2]=(Points[t->GoodPts[1]][2]+ Points[t->GoodPts[2]][2]+ Points[t->GoodPts[3]][2])/3.0;
 
-      EdgeMids[1][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[3]][0],0.5);
-      EdgeMids[1][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[3]][1],0.5);
-      EdgeMids[1][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[3]][2],0.5);
+      /* [Qt port FIX] todo.txt #46 -- these 4 edges cross the two
+      ** discontinuity boundaries (A-B via objectAB/eventAB, A-C via
+      ** objectAC/eventAC) this tet straddles; same fixed-midpoint
+      ** roughness as Beta/Delta had, same fix. FaceMids[] above are
+      ** 3-point face centroids, not single edges, so (like EpsilTet.c's
+      ** tet centroid) they stay purely geometric -- not straightforwardly
+      ** distance-correctable. */
+      if (!distanceCrossing (Points[t->GoodPts[0]], Points[t->GoodPts[2]], objectAB, eventAB, EdgeMids[0]))
+      {
+         EdgeMids[0][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[2]][0],0.5);
+         EdgeMids[0][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[2]][1],0.5);
+         EdgeMids[0][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[2]][2],0.5);
+      }
 
-      EdgeMids[2][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[2]][0],0.5);
-      EdgeMids[2][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[2]][1],0.5);
-      EdgeMids[2][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[2]][2],0.5);
+      if (!distanceCrossing (Points[t->GoodPts[0]], Points[t->GoodPts[3]], objectAC, eventAC, EdgeMids[1]))
+      {
+         EdgeMids[1][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[3]][0],0.5);
+         EdgeMids[1][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[3]][1],0.5);
+         EdgeMids[1][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[3]][2],0.5);
+      }
 
-      EdgeMids[3][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[3]][0],0.5);
-      EdgeMids[3][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[3]][1],0.5);
-      EdgeMids[3][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[3]][2],0.5);
+      if (!distanceCrossing (Points[t->GoodPts[1]], Points[t->GoodPts[2]], objectAB, eventAB, EdgeMids[2]))
+      {
+         EdgeMids[2][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[2]][0],0.5);
+         EdgeMids[2][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[2]][1],0.5);
+         EdgeMids[2][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[2]][2],0.5);
+      }
+
+      if (!distanceCrossing (Points[t->GoodPts[1]], Points[t->GoodPts[3]], objectAC, eventAC, EdgeMids[3]))
+      {
+         EdgeMids[3][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[3]][0],0.5);
+         EdgeMids[3][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[3]][1],0.5);
+         EdgeMids[3][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[3]][2],0.5);
+      }
 
       *NMids=TRUE;
    } /* normal mid point crossing */
@@ -433,7 +477,7 @@ TETINFO *t;
    
    if (object = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->GoodPts[0]]]),
                  (unsigned char *) &(t->cypher[SeqCode[t->GoodPts[2]]]),
-                 SeqCode[t->GoodPts[0]], SeqCode[t->GoodPts[2]]))
+                 SeqCode[t->GoodPts[0]], SeqCode[t->GoodPts[2]], NULL))
    {
       conlist[0][0]=gbreakmp[pCount][1][0];
       conlist[0][1]=gbreakmp[pCount][1][1];
@@ -446,30 +490,30 @@ TETINFO *t;
       conlist[2][0]=gbreakmp[pCount+1][1][0];
       conlist[2][1]=gbreakmp[pCount+1][1][1];
       conlist[2][2]=gbreakmp[pCount+1][1][2];
-   
+
       allDrawPlane(conlist); /* drop 1 base and add diagonally opposite top pt */
-   
+
       conlist[0][0]=gbreakmp[pCount+1][0][0];
       conlist[0][1]=gbreakmp[pCount+1][0][1];
       conlist[0][2]=gbreakmp[pCount+1][0][2];
-   
+
       allDrawPlane(conlist); /* drop 1 base and add diagonally opposite top pt */
    }
-   
+
    if (object = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->GoodPts[0]]]),
                  (unsigned char *) &(t->cypher[SeqCode[t->GoodPts[3]]]),
-                 SeqCode[t->GoodPts[0]], SeqCode[t->GoodPts[3]]))
+                 SeqCode[t->GoodPts[0]], SeqCode[t->GoodPts[3]], NULL))
    {
       conlist[2][0]=gbreakmp[pCount+1][2][0];
       conlist[2][1]=gbreakmp[pCount+1][2][1];
       conlist[2][2]=gbreakmp[pCount+1][2][2];
-   
+
       allDrawPlane(conlist); /* drop 1 base and add diagonally opposite top pt */
-   
+
       conlist[0][0]=gbreakmp[pCount][2][0];
       conlist[0][1]=gbreakmp[pCount][2][1];
       conlist[0][2]=gbreakmp[pCount][2][2];
-   
+
       allDrawPlane(conlist); /* drop 1 base and add diagonally opposite top pt */
    }
    return (TRUE);
@@ -484,16 +528,16 @@ double Points[8][3];
 TETINFO *t;
 int NMids, SeqCode[8];
 #endif
-{  
+{
    OBJECT *object;
    double conlist[4][3];
-   int mm;
+   int mm, eventIndex;
 
    if (!(object = SetCLayer((unsigned char *) &(t->cypher[SeqCode[t->GoodPts[2]]]),
                   (unsigned char *) &(t->cypher[SeqCode[t->GoodPts[3]]]),
-                  SeqCode[t->GoodPts[2]], SeqCode[t->GoodPts[3]])))
+                  SeqCode[t->GoodPts[2]], SeqCode[t->GoodPts[3]], &eventIndex)))
       return (FALSE);
-   
+
    for (mm = 0; mm < 2; mm++)
    {
       conlist[mm][0]=FaceMids[mm][0];
@@ -501,10 +545,16 @@ int NMids, SeqCode[8];
       conlist[mm][2]=FaceMids[mm][2];
    }
 
-   conlist[2][0]=MidVal(Points[t->GoodPts[2]][0],Points[t->GoodPts[3]][0],0.5);
-   conlist[2][1]=MidVal(Points[t->GoodPts[2]][1],Points[t->GoodPts[3]][1],0.5);
-   conlist[2][2]=MidVal(Points[t->GoodPts[2]][2],Points[t->GoodPts[3]][2],0.5);
-   
+   /* [Qt port FIX] todo.txt #46 -- the B-C boundary (GoodPts[2] to
+   ** GoodPts[3], a genuine discontinuity edge in its own right, possibly a
+   ** different event than the A-B/A-C ones above). */
+   if (!distanceCrossing (Points[t->GoodPts[2]], Points[t->GoodPts[3]], object, eventIndex, conlist[2]))
+   {
+      conlist[2][0]=MidVal(Points[t->GoodPts[2]][0],Points[t->GoodPts[3]][0],0.5);
+      conlist[2][1]=MidVal(Points[t->GoodPts[2]][1],Points[t->GoodPts[3]][1],0.5);
+      conlist[2][2]=MidVal(Points[t->GoodPts[2]][2],Points[t->GoodPts[3]][2],0.5);
+   }
+
    allDrawPlane(conlist); /* lone triangle... */
 
    return (TRUE);
@@ -564,32 +614,46 @@ TETINFO *t;
 */
 int
 #if XVT_CC_PROTO
-AddEndMidsClean(double Points[8][3], TETINFO *t)
+AddEndMidsClean(double Points[8][3], TETINFO *t, OBJECT *objectAB, int eventAB, OBJECT *objectAC, int eventAC)
 #else
-AddEndMidsClean(Points, t)
+AddEndMidsClean(Points, t, objectAB, eventAB, objectAC, eventAC)
 double Points[8][3];
 TETINFO *t;
+OBJECT *objectAB, *objectAC;
+int eventAB, eventAC;
 #endif
 {
    int mm;
 
-   EdgeMids[0][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[2]][0],0.5);
-   EdgeMids[0][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[2]][1],0.5);
-   EdgeMids[0][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[2]][2],0.5);
-   
-   EdgeMids[1][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[3]][0],0.5);
-   EdgeMids[1][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[3]][1],0.5);
-   EdgeMids[1][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[3]][2],0.5);
-   
-   EdgeMids[2][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[2]][0],0.5);
-   EdgeMids[2][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[2]][1],0.5);
-   EdgeMids[2][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[2]][2],0.5);
-   
-   EdgeMids[3][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[3]][0],0.5);
-   EdgeMids[3][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[3]][1],0.5);
-   EdgeMids[3][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[3]][2],0.5);
+   if (!distanceCrossing (Points[t->GoodPts[0]], Points[t->GoodPts[2]], objectAB, eventAB, EdgeMids[0]))
+   {
+      EdgeMids[0][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[2]][0],0.5);
+      EdgeMids[0][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[2]][1],0.5);
+      EdgeMids[0][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[2]][2],0.5);
+   }
 
-   FaceMids[0][0]=(Points[t->GoodPts[0]][0]+ Points[t->GoodPts[2]][0]+ Points[t->GoodPts[3]][0])/3.0; 
+   if (!distanceCrossing (Points[t->GoodPts[0]], Points[t->GoodPts[3]], objectAC, eventAC, EdgeMids[1]))
+   {
+      EdgeMids[1][0]=MidVal(Points[t->GoodPts[0]][0],Points[t->GoodPts[3]][0],0.5);
+      EdgeMids[1][1]=MidVal(Points[t->GoodPts[0]][1],Points[t->GoodPts[3]][1],0.5);
+      EdgeMids[1][2]=MidVal(Points[t->GoodPts[0]][2],Points[t->GoodPts[3]][2],0.5);
+   }
+
+   if (!distanceCrossing (Points[t->GoodPts[1]], Points[t->GoodPts[2]], objectAB, eventAB, EdgeMids[2]))
+   {
+      EdgeMids[2][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[2]][0],0.5);
+      EdgeMids[2][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[2]][1],0.5);
+      EdgeMids[2][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[2]][2],0.5);
+   }
+
+   if (!distanceCrossing (Points[t->GoodPts[1]], Points[t->GoodPts[3]], objectAC, eventAC, EdgeMids[3]))
+   {
+      EdgeMids[3][0]=MidVal(Points[t->GoodPts[1]][0],Points[t->GoodPts[3]][0],0.5);
+      EdgeMids[3][1]=MidVal(Points[t->GoodPts[1]][1],Points[t->GoodPts[3]][1],0.5);
+      EdgeMids[3][2]=MidVal(Points[t->GoodPts[1]][2],Points[t->GoodPts[3]][2],0.5);
+   }
+
+   FaceMids[0][0]=(Points[t->GoodPts[0]][0]+ Points[t->GoodPts[2]][0]+ Points[t->GoodPts[3]][0])/3.0;
    FaceMids[0][1]=(Points[t->GoodPts[0]][1]+ Points[t->GoodPts[2]][1]+ Points[t->GoodPts[3]][1])/3.0; 
    FaceMids[0][2]=(Points[t->GoodPts[0]][2]+ Points[t->GoodPts[2]][2]+ Points[t->GoodPts[3]][2])/3.0; 
    

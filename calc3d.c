@@ -791,8 +791,8 @@ static void create3dStratMap (threedData, filename)
 THREED_IMAGE_DATA *threedData;
 char *filename;
 {
-   register double ***dots, ***dots3D;
-   register STORY ***histoire;
+   register double ***dots, ***dots3D, ***dotsVal;
+   register STORY ***histoire, ***histoireVal;
    register int x, y, z;
    int xMax, yMax, zMax;
    int numEvents = (int) countObjects(NULL_WIN);
@@ -887,6 +887,36 @@ char *filename;
       return;
    }
 
+   /* [Qt port ADDITION] todo.txt #46 -- second scratch grid + its own
+   ** single-layer histoire buffer, used below to recompute dots3D
+   ** (Values[], the continuous stratigraphic height AlphaTet.c/BetaTet.c/
+   ** etc interpolate for contouring) via reverseEventsIgnoringAgain()
+   ** instead of the plain reverseEvents() call just above -- see that
+   ** call site for why the two must stay independent. */
+   if ((dotsVal = (double ***) qdtrimat(0,yMax,0,xMax,0,3))==0L)
+   {
+      if (batchExecution)
+         fprintf (stderr, "Not enough memory, try closing some windows");
+      else
+         xvt_dm_post_error("Not enough memory, try closing some windows");
+      freeqdtrimat(dots,0,zMax,0,yMax,0,xMax);
+      free_qdtristrsmat(histoire,0,zMax,0,yMax,0,xMax);
+      freeqdtrimat(dots3D,0,zMax,0,yMax,0,xMax);
+      return;
+   }
+   if ((histoireVal = (STORY ***) qdtristrsmat(0,1,0,yMax,0,xMax))==0L)
+   {
+      if (batchExecution)
+         fprintf (stderr, "Not enough memory, try closing some windows");
+      else
+         xvt_dm_post_error("Not enough memory, try closing some windows");
+      freeqdtrimat(dots,0,zMax,0,yMax,0,xMax);
+      free_qdtristrsmat(histoire,0,zMax,0,yMax,0,xMax);
+      freeqdtrimat(dots3D,0,zMax,0,yMax,0,xMax);
+      freeqdtrimat(dotsVal,0,yMax,0,xMax,0,3);
+      return;
+   }
+
    for (z = 0, height = zLoc; z < zMax; z++, height += blockSize)
    {
       incrementLongJob (INCREMENT_JOB);
@@ -904,15 +934,54 @@ char *filename;
       }
       reverseEvents (dots, histoire[z+1], yMax, xMax);
 
+      /* [Qt port fix] todo.txt #46 -- the classification walk just above
+      ** (reverseEvents) deliberately stops early once a grid corner is
+      ** identified as igneous (unplug()/undyke() clearing .again at "rock
+      ** creation", correct for SeqCode) -- but that same early stop used
+      ** to leave `dots` (and so dots3D/Values[] below) frozen mid-
+      ** transform for that corner: a half-reversed, geologically
+      ** meaningless height. AlphaTet.c/BetaTet.c/etc's stratigraphic
+      ** contouring reads Values[] for every tet corner regardless of
+      ** SeqCode, so a corrupted igneous-corner height produced visible
+      ** tears in the surrounding stratigraphic surface (confirmed on
+      ** fold-plug.his: a tear exactly at Z=3000, matching a strat unit's
+      ** defined Height, only where a plug is also present). Recompute
+      ** Values[] from an independent full reverse walk that always goes
+      ** all the way back to true creation (reverseEventsIgnoringAgain,
+      ** unEvents.c -- the same fix already used by distSurf.c's
+      ** worldPositionBeforeEvent for the analogous round-trip bug), so an
+      ** igneous corner's height still smoothly continues its enclosing
+      ** stratigraphy's shape, matching what the real contact looks like on
+      ** either side of it. The actual sediment/igneous boundary itself is
+      ** drawn separately and correctly by the (already-fixed)
+      ** BetaBreakClean/Dirty-family discontinuity surfaces, which use
+      ** distanceToContact()/distanceCrossing() on the real world position,
+      ** not Values[]. */
       for (y = 0; y < yMax; y++)
       {
          for (x = 0; x < xMax; x++)
          {
-            dots3D[z+1][y+1][x+1] = dots[y+1][x+1][3]; /* Z location */
+            dotsVal[y+1][x+1][1] = x*blockSize + xLoc+0.000001; /* mwj_fix */
+            dotsVal[y+1][x+1][2] = (yMax-1-y)*blockSize + yLoc+0.000001; /* mwj_fix */
+            dotsVal[y+1][x+1][3] = height+0.000001; /* mwj_fix */
+
+            histoireVal[1][y+1][x+1].again=1;
+            izero(histoireVal[1][y+1][x+1].sequence);
+         }
+      }
+      reverseEventsIgnoringAgain (dotsVal, histoireVal[1], yMax, xMax);
+
+      for (y = 0; y < yMax; y++)
+      {
+         for (x = 0; x < xMax; x++)
+         {
+            dots3D[z+1][y+1][x+1] = dotsVal[y+1][x+1][3]; /* Z location */
          }
       }
    }
    freeqdtrimat(dots,0,yMax,0,xMax,0,3);
+   freeqdtrimat(dotsVal,0,yMax,0,xMax,0,3);
+   free_qdtristrsmat(histoireVal,0,1,0,yMax,0,xMax);
 
            /* Calculate the surface with correct joins */
    gridBase (threedData, &xFormViewer, viewOptions->lengthX, viewOptions->lengthY, viewOptions->lengthZ);

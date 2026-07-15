@@ -1157,6 +1157,11 @@ int extractXYZFromFile (FILE_SPEC *, int, int, int, double, double, double,
 int extractXYZHeader (FILE_SPEC *, int *);
 double distanceToContact (double, double, double, OBJECT *);
 int distanceToVector (double, OBJECT *, double *, double *, double *);
+/* [Qt port ADDITION] todo.txt #46 -- distSurf.c */
+int distanceCrossing (double [3], double [3], OBJECT *, int, double [3]);
+void clearDistanceCrossingCache (void);
+/* [Qt port ADDITION] todo.txt #46 -- allSurf.c */
+void getSurfaceGridInfo (int *, double *);
 #else
 COLOR ***convertFloatBlockDataToColors();
 COLOR ***convertIntBlockDataToColors();
@@ -1200,6 +1205,9 @@ int extractXYZFromFile ();
 int extractXYZHeader ();
 double distanceToContact ();
 int distanceToVector ();
+int distanceCrossing ();
+void clearDistanceCrossingCache ();
+void getSurfaceGridInfo ();
 #endif
 
                                                             /* ********************* */
@@ -1211,9 +1219,15 @@ void reverseEvents (plural double ***, plural STORY **, int, int);
 void reverseEvents (double ***, STORY **, int, int);
 #endif
 void fore (double **, int, int);
+/* [Qt port ADDITION] todo.txt #46 -- distSurf.c's own reverse-to-creation
+** walk, forcing histoire[].again back to TRUE after every event instead of
+** letting the per-event un* functions clear it at "rock creation" -- see
+** unEvents.c for the full rationale. */
+void reverseEventsIgnoringAgain (double ***, STORY **, int, int);
 #else
 void reverseEvents ();
 void fore ();
+void reverseEventsIgnoringAgain ();
 #endif
 
                                                             /* ******** */

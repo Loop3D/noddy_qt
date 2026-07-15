@@ -42,17 +42,19 @@ extern char clayer[81];/*global array for current layer name*/
 #if XVT_CC_PROTO
 extern double distanceToContact (double, double, double, OBJECT *);
 extern void allDrawPlane(double [4][3]);
-extern OBJECT *SetCLayer(unsigned char *, unsigned char *, int, int);
+extern OBJECT *SetCLayer(unsigned char *, unsigned char *, int, int, int *);
+extern int distanceCrossing (double [3], double [3], OBJECT *, int, double [3]);
 #else
 extern double distanceToContact ();
 extern void allDrawPlane();
 extern OBJECT *SetCLayer();
+extern int distanceCrossing ();
 #endif
 
 #if XVT_CC_PROTO
 double MidVal(double,double, double);
 int EpsilonFindMids(double [8][3], double [6][3], double [3], TETINFO *);
-int EpsilonBreakClean( double [8][3], double [6][3], double [3], int, TETINFO *);
+int EpsilonBreakClean( double [8][3], double [6][3], double [3], int, TETINFO *, OBJECT *, int);
 #else
 double MidVal();
 int EpsilonFindMids();
@@ -73,20 +75,20 @@ TETINFO *t;
 #endif
 {
    OBJECT *object;
-   int mm, vert1, vert2;
+   int mm, vert1, vert2, eventIndex;
    double MidPoints[6][3];
    double Centroid[3];
-   
+
    EpsilonFindMids(Points, MidPoints, Centroid, t);
-   
+
    for (mm = 0; mm < 6; mm++)
    {
-      vert1 = SeqCode[LINES[TETLINES[t->tinc][mm]][0]]; 
+      vert1 = SeqCode[LINES[TETLINES[t->tinc][mm]][0]];
       vert2 = SeqCode[LINES[TETLINES[t->tinc][mm]][1]];
       if (object = SetCLayer((unsigned char *) &(t->cypher[vert1]),
-                    (unsigned char *) &(t->cypher[vert2]), vert1, vert2))
+                    (unsigned char *) &(t->cypher[vert2]), vert1, vert2, &eventIndex))
       {                                  /* draw break surfaces */
-         EpsilonBreakClean(Points, MidPoints, Centroid, mm, t);
+         EpsilonBreakClean(Points, MidPoints, Centroid, mm, t, object, eventIndex);
       }
    }
    return (TRUE);
@@ -131,21 +133,38 @@ TETINFO *t;
 int
 #if XVT_CC_PROTO
 EpsilonBreakClean( double Points[8][3], double MidPoints[6][3],
-                   double Centroid[3], int mm, TETINFO *t)
+                   double Centroid[3], int mm, TETINFO *t,
+                   OBJECT *breakObject, int breakEventIndex)
 #else
-EpsilonBreakClean(Points, MidPoints, Centroid, mm, t)
+EpsilonBreakClean(Points, MidPoints, Centroid, mm, t, breakObject, breakEventIndex)
 double Points[8][3], MidPoints[6][3], Centroid[3];
 int mm;
 TETINFO *t;
+OBJECT *breakObject;
+int breakEventIndex;
 #endif
 {
    double conlist[4][3];
    int nn,icon;
-   
-   conlist[0][0]=MidPoints[mm][0];
-   conlist[0][1]=MidPoints[mm][1];
-   conlist[0][2]=MidPoints[mm][2];
-   
+
+   /* [Qt port FIX] todo.txt #46 -- this edge's own real crossing point,
+   ** instead of the fixed 0.5 midpoint EpsilonFindMids() precomputed as a
+   ** fallback. Unlike Beta/Delta/Gamma, each of a Epsilon tet's 6 edges can
+   ** resolve to a different discontinuity event (all 4 corners differ), so
+   ** this is resolved per-edge by the caller (EpsilonCode) and passed in.
+   ** conlist[1..3] below are 3-point face-centroid-style averages (like
+   ** Gamma's FaceMids) and Centroid is a 4-point tet-centroid average --
+   ** neither is a single edge, so (per the plan) both stay purely
+   ** geometric, not distance-corrected. */
+   if (!distanceCrossing (Points[LINES[TETLINES[t->tinc][mm]][0]],
+                          Points[LINES[TETLINES[t->tinc][mm]][1]],
+                          breakObject, breakEventIndex, conlist[0]))
+   {
+      conlist[0][0]=MidPoints[mm][0];
+      conlist[0][1]=MidPoints[mm][1];
+      conlist[0][2]=MidPoints[mm][2];
+   }
+
    for(nn=0,icon=1;nn<4;nn++)
    {
       if(LINES[TETLINES[t->tinc][mm]][0] != TETAPICES[t->tinc][nn] &&
@@ -165,11 +184,11 @@ TETINFO *t;
    }
    
    allDrawPlane(conlist);
-   
+
    conlist[0][0]=Centroid[0];
    conlist[0][1]=Centroid[1];
    conlist[0][2]=Centroid[2];
-   
+
    allDrawPlane(conlist);
    return (TRUE);
 }

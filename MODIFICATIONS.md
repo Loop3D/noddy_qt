@@ -40,11 +40,38 @@ widgets — every original `.c` file still calls the exact same
   implements the modal-dialog-disable stack (`pushModalDialog`/
   `popModalDialog`), the status bar, menu bar construction, and the
   drawing/backing-store model XVT's "draw anytime" semantics need.
+  - **Fixed bug (todo #90)**: `buildMenuBar()` — "On macOS there are no
+    menus except one called noddy" (only the default Cocoa app-name menu
+    appeared; none of File/Edit/Geology/... showed up). The app's
+    `QMenuBar` is built dynamically (parented to a plain `QWidget`, not
+    `QMainWindow`) from inside `XvtWindow::showEvent()`, and never called
+    `setNativeMenuBar(true)` — an unusual construction path relative to
+    the `QMainWindow::setMenuBar()`-before-`exec()` sequence Qt's Cocoa
+    native-menu-bar auto-detection is primarily tested against. Added an
+    explicit `bar->setNativeMenuBar(true)` call (documented as a no-op on
+    non-macOS platforms, so harmless elsewhere) to force the promotion
+    instead of relying on auto-detection. Not verified on real macOS
+    hardware (none available); reasoned from Qt/Cocoa's documented
+    behavior and confirmed not to affect the Windows build.
 - **`dialog_positions.cpp`** / **`dialog_registry.cpp`** — per-window
   control layout tables, reconstructed (since the original compiled XVT
   `.uid` resource file doesn't exist in this tree) from the Noddy reference
   manual's screenshots and cross-checked against each window's own
   event-handler code.
+  - **Fixed bug (todo #88)**: `g_pos_188` (`FIELD_WINDOW`, the "Mag Field"
+    sub-panel of Geophysics Survey options) had the Inclination/Intensity
+    rows' control IDs scrambled — `FIELD_INCLINATION` (the control
+    `optnlib.c` actually reads/writes) was assigned the *label* position
+    with a `WC_TEXT` override, turning it into a fixed, click-through
+    `"Inclination:"` label, while `FIELD_INTENSITY` ended up in
+    Inclination's value box and `FIELD_INCLINATION_LABEL` ended up as an
+    orphaned edit box in Intensity's row that nothing reads. Declination's
+    row was correctly wired, which is why only Inclination/Intensity
+    looked broken. Fixed by reordering the ctlIds to match Declination's
+    pattern. (The default values reported alongside this bug — inclination
+    -67, declination 0, intensity 63000 — were already correct in both
+    `nodLib1.c`'s static init and `nodLib3.c`'s `initProject()`; no change
+    needed there.)
 - **`menu_registry.cpp`** — the application's menu tree, similarly
   reconstructed.
 - **`xvt_types.h`** / **`xvt.h`** — XVT's type/struct layouts and function
@@ -61,9 +88,24 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 
 ## Modifications to original application files
 
+### allSurf.c
+- **SetCLayer()**: Added a 5th output parameter (`eventIndexOut`) exposing the 0-based event index already resolved for the discontinuity separating two differently-coded corners, so BetaTet.c/DeltaTet.c/GammaTet.c/EpsilTet.c can reuse it to compute a real distance-based crossing point instead of only picking a colour (todo #46).
+- **allSetVerts()**: Added a call to `clearDistanceCrossingCache()` (distSurf.c) at the start of each voxel's corner setup, since the cache is only valid within one voxel's 5 tetrahedra (todo #46).
+- **(near `plotScale`)**: Added `surfaceYMax` (set in `allSurface()`) and a new accessor `getSurfaceGridInfo()`, exposing the voxel grid's Y dimension and block size to distSurf.c — needed because `Points[]`'s Y axis is built straight from the array index (no flip) while calc3d.c's own world-Y-from-index formula flips it (`(yMax-1-y)*blockSize+yLoc`); distanceCrossing() needs the real world position (todo #46).
+- **SetCLayer()**: Fixed a genuine pre-existing uninitialized-variable bug — the loop variable `i` (later read at `while (eventsForStratLayers[i+1] == break_code) i++;` in the `UNCONFORMITY` case) was only ever assigned inside the `if (!threedViewOptions.allLayers)` branch; with `allLayers` true (the default for batch/DXF export), `i` was read uninitialized, causing a reproducible `SIGSEGV` on any model with an `UNCONFORMITY` event (confirmed via gdb backtrace on `qttest.his`). Fixed by finding the same first-matching index in both branches.
+
+### AlphaTet.c
+- **AlphaFindMids()**: The "line touches one vertex exactly" branches were gated by a tet-wide `exact`/`coinc!=1` flag whose value depended on the tet's *other* edges and loop order — not just the edge's own two endpoints. Since a grid edge is shared by several different tets (within one voxel's 5-tet split and across adjacent voxels via the `trot` checkerboard), the same physical edge could be registered as a contour point by one tet and silently dropped by a neighbour sharing it. Replaced with a per-tet, per-apex registration cap (dedup by apex *index*, not by floating-point coordinate) so an apex exactly on the contour level always registers, but at most once per tet — provably capping the crossing count at the topological max of 4, which is what `allSplitPlane`'s own uncapped `NMids[]` rescan relies on. (Confirmed via direct tet-by-tet DXF/topology tracing that this was *not* the cause of the fold-tangent visual artifact reported below — kept as a real, independently-verified correctness fix.)
+
 ### batchNod.c
 - **(file-level, top of file)**: Added unconditional `#include <sys/time.h>` needed for the new `-random` flag's timestamped output filename, not just the old XOLWS/MTFWS TIMER macro.
 - **batchNoddy()**: Added a `-random` flag that generates a random history, writes it as a timestamped .his file, and computes a full block export plus gravity/magnetic anomalies without requiring an input history file.
+
+### BetaTet.c
+- **BetaCode() / BetaBreakPlane() / BetaBreakDirty() / DoEndTriangle() / DoPentagon() / DoEndTrapezoid()**: Threaded the discontinuity `OBJECT*`/event-index (from `SetCLayer`) through the whole "dirty" (fault crossing a stratigraphic contact) call chain so each of a tet's real ExCode-boundary edge crossings can be computed via `distanceCrossing()` (distSurf.c) instead of a fixed 0.5 midpoint, falling back to the old midpoint if no real crossing resolves (todo #46).
+- **BetaBreakClean()**: Replaced the fixed 0.5 midpoint on each discontinuity-crossing edge with a real signed-distance crossing via `distanceCrossing()`; also fixed `conlist[6][3]` → `conlist[4][3]` (a pre-existing array-size bug in adjacent dead code).
+- **oneBetaPlane()**: Rewrote the two break-plane-to-stratigraphic-edge points. The original always used `distanceCrossing(ExCode, stratPoint)` — interpolating between the fault's outlier corner and an already-interpolated interior point — which has no relationship to what a neighboring tet (of any type) independently computes for the same shared face, producing a real topological gap in the exported mesh (confirmed via `-dxfface` export + edge-adjacency analysis: gap edges landed exactly on the midpoint of two real crossings that a neighboring Delta tet was independently computing). New helper `BetaStratCrossingOnBreakEdge()` instead interpolates between the two *real* corner-to-ExCode crossings using the *same* stratigraphic-level fraction (`delcon`) used on the corresponding good-good edge — matching the construction DeltaTet.c's `DeltaFindMids` already used, and confirmed by DXF export diffing to cut the mesh-gap count on a fault-crossing-stratigraphy test model by ~72% (todo #46).
+- **BetaFindMids()**: Same `exact`/`coinc!=1` cross-tet-inconsistency fix as AlphaTet.c's `AlphaFindMids()` (see above), applied to the two "touches one vertex exactly" branches — dedup by apex index instead. The local `exact` flag itself is retained (it still feeds `t->exact`, consumed downstream by `DoPentagon`'s break-plane geometry — a different concern) but no longer gates whether an edge *registers*.
 
 ### blklayop.c
 - **LAYER_DISPLAY_WINDOW_eh()**: Added a `LAYER_SHOW_TOPO` case for the new "Show Topo" checkbox (Display Type popup, right-click on a Block Diagram), just toggling its checked state on click — the actual cube filtering happens on OK via nodLib2.c's `saveBlockImageOptions()` (todo #87).
@@ -78,9 +120,21 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 
 ### calc3d.c
 - **(before create3dStratMap, in the block-diagram sizing code)**: Added an explicit error message when `geologyCubeSize` is too large relative to the model's dimensions (collapsing xMax/yMax/zMax to 1), since `allSurface` silently produced zero triangles while the grid still drew, misleadingly appearing to finish instantly with no geology.
+- **create3dStratMap()**: `dots3D` (`Values[]`, the continuous stratigraphic height AlphaTet.c/BetaTet.c interpolate for contouring) was computed by the same `reverseEvents()` walk used for `SeqCode` classification — but that walk's per-event `un*` functions (`unfold`/`unplug`/`undyke`/etc, unEvents.c) deliberately stop early once a point is classified (e.g. as igneous), which is correct for `SeqCode` but leaves `Values[]` frozen mid-transform for the same corner. Added a second, independent full reverse walk (`reverseEventsIgnoringAgain()`, unEvents.c — the same fix already used by distSurf.c's `worldPositionBeforeEvent` for the analogous round-trip bug) to compute `dots3D` on its own scratch grid, decoupled from `SeqCode`'s classification walk.
+
+### DeltaTet.c
+- **DeltaCode() / DeltaFindEdgeMids()**: Resolves the discontinuity `OBJECT*`/event-index once via `SetCLayer` before computing the tet's 4 AA-BB break edges, using `distanceCrossing()` (distSurf.c) instead of a fixed 0.5 midpoint for each, falling back to the old midpoint if no real crossing resolves (todo #46).
+
+### distSurf.c (new file)
+- New file implementing `distanceCrossing()` — finds where the straight line between two world-coordinate points crosses a discontinuity event's own surface (fault plane, unconformity plane, or plug boundary; DYKE deliberately excluded, its `dyke()` distance isn't a single unambiguous signed value since a dyke has two walls), using the same edge-interpolation technique already used for stratigraphic level contouring, just driven by `distanceToContact()`'s (block.c) signed distance instead of a stratigraphic height. Mirrors `calcAlterationZone()`'s (block.c) own coordinate-frame handling — reverse fully to "creation" via the existing `reverseEvents()` (unEvents.c), then forward-model up to (but not including) the target event via `forwardModel()`/`fore()` (events.c) — rather than re-deriving the event-history dispatch. Also corrects for two coordinate-frame mismatches between allSurf.c's `Points[]` (grid-index-relative, used for rendering) and the true world coordinates event parameters are defined in: a missing model-origin offset, and a Y-axis flip (see allSurf.c's `getSurfaceGridInfo()` entry above). Caches the per-voxel reverse-transform result (`clearDistanceCrossingCache()`, called once per voxel from allSurf.c's `allSetVerts()`) since the same corner/event pair is queried repeatedly across a voxel's 5 tetrahedra (todo #46).
+- **distanceCrossing()**: `plug()`'s CONE_PLUG/PARABOLIC_PLUG branch has a genuine cusp at the apex plane (continuous value, discontinuous gradient), and a single linear interpolation of `distanceToContact()` across an edge straddling that cusp produced large errors (confirmed residuals up to ~168 units) — visible as a dimple in a plug's surface. Replaced the single linear interpolation with a 12-iteration bisection/regula-falsi refinement, which converges correctly regardless of the cusp since it only relies on the sign change (intermediate value theorem). Also added a `DISTANCE_EPSILON` (1e-6) check treating a near-zero endpoint distance as the crossing point directly — the previous strict "both endpoints must have opposite sign" check rejected a corner sitting essentially exactly on the boundary if the *other* endpoint had the same sign by a razor-thin margin, silently falling back to the naive 0.5 midpoint.
+- **worldPositionBeforeEvent()**: Switched from `reverseEvents()` to the new `reverseEventsIgnoringAgain()` (unEvents.c). `reverseEvents()`'s per-event `un*` functions clear `histoire[].again` once a point reaches "its own rock creation event" — correct for `reverseEvents()`'s normal classification callers, but wrong for a pure coordinate round-trip: a point inside a plug got `.again` cleared by `unplug()` before the chronologically-earlier `unfold()` ever ran during the reverse walk, silently skipping `unfold()` on the way back while `forwardModel()`'s later re-application of `fold()` still ran normally — breaking the round-trip identity by hundreds of units (visible as a rough/torn plug surface wherever a fold was also present). Confirmed via direct debug tracing of the specific point and event sequence.
 
 ### DoBlock.c
 - **renderBlockDiagram() / shadeCubeColor()**: Added `shadeCubeColor()` and used it to replace the block diagram cube face shading's raw `channel*SHADE_1`/`channel*SHADE_2` multiply-and-pack-into-`XVT_MAKE_COLOR` (unclamped -- a channel pushed past 255 silently wrapped modulo 256, corrupting bright/saturated layer colours) with a real clamped +/-10% variation (`SHADE_1`/`SHADE_2` changed from 1.2/0.8 to 1.1/0.9 to match), fixing the "colour triplet logic...poorly handled" user report (todo #88).
+
+### EpsilTet.c
+- **EpsilonCode() / EpsilonBreakClean()**: Threads each edge's own discontinuity `OBJECT*`/event-index (resolved per-edge, since all 4 corners of an Epsilon tet differ so different edges can belong to different events) into `EpsilonBreakClean()`, using `distanceCrossing()` for that edge's own real crossing point instead of a fixed 0.5 midpoint. The two face-centroid-style averages and the tet centroid stay purely geometric (not single edges, not straightforwardly distance-correctable) (todo #46).
 
 ### eventlib.c
 - **createEventOptions()**: Widened `groupXPos` from 150 to 320 so the EVENT_PREVIEW placeholder can be a full-size preview pane, since the old width capped it too narrow to show its Preview-Type/On controls.
@@ -92,6 +146,13 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 - **createCenteredWindow()**: Same `long` → `intptr_t` widening of `appData`, confirmed fixing a real pointer-truncation crash on native 64-bit Windows.
 - **saveSurfaceOrientations()**: New function declaration added for a new Geology menu feature (todo #43, lineEvnt.c).
 - **readRandomHist() / RandomNoddy()**: New declarations added for a ported random-history generator ("Noddyverse" dataset tool); `readRandomHist`'s extra bool arg controls whether reference-generator side effects on app settings are applied (batch vs interactive use, todo #59).
+- **distanceCrossing() / clearDistanceCrossingCache()**: New declarations for distSurf.c's signed-distance edge-crossing helper (todo #46).
+- **getSurfaceGridInfo()**: New declaration for allSurf.c's grid-info accessor (todo #46).
+- **reverseEvents() (comment only)**: Noted next to the existing declaration that distSurf.c reuses this function as-is (no new declaration needed) rather than duplicating the event-history dispatch (todo #46).
+- **reverseEventsIgnoringAgain()**: New declaration for unEvents.c's `.again`-forcing reverse walk (see unEvents.c entry).
+
+### GammaTet.c
+- **GammaCode() / GammaFindMids() / AddEndMidsClean() / LoneTriangle()**: Resolves the tet's two AA-BB discontinuity boundaries (A-B and A-C, which can be two different events) via `SetCLayer`, using `distanceCrossing()` for each of the 4 AABB edges and for the standalone B-C "lone triangle" edge, instead of a fixed 0.5 midpoint (todo #46).
 
 ### geophy.c
 - **gaussianNoiseDraw() (state setup)**: Added a dedicated RNG state for optional Gaussian noise on density/susceptibility voxels, lazily seeded once per process (todo #44).
@@ -162,8 +223,10 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 - **processCommandLine()**: Added `-random` command-line flag to trigger generating a random event history instead of reading one from a file (todo #41).
 - **initProject()**: Changed default `calculationMethod` from SPATIAL to SPECTRAL and `spectralPaddingType` from RAMP_PADDING to RECLECTION_PADDING (user-requested defaults, todo #55).
 - **initProject()**: Initialized new Gaussian-noise option defaults (`addGaussianNoise = FALSE`, sigma 1%, seed 0) added for todo #44.
+- **processCommandLine() / displayUsage() / performBatchOperations()**: Added `-dxfface`/`-dxfline` batch flags exporting the 3D Triangulation surfaces (Geology → 3D Triangulation, allSurf.c) to a DXF file (3DFACE or POLYLINE mesh format, via `-o output_file`) without needing the interactive GUI — mirrors what the menu item does by calling `do3dStratMap(NULL, filename)` with `threedViewOptions.fillType` set accordingly (todo #46, enables scriptable regression testing of the discontinuity-surface triangulation).
 
 ### nodStruc.h
+- **OPERATIONS (enum)**: Added `TRIANGULATION_DXF_3DFACE`/`TRIANGULATION_DXF_POLYLINE` members for the new `-dxfface`/`-dxfline` batch flags (todo #46).
 - **SECTION_DATA (solidColorMap field)**: Added field remembering whether a map/section pixmap was rendered solid-colour or line-style, so overlay orientation symbols can pick a contrasting colour.
 - **DEFAULT_VIEW_GEOL_CUBE / DEFAULT_VIEW_GEOP_CUBE**: Changed default block cube size from 200.0m to 100.0m for both geology and geophysics (todo #57).
 - **GEOPHYSICS_OPTIONS (addGaussianNoise/gaussianNoiseSigmaPercent fields)**: Added fields to apply relative Gaussian noise (stored as a percentage) to density/susceptibility voxel values during volume assignment (todo #44).
@@ -235,6 +298,9 @@ app now runs against. See `CLAUDE.md` for the fuller architecture writeup.
 
 ### topoOp.c
 - **TOPO_OPTIONS_WINDOW_eh()**: Fixed OK/Cancel to sync the "Use Topography" checkbox via a handle passed as window app data, replacing a stale control-ID lookup (`WIN_116_CHECKBOX_68`) left over from a pre-tabbed-Options-dialog UI that never actually found the checkbox.
+
+### unEvents.c
+- **reverseEventsIgnoringAgain()**: New function, a near-copy of `reverseEvents()`'s exact per-event dispatch, but forcing `histoire[].again` back to `TRUE` after every event instead of letting the per-event `un*` functions clear it at "rock creation" — see distSurf.c's `worldPositionBeforeEvent()` and calc3d.c's `create3dStratMap()` entries above for the two call sites and the round-trip bug this fixes. Deliberately a near-copy rather than a modification of `reverseEvents()` itself, to avoid risk to `reverseEvents()`'s other callers (e.g. `calcAlterationZone`, block.c) which may legitimately rely on the early-stop-at-creation behaviour for their own classification purposes.
 
 ### utopowin.c
 - **USE_TOPOGRAPHY_WINDOW_eh()**: Passes the real "Use Topography" checkbox handle through as the new window's app data so TOPO_OPTIONS_WINDOW's OK/Cancel handlers can look it up directly, replacing the stale lookup path.

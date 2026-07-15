@@ -93,7 +93,7 @@ c
             if (fabs(waveLength) > TOLERANCE)
             {
                temp2 = newpt[1][1] * 6.2831853 / waveLength;
-               
+
                if (!singleFold || (newpt[1][1] >= 0.0 && newpt[1][1] < waveLength))
                {
                   newpt[1][3] = newpt[1][3]
@@ -1228,8 +1228,159 @@ int xmax, ymax;
               stopFound = TRUE;
               break;
       }
-      
+
       num--;
    } while ((!stopFound) && (num > 0));
-}                                              
+}
+
+/* [Qt port ADDITION] todo.txt #46 -- reverseEvents()'s per-event un*
+** functions each guard their own transform with
+** `if (histoire[m][n].again)`, and several of them (unfold, unplan,
+** undyke, unplug, unfault, unImport) clear `.again` once a point reaches
+** what THEY consider its own "rock creation" event -- correct for
+** reverseEvents()'s normal callers (which want to know "what rock is
+** this, and where was it originally deposited", so further un-transforms
+** past that point aren't meaningful), but WRONG for distSurf.c's
+** worldPositionBeforeEvent(), which needs a pure coordinate transform of
+** one fixed world-space sample location back to "creation", regardless of
+** which rock happens to be there. Confirmed as a real, silent bug via a
+** round-trip test on a fold+plug model: a sample point INSIDE the plug
+** got its `.again` cleared by unplug() before the (chronologically
+** earlier, so encountered later in this reverse walk) unfold() ever ran,
+** so unfold() was silently skipped entirely on the way back -- while
+** forwardModel()'s later re-application of fold() (events.c, unaware of
+** any of this) still ran normally, breaking the reverse+forward round
+** trip and displacing the point by hundreds of units. This is a
+** near-copy of reverseEvents()'s own dispatch (not a refactor of it --
+** lower risk than changing an already-working, widely-used function
+** whose OTHER callers, e.g. calcAlterationZone's own reverseEvents() use
+** via block.c, may rely on the early-stop-at-creation behaviour), with
+** `.again` forced back to TRUE after every event so the walk always goes
+** all the way back to true creation. */
+void reverseEventsIgnoringAgain (dots, histoire, xmax, ymax)
+double ***dots;
+STORY **histoire;
+int xmax, ymax;
+{
+   OBJECT *p = NULL;
+   WINDOW listWindow;
+   register int num, m, n;
+   BOOLEAN stopFound = FALSE;
+   int shape;
+
+   listWindow = (WINDOW) getEventDrawingWindow ();
+   num = (int) countObjects (listWindow);
+
+   do
+   {
+      p = (OBJECT *) nthObject (listWindow, num-1);
+      if (!p) return;
+      shape = (int) p->shape;
+
+      switch (shape)
+      {
+         case FOLD:
+              {
+                 FOLD_OPTIONS *options=(FOLD_OPTIONS *) p->options;
+                 unfold (dots, histoire, xmax, ymax, options);
+              }
+              break;
+         case FAULT:
+              {
+                 FAULT_OPTIONS *options=(FAULT_OPTIONS *) p->options;
+                 unfault(dots, histoire, xmax, ymax, options, num);
+              }
+              break;
+         case UNCONFORMITY:
+              {
+                 UNCONFORMITY_OPTIONS *options
+                               = (UNCONFORMITY_OPTIONS *) p->options;
+                 unplan(dots, histoire, xmax, ymax, options, num);
+              }
+              break;
+         case SHEAR_ZONE:
+              {
+                 SHEAR_OPTIONS *options=(SHEAR_OPTIONS *) p->options;
+                 unfault(dots, histoire, xmax, ymax, (FAULT_OPTIONS *) options, num);
+              }
+              break;
+         case DYKE:
+              {
+                 DYKE_OPTIONS *options=(DYKE_OPTIONS *) p->options;
+                 int previousEventIgneous;
+                 OBJECT *previous_p;
+
+                 previous_p = (OBJECT *) nthObject (listWindow, num-2);
+                 if (previous_p && ((previous_p->shape == PLUG)
+                                      || (previous_p->shape == DYKE)))
+                    previousEventIgneous = TRUE;
+                 else
+                    previousEventIgneous = FALSE;
+
+                 undyke(dots, histoire, xmax, ymax,
+                                        options, num, previousEventIgneous);
+              }
+              break;
+         case PLUG:
+              {
+                 PLUG_OPTIONS *options=(PLUG_OPTIONS *) p->options;
+                 int previousEventIgneous;
+                 OBJECT *previous_p;
+
+                 previous_p = (OBJECT *) nthObject (listWindow, num-2);
+                 if (previous_p && ((previous_p->shape == PLUG)
+                                      || (previous_p->shape == DYKE)))
+                    previousEventIgneous = TRUE;
+                 else
+                    previousEventIgneous = FALSE;
+
+                 unplug(dots, histoire, xmax, ymax,
+                                        options, num, previousEventIgneous);
+              }
+              break;
+         case STRAIN:
+              {
+                 STRAIN_OPTIONS *options=(STRAIN_OPTIONS *) p->options;
+                 unrot(dots, histoire, xmax, ymax, p, num,
+                       0.0, 0.0, 0.0, options->inverseTensor);
+              }
+              break;
+         case TILT:
+              {
+                 TILT_OPTIONS* options=(TILT_OPTIONS *) p->options;
+                 unrot(dots, histoire, xmax, ymax, p, num,
+                       options->positionX, options->positionY,
+                       options->positionZ, options->rotationMatrix);
+              }
+              break;
+         case FOLIATION:
+         case LINEATION:
+              break;
+         case IMPORT:
+              {
+                 IMPORT_OPTIONS *options
+                            =(IMPORT_OPTIONS *) p->options;
+                 unImport(dots, histoire, xmax, ymax, options, num);
+              }
+              break;
+         case GENERIC:
+              {
+                 GENERIC_OPTIONS *options
+                            =(GENERIC_OPTIONS *) p->options;
+                 ungeneric (dots, histoire, xmax, ymax, options);
+              }
+              break;
+         case STOP:
+              stopFound = TRUE;
+              break;
+      }
+
+      for (m = 1; m <= xmax; m++)
+         for (n = 1; n <= ymax; n++)
+            histoire[m][n].again = TRUE;
+
+      num--;
+   } while ((!stopFound) && (num > 0));
+}
+
 

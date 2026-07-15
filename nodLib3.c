@@ -3366,6 +3366,21 @@ int *randomHistory;
          *operation = ANOMALIES_IMAGE;
          strcpy (operationName,"Anomalies Image");
          recognised = TRUE;
+      }        /* [Qt port ADDITION] todo.txt #46 -- -dxfface/-dxfline export
+                ** the 3D Triangulation surfaces (Geology -> 3D Triangulation,
+                ** allSurf.c) to a DXF file in 3DFACE or POLYLINE format,
+                ** without needing the interactive GUI. */
+      else if (strcmp(argv[option], "-dxfface") == 0)
+      {
+         *operation = TRIANGULATION_DXF_3DFACE;
+         strcpy (operationName,"3D Triangulation Export (DXF 3DFace)");
+         recognised = TRUE;
+      }
+      else if (strcmp(argv[option], "-dxfline") == 0)
+      {
+         *operation = TRIANGULATION_DXF_POLYLINE;
+         strcpy (operationName,"3D Triangulation Export (DXF Polyline)");
+         recognised = TRUE;
       }        /* [Qt port ADDITION] todo.txt #41 -- -random means generate
                 ** a random history instead of reading one from a file */
       else if (strcmp(argv[option], "-random") == 0)
@@ -3443,6 +3458,8 @@ char *commandName;
    fprintf (stderr,"\n\t-anomFromBlock same as -anom but from a specified block file");
    fprintf (stderr,"\n\t-profile force anomalies profile to be produced");
    fprintf (stderr,"\n\t-image force anomalies image to be produced");
+   fprintf (stderr,"\n\t-dxfface export 3D Triangulation surfaces (discontinuity + stratigraphic break planes) to -o output_file as a DXF 3DFACE mesh");
+   fprintf (stderr,"\n\t-dxfline export 3D Triangulation surfaces to -o output_file as a DXF POLYLINE (polyface) mesh");
    fprintf (stderr,"\n\t-random generate a random history instead of reading one -- writes a timestamped .his file plus a block export and anomalies");
    fprintf (stderr,"\n\t-help or -? show this USAGE");
    fprintf (stderr,"\n\n");
@@ -3516,6 +3533,32 @@ OPERATIONS operation;
          break;
       case (ANOMALIES_PROFILE):
          doGeophysics (ANOM, viewOptions, &geophysicsOptions, outputFile, NULL, NULL, 0, NULL, NULL, NULL);
+         break;
+      /* [Qt port ADDITION] todo.txt #46 -- -dxfface/-dxfline batch export of
+      ** the 3D Triangulation surfaces. Mirrors what Geology -> 3D
+      ** Triangulation does interactively (calc3d.c's do3dStratMap with
+      ** threedData==NULL skips the interactive-only steps and just
+      ** computes + writes the file) -- see that function's own NULL guards. */
+      case (TRIANGULATION_DXF_3DFACE):
+      case (TRIANGULATION_DXF_POLYLINE):
+         {
+            extern THREED_VIEW_OPTIONS threedViewOptions;
+            char dxfFilename[300];
+            int len;
+
+            strncpy (dxfFilename, outputFile, sizeof(dxfFilename)-5);
+            dxfFilename[sizeof(dxfFilename)-5] = '\0';
+            len = strlen (dxfFilename);
+            if ((len < 4) || (strcmp (&dxfFilename[len-4], ".dxf") != 0))
+               strcat (dxfFilename, ".dxf");
+
+            threedViewOptions.fillType = (operation == TRIANGULATION_DXF_3DFACE)
+                                              ? DXF_FILE_FILL_3DFACE
+                                              : DXF_FILE_FILL_POLYLINE;
+
+            fprintf (stdout, "\nWriting 3D Triangulation DXF to: %s\n", dxfFilename);
+            do3dStratMap (NULL, dxfFilename);
+         }
          break;
    }
 

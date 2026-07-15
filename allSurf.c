@@ -126,6 +126,13 @@ int **LINES = NULL;
 int *eventsForStratLayers;
 int numEventsForStratLayers;
 static double plotScale;
+/* [Qt port ADDITION] todo.txt #46 -- the voxel grid's Y dimension, needed by
+** distSurf.c to reconstruct true world coordinates from Points[] (see
+** getSurfaceGridInfo()/distanceCrossing() -- Points[]'s Y axis is built from
+** the array index with NO flip, but calc3d.c's world-Y-from-index formula
+** DOES flip it: `(yMax-1-y)*blockSize+yLoc`. X and Z need no such
+** correction. */
+static int surfaceYMax;
 
 #if XVT_CC_PROTO
 static int allSurfStart ();
@@ -309,6 +316,7 @@ char *filename;
 
 
    plotScale = plotscale;
+   surfaceYMax = ny;
    threedDataPtr = threedData;
    cypher = (unsigned char **) create2DArray (100, ARRAY_LENGTH_OF_STRAT_CODE,
                                               sizeof(unsigned char));
@@ -442,6 +450,23 @@ char *filename;
       destroy2DArray ((char **) cypher, 100, ARRAY_LENGTH_OF_STRAT_CODE);
 }
 
+/* [Qt port ADDITION] todo.txt #46 -- see surfaceYMax's own comment above.
+** Lets distSurf.c reconstruct true world coordinates from Points[] without
+** having to thread yMax/blockSize down through every intervening call
+** (allOneTetrahedron/BetaBreakPlane/BetaBreakClean/...). */
+void
+#if XVT_CC_PROTO
+getSurfaceGridInfo (int *yMaxOut, double *blockSizeOut)
+#else
+getSurfaceGridInfo (yMaxOut, blockSizeOut)
+int *yMaxOut;
+double *blockSizeOut;
+#endif
+{
+   *yMaxOut = surfaceYMax;
+   *blockSizeOut = plotScale;
+}
+
 /*
 ** set up TETINFO structure with some basic info required later
 */
@@ -491,8 +516,14 @@ double plotscale;
 int cyphno;
 unsigned char **cypher;
 #endif
-{  
+{
    int mm, nn;
+
+   /* [Qt port ADDITION] todo.txt #46 -- clear distSurf.c's per-voxel
+   ** reverse-transform cache once per voxel, before its 5 tets are
+   ** processed (see clearDistanceCrossingCache()'s own comment). */
+   clearDistanceCrossingCache ();
+
                  /* Store the locations that will be tested */
    for (mm = 0; mm < 8; mm++)
    {
@@ -502,12 +533,12 @@ unsigned char **cypher;
    }
                
    for (mm = 0; mm < 8; mm++)
-   {            
+   {
                   /* Store the height at the stored locaton */
       Values[mm] = map3D[kk+CUBE[mm][2]]
-                        [jj+CUBE[mm][1]]      
+                        [jj+CUBE[mm][1]]
                         [ii+CUBE[mm][0]];
-      
+
       for (nn = 1; nn <= cyphno; nn++)
       {           /* work out if strats differ at these locations */
          if (coincide(&(cypher[nn][0]), dots3DC[kk+CUBE[mm][2]] /* mwj_fix */
@@ -553,8 +584,8 @@ unsigned char **cypher;
    t->TetCode=CalcTetCode(SeqCode[TETAPICES[t->tinc][0]],
                           SeqCode[TETAPICES[t->tinc][1]],
                           SeqCode[TETAPICES[t->tinc][2]],
-                          SeqCode[TETAPICES[t->tinc][3]], cypher);  
-   
+                          SeqCode[TETAPICES[t->tinc][3]], cypher);
+
    switch (t->TetCode)
    {
       case 0:
@@ -1097,14 +1128,22 @@ int code;
    return(t4);
 }
 
+/* [Qt port ADDITION] todo.txt #46 -- `eventIndexOut`, if non-NULL, receives
+** the 0-based event index (`eventNum`, the same index passed to
+** nthObject() below to fetch the returned OBJECT) that this call resolved
+** as the discontinuity separating start1/start2. Lets callers reuse this
+** already-computed "which event is relevant" result (see lastdiff() in
+** taste.c) instead of re-deriving it, when they go on to compute a
+** distance-based crossing point against the same object. */
 OBJECT *
 #if XVT_CC_PROTO
 SetCLayer(unsigned char *start1, unsigned char *start2,
-          int InCode, int ExCode)
+          int InCode, int ExCode, int *eventIndexOut)
 #else
-SetCLayer(start1, start2, InCode, ExCode)
+SetCLayer(start1, start2, InCode, ExCode, eventIndexOut)
 unsigned char *start1, *start2;
 int InCode, ExCode;
+int *eventIndexOut;
 #endif
 {
    int break_code, swap_code, i;
@@ -1143,14 +1182,29 @@ int InCode, ExCode;
       }
    }
    else
+   {
       eventNum = break_code;
+      /* [Qt port fix] the UNCONFORMITY case below (`while
+      ** (eventsForStratLayers[i+1] == break_code) i++;`) needs `i` set to
+      ** the first matching index -- the `!allLayers` branch above finds
+      ** this via its own loop, but that loop was skipped here, leaving
+      ** `i` uninitialized (confirmed via gdb: SIGSEGV in this exact read,
+      ** reproduced by qttest.his's UNCONFORMITY event with the default
+      ** allLayers=TRUE). Find the same starting index unconditionally. */
+      for (i = 0; i < numEventsForStratLayers; i++)
+         if (eventsForStratLayers[i] == break_code)
+            break;
+   }
 
    if (!eventNum)
       return ((OBJECT *) NULL);
-   
+
    if (!(object = (OBJECT *) nthObject (NULL_WIN, eventNum)))
       return ((OBJECT *) NULL);
-   
+
+   if (eventIndexOut)
+      *eventIndexOut = eventNum;
+
    switch (object->shape)
    {
       case FAULT:

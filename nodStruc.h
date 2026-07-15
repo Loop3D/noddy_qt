@@ -118,7 +118,13 @@ typedef enum {  BLOCK_MODEL,            DICER_BLOCK_MODEL,
                 BLOCK_DIAGRAM,
                 ANOMALIES,              ANOMALIES_AND_BLOCK,
                 ANOMALIES_FROM_BLOCK,   ANOMALIES_IMAGE,
-                ANOMALIES_PROFILE
+                ANOMALIES_PROFILE,
+                /* [Qt port ADDITION] todo.txt #46 -- batch export of the
+                ** 3D Triangulation surfaces (allSurf.c) to DXF, so the
+                ** discontinuity/stratigraphic break-plane geometry can be
+                ** inspected/diffed scriptably instead of only interactively
+                ** via Geology -> 3D Triangulation. See -dxfface/-dxfline. */
+                TRIANGULATION_DXF_3DFACE, TRIANGULATION_DXF_POLYLINE
 } OPERATIONS;
 
 /*

@@ -2256,6 +2256,17 @@ static void buildMenuBar(XvtWindow *win, WINDOW handle)
     QMenuBar *bar = win->menuBar;
     if (bar) bar->clear();
     else bar = new QMenuBar(win);
+    /* [Qt port fix] todo.txt #90 -- "On macOS there are no menus except one
+     * called noddy" (i.e. only the default Cocoa app-name menu appears, none
+     * of File/Edit/Geology/... show up). This QMenuBar is built dynamically,
+     * parented to a plain QWidget (not QMainWindow), and populated from
+     * inside XvtWindow::showEvent() -- an unusual construction path Qt's
+     * Cocoa native-menu-bar auto-detection isn't reliably exercised against
+     * (the documented/tested path is QMainWindow::setMenuBar() before the
+     * event loop starts). setNativeMenuBar(true) forces Qt to promote this
+     * bar to the native global menu bar explicitly rather than relying on
+     * auto-detection; a no-op everywhere except macOS. */
+    bar->setNativeMenuBar(true);
     for (int i = 0; i < g_menuTreeCount; i++) {
         const MenuNodeEntry &n = g_menuTree[i];
         if (n.parentPath) continue; /* only the 6 top-level roots here */

@@ -143,18 +143,37 @@ TETINFO *t;
 double MidPoints[6][3];
 int NMids[6];
 #endif
-{                        
-   int mm,nn,coinc=0,icon,exact=FALSE;
+{
+   int mm,nn,coinc=0,icon;
    double delcon;
+   /* [Qt port FIX] todo.txt #46 follow-on -- a folded stratigraphic surface
+   ** that runs locally tangent to the sampling grid (fold crest/trough)
+   ** puts many corners exactly on `level` at once. The old `exact`/
+   ** `coinc!=1` gates below made an edge's "touches one vertex exactly"
+   ** registration depend on OTHER edges of this same tet (loop order,
+   ** how many of the tet's other edges also happen to be exactly on
+   ** level) -- not just that edge's own two endpoints. Since a grid edge
+   ** is shared by several different tets (within one voxel's 5-tet split
+   ** and across adjacent voxels via the trot checkerboard), each with a
+   ** different set of "other edges", the same physical edge could be
+   ** registered by one tet and silently dropped by its neighbour --
+   ** a T-junction crack (confirmed via DXF edge-adjacency gap analysis on
+   ** a fold+stratigraphy-only model). Fixed by deduping on apex INDEX
+   ** (exact integer compare, no epsilon needed) instead: an apex exactly
+   ** on `level` always registers, but at most once per tet -- this caps
+   ** icon at the topological max of 4 (Values[] is affine over one tet,
+   ** so the level plane crosses at most 4 of its 6 edges), which is what
+   ** allSplitPlane's own uncapped NMids[] rescan below relies on. */
+   int regApex[4], numReg=0, a0, a1, already;
 
-         
+
    for (mm=0;mm<6;mm++) /* 6 edges to a tet */
    {
       if(Values[LINES[TETLINES[t->tinc][mm]][0]] == Values[LINES[TETLINES[t->tinc][mm]][1]] &&
          Values[LINES[TETLINES[t->tinc][mm]][0]] == level)
          coinc++;
    }
-   
+
    if (coinc==3) /* 3 vertices coincide with level */
    {
       for(nn=0,icon=0;nn<4;nn++)
@@ -174,53 +193,58 @@ int NMids[6];
    {
       for(mm=0;mm<6;mm++) /* 6 edges to a tet */
       {
-         if ((Values[LINES[TETLINES[t->tinc][mm]][0]] < level
-                       && Values[LINES[TETLINES[t->tinc][mm]][1]] > level)
-                       || (Values[LINES[TETLINES[t->tinc][mm]][0]] > level
-                       && Values[LINES[TETLINES[t->tinc][mm]][1]] < level))
-         {
-            delcon=(level-Values[LINES[TETLINES[t->tinc][mm]][0]])/
-         (Values[LINES[TETLINES[t->tinc][mm]][1]]
-                                     -Values[LINES[TETLINES[t->tinc][mm]][0]]);
+         a0 = LINES[TETLINES[t->tinc][mm]][0];
+         a1 = LINES[TETLINES[t->tinc][mm]][1];
 
-            MidPoints[mm][0]=
-                           MidVal(Points[LINES[TETLINES[t->tinc][mm]][0]][0],
-                           Points[LINES[TETLINES[t->tinc][mm]][1]][0],delcon);
-            MidPoints[mm][1]=
-                           MidVal(Points[LINES[TETLINES[t->tinc][mm]][0]][1],
-                           Points[LINES[TETLINES[t->tinc][mm]][1]][1],delcon);
-            MidPoints[mm][2]=
-                           MidVal(Points[LINES[TETLINES[t->tinc][mm]][0]][2],
-                           Points[LINES[TETLINES[t->tinc][mm]][1]][2],delcon);
+         if ((Values[a0] < level && Values[a1] > level)
+                       || (Values[a0] > level && Values[a1] < level))
+         {
+            delcon=(level-Values[a0])/(Values[a1]-Values[a0]);
+
+            MidPoints[mm][0]=MidVal(Points[a0][0],Points[a1][0],delcon);
+            MidPoints[mm][1]=MidVal(Points[a0][1],Points[a1][1],delcon);
+            MidPoints[mm][2]=MidVal(Points[a0][2],Points[a1][2],delcon);
             NMids[mm]=TRUE;
             icon++;
          }
-         else if(Values[LINES[TETLINES[t->tinc][mm]][0]]
-                                  == Values[LINES[TETLINES[t->tinc][mm]][1]] &&
-                 Values[LINES[TETLINES[t->tinc][mm]][0]]==level)
+         else if(Values[a0] == Values[a1] && Values[a0]==level)
          {
             NMids[mm]=-1-TETLINES[t->tinc][mm];
             icon++;
+            if (numReg<4) { regApex[numReg++]=a0; }
+            if (numReg<4) { regApex[numReg++]=a1; }
          } /* line ontop of edge so store edge # */
-         else if(Values[LINES[TETLINES[t->tinc][mm]][0]]
-                                             == level && !exact && coinc !=1)
+         else if(Values[a0] == level)
          {
-            MidPoints[mm][0]=Points[LINES[TETLINES[t->tinc][mm]][0]][0];
-            MidPoints[mm][1]=Points[LINES[TETLINES[t->tinc][mm]][0]][1];
-            MidPoints[mm][2]=Points[LINES[TETLINES[t->tinc][mm]][0]][2];
-            NMids[mm]=TRUE;
-            icon++;
-            exact=TRUE;
+            for (nn=0,already=FALSE; nn<numReg; nn++)
+               if (regApex[nn]==a0) { already=TRUE; break; }
+            if (!already)
+            {
+               MidPoints[mm][0]=Points[a0][0];
+               MidPoints[mm][1]=Points[a0][1];
+               MidPoints[mm][2]=Points[a0][2];
+               NMids[mm]=TRUE;
+               icon++;
+               if (numReg<4) regApex[numReg++]=a0;
+            }
+            else
+               NMids[mm]=FALSE;
          }  /* line touches one vertex */
-         else if(Values[LINES[TETLINES[t->tinc][mm]][1]]==level &&
-                                                        !exact && coinc !=1)
+         else if(Values[a1]==level)
          {
-            MidPoints[mm][0]=Points[LINES[TETLINES[t->tinc][mm]][1]][0];
-            MidPoints[mm][1]=Points[LINES[TETLINES[t->tinc][mm]][1]][1];
-            MidPoints[mm][2]=Points[LINES[TETLINES[t->tinc][mm]][1]][2];
-            NMids[mm]=TRUE;
-            icon++;
-            exact=TRUE;
+            for (nn=0,already=FALSE; nn<numReg; nn++)
+               if (regApex[nn]==a1) { already=TRUE; break; }
+            if (!already)
+            {
+               MidPoints[mm][0]=Points[a1][0];
+               MidPoints[mm][1]=Points[a1][1];
+               MidPoints[mm][2]=Points[a1][2];
+               NMids[mm]=TRUE;
+               icon++;
+               if (numReg<4) regApex[numReg++]=a1;
+            }
+            else
+               NMids[mm]=FALSE;
          }  /* line touches one vertex */
          else
             NMids[mm]=FALSE;
@@ -243,9 +267,9 @@ double MidPoints[6][3];
 int NMids[6];
 #endif
 {
-   double conlist[4][3]; 
+   double conlist[4][3];
    int mm,nn,icon,oldNMids;
-            
+
    for(mm=0,icon=0;mm<6;mm++)
    {
       if (NMids[mm] == TRUE) /* a mid pt was found */
@@ -289,9 +313,9 @@ int NMids[6];
    }
 
 
-   if (icon == 3) 
+   if (icon == 3)
       allDrawPlane(conlist); /* 3 midpoints: easy - 1 triangle */
-   else if (icon == 4) 
+   else if (icon == 4)
                                   /* 4 mid points: split into 2 triangles */
       allSplitPlane(MidPoints,t,NMids);
    else if(icon!=1 && icon!=0 && icon!=2)
@@ -373,12 +397,12 @@ int NMids[6];
             next=mm;
          }
       }
-      if (icon==3)   
+      if (icon==3)
          break;
    }
    allDrawPlane(conlist);
-   
-   
+
+
    for(mm=0,icon=1;mm<6;mm++)
    {      /* find 4th pt and replace 1st pt that is diagonally opposite */
       if(NMids[mm]!=FALSE)
