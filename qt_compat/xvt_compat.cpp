@@ -74,6 +74,8 @@
 #include <QAction>
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QToolTip>
+#include <QHelpEvent>
 #include <QPlainTextEdit>
 #include <QIcon>
 #include <QTimer>
@@ -530,6 +532,15 @@ static WINDOW g_trappedWindow = NULL_WIN;
 
 class XvtWindow;
 static XvtWindow *enclosingXvtWindow(QWidget *w);
+static const char *findIconTooltip(int iconId); /* see qt_compat/tooltip_registry.cpp's
+                                    * g_iconTooltips -- looked up by XvtWindow::event()
+                                    * (QEvent::ToolTip) against the regions xvt_dwin_draw_icon()
+                                    * records below, so every icon drawn by the toolbar
+                                    * (builder.c's updateFloatingMenu) or an event dialog's
+                                    * Form/Position/Orientation/Scale tab strip
+                                    * (eventlib.c's updateEventOptions) gets a real tooltip
+                                    * with NO app-code changes needed -- both funnel through
+                                    * this one drawing primitive. */
 static void revertTaskMenuBarIfOwnedBy(WINDOW win); /* see definition near buildMenuBar,
                                     * below -- reverts TASK_WIN's bar back to the plain
                                     * real static menu if `win` is the current
@@ -565,6 +576,15 @@ public:
     QStatusBar *statBar = nullptr; /* see statbar_create(); nullptr if this window has no status bar */
     int resizeDispatchDepth = 0; /* see resizeEvent -- reentrancy guard against
                                    * synchronous recursive E_SIZE dispatch */
+    QVector<QPair<QRect, int>> iconTipRegions; /* user-requested -- hover tooltips for
+                                   * icons drawn via xvt_dwin_draw_icon() (the toolbar's
+                                   * event-type icons, an event dialog's Form/Position/
+                                   * Orientation/Scale tab icons, ...). Repopulated by
+                                   * xvt_dwin_draw_icon() every time it draws an icon on
+                                   * this window; reset by xvt_dwin_clear() (called at the
+                                   * start of every one of this app's E_UPDATE handlers,
+                                   * right before it redraws its icons) so a region can't
+                                   * outlive the icon it was drawn for. See event() below. */
     WINDOW comboMenuOwner = NULL_WIN; /* see xvt_menu_set_tree's redirect branch and
                                    * xvt_vobj_destroy -- set on TASK_WIN's widget to the
                                    * handle of whichever window's combined menu (e.g.
@@ -733,6 +753,34 @@ protected:
             dispatch(e);
         }
         QWidget::changeEvent(ev);
+    }
+    /* User-requested -- hover tooltips for the toolbar's event-type icons
+     * and an event dialog's Form/Position/Orientation/Scale tab icons.
+     * Both are drawn directly onto this window's backing pixmap by app
+     * code (builder.c's updateFloatingMenu, eventlib.c's
+     * updateEventOptions) via xvt_dwin_draw_icon() -- there's no separate
+     * Qt widget per icon to hang setToolTip() on, so intercept Qt's own
+     * QEvent::ToolTip (normally routed through QWidget::event(), not a
+     * dedicated virtual) and hit-test the cursor against the regions
+     * xvt_dwin_draw_icon() recorded in iconTipRegions above. */
+    bool event(QEvent *e) override
+    {
+        if (e->type() == QEvent::ToolTip) {
+            auto *he = static_cast<QHelpEvent *>(e);
+            for (const auto &region : iconTipRegions) {
+                if (region.first.contains(he->pos())) {
+                    if (const char *tip = findIconTooltip(region.second)) {
+                        QToolTip::showText(he->globalPos(), QString::fromLocal8Bit(tip), this, region.first);
+                        return true;
+                    }
+                    break;
+                }
+            }
+            QToolTip::hideText();
+            e->ignore();
+            return true;
+        }
+        return QWidget::event(e);
     }
     /* When nested as a QMdiSubWindow (see makeWindow), Qt delivers a
      * close request (clicking the subwindow's own [X]) to the
@@ -1516,6 +1564,20 @@ static const char *findTooltip(long resId, int ctlId)
     if (!resId) return nullptr;
     for (int i = 0; i < g_tooltipsCount; i++)
         if (g_tooltips[i].resId == resId && g_tooltips[i].ctlId == ctlId) return g_tooltips[i].text;
+    return nullptr;
+}
+
+/* Per-icon tooltip text (qt_compat/tooltip_registry.cpp), keyed by the
+ * *_ICON resource id (builder.h) rather than a dialog/ctlId pair -- see
+ * XvtWindow::event()'s use of this, and iconTipRegions' own comment. */
+struct IconTooltipEntry { int iconId; const char *text; };
+extern const IconTooltipEntry g_iconTooltips[];
+extern const int g_iconTooltipsCount;
+
+static const char *findIconTooltip(int iconId)
+{
+    for (int i = 0; i < g_iconTooltipsCount; i++)
+        if (g_iconTooltips[i].iconId == iconId) return g_iconTooltips[i].text;
     return nullptr;
 }
 
@@ -3485,6 +3547,13 @@ void xvt_dwin_clear(WINDOW win, COLOR color)
     if (!o) return;
     ensureBacking(o, o->widget ? qMax(1, o->widget->width()) : 1, o->widget ? qMax(1, o->widget->height()) : 1);
     o->backing.fill(toQColor(color));
+    /* Every icon-drawing E_UPDATE handler (builder.c's updateFloatingMenu,
+     * eventlib.c's updateEventOptions) clears the window before redrawing
+     * its icons from scratch -- reset the icon tooltip regions here too,
+     * so xvt_dwin_draw_icon() below only ever registers regions for icons
+     * that are actually still on screen (see iconTipRegions' own comment). */
+    if (auto *xw = dynamic_cast<XvtWindow *>(o->widget))
+        xw->iconTipRegions.clear();
     requestRepaint(o);
 }
 
@@ -3873,25 +3942,38 @@ void xvt_dwin_draw_icon(WINDOW win, short x, short y, int icon_id)
 {
     XvtObj *o = objFor(win);
     if (!o) return;
-    QPainter p(&o->backing);
-    if (const QPixmap *pm = loadIcon(icon_id)) {
-        /* Draw at the .ICO's own native resolution (32x32 for all of
-         * these) instead of forcing a fixed box -- forcing e.g. 20x20
-         * squashed/distorted them since that doesn't match their actual
-         * pixel size. */
-        p.drawPixmap(x, y, *pm);
-    } else {
-        const int size = 20;
-        /* No .ICO file for this id (or it failed to load) -- numbered
-         * placeholder so the toolbar still shows *something* there. */
-        QRect r(x, y, size, size);
-        p.setPen(QPen(Qt::darkGray));
-        p.setBrush(QColor(220, 220, 220));
-        p.drawRoundedRect(r, 3, 3);
-        p.setPen(Qt::black);
-        QFont f = p.font(); f.setPointSize(7); p.setFont(f);
-        p.drawText(r, Qt::AlignCenter, QString::number(icon_id));
+    QRect iconRect;
+    {
+        QPainter p(&o->backing);
+        if (const QPixmap *pm = loadIcon(icon_id)) {
+            /* Draw at the .ICO's own native resolution (32x32 for all of
+             * these) instead of forcing a fixed box -- forcing e.g. 20x20
+             * squashed/distorted them since that doesn't match their actual
+             * pixel size. */
+            p.drawPixmap(x, y, *pm);
+            iconRect = QRect(x, y, pm->width(), pm->height());
+        } else {
+            const int size = 20;
+            /* No .ICO file for this id (or it failed to load) -- numbered
+             * placeholder so the toolbar still shows *something* there. */
+            QRect r(x, y, size, size);
+            p.setPen(QPen(Qt::darkGray));
+            p.setBrush(QColor(220, 220, 220));
+            p.drawRoundedRect(r, 3, 3);
+            p.setPen(Qt::black);
+            QFont f = p.font(); f.setPointSize(7); p.setFont(f);
+            p.drawText(r, Qt::AlignCenter, QString::number(icon_id));
+            iconRect = r;
+        }
     }
+    /* User-requested -- hover tooltips for icons drawn here (the
+     * toolbar's event-type icons, an event dialog's Form/Position/
+     * Orientation/Scale tab icons). Record the rect this icon was JUST
+     * drawn at so XvtWindow::event() can hit-test it later; cleared by
+     * xvt_dwin_clear() at the start of the next redraw pass (see its own
+     * comment) so stale regions from a previous layout can't linger. */
+    if (auto *xw = dynamic_cast<XvtWindow *>(o->widget))
+        xw->iconTipRegions.append({iconRect, icon_id});
     requestRepaint(o);
 }
 

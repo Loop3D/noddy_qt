@@ -1415,3 +1415,55 @@ extern const TooltipEntry g_tooltips[] = {
 
 };
 extern const int g_tooltipsCount = (int)(sizeof(g_tooltips) / sizeof(g_tooltips[0]));
+
+/* ============================================================================
+ * Per-icon tooltips (user-requested), keyed by the *_ICON resource id
+ * (builder.h) rather than a dialog/ctlId pair -- these icons are drawn
+ * directly onto a window's backing pixmap (not as separate Qt widgets)
+ * by builder.c's updateFloatingMenu() (the toolbar's 14 event-type
+ * icons, hit-tested/created via menuEventHandler's E_MOUSE_DOWN) and
+ * eventlib.c's updateEventOptions() (an event dialog's Form/Position/
+ * Orientation/Scale tab icons down the right side, hit-tested by
+ * eventOptionsMouseUp()) -- both call the same xvt_dwin_draw_icon(),
+ * which is what actually records the hit-test region these are looked
+ * up against (see xvt_compat.cpp's XvtWindow::iconTipRegions/event()).
+ * ============================================================================
+ */
+struct IconTooltipEntry { int iconId; const char *text; };
+
+extern const IconTooltipEntry g_iconTooltips[] = {
+    /* Toolbar: the 14 event-type icons (builder.c's menuItems[]/tools[]) --
+     * click one to set that as the tool used when a new event icon is
+     * dropped into the History, or double-click to add it immediately. */
+    { 10000, "Pointer tool: click an existing\nevent's icon in the History to\nselect and edit it, instead of\ncreating a new one." },
+    { 10001, "Stratigraphy: an ordered sequence\nof flat-lying rock layers, forming\nthe base of every model." },
+    { 10002, "Fold: bends the layers below it\ninto a wave-like fold, with a\nchosen wavelength, amplitude and\norientation." },
+    { 10003, "Fault: displaces rock on either\nside of a surface by a chosen\nslip, dip and dip direction." },
+    { 10004, "Unconformity: an erosion surface,\nwith a new sequence of layers\ndeposited on top of it." },
+    { 10005, "Shear Zone: spreads fault-like\ndisplacement across a finite width\ninstead of a single surface." },
+    { 10006, "Dyke: a sheet-like intrusion of\nrock that cuts across the existing\nlayers." },
+    { 10007, "Plug: a roughly cylindrical or\nconical intrusion of rock, such as\na volcanic plug." },
+    { 10008, "Strain: applies a uniform 3x3\ndeformation (stretch, shear,\nrotation) to everything below it." },
+    { 10009, "Tilt: rotates everything below it\nby a chosen angle around a chosen\naxis." },
+    { 10010, "Foliation: records a planar fabric\norientation (dip and dip\ndirection) without deforming\nanything." },
+    { 10011, "Lineation: records a linear fabric\norientation (plunge and plunge\ndirection) without deforming\nanything." },
+    { 10012, "Stop: marks the end of the\nhistory -- any events after this\npoint are ignored by calculations." },
+    { 10013, "Import: brings in a block of\npre-computed geology from another\nfile." },
+    { 10014, "Generic: a placeholder event type\nwith freely labelled parameters,\nfor cases the other event types\ndon't cover." },
+
+    /* Event dialog: the Form/Position/Orientation/Scale tab icons down
+     * the right side of an event's options window (eventlib.c's tabs[]). */
+    { 10200, "Form: this event's shape/profile\nparameters (e.g. wavelength,\nalteration, geometry type)." },
+    { 10201, "Position: this event's X, Y, Z\nlocation in the model." },
+    { 10202, "Orientation: this event's dip,\ndip direction and/or pitch." },
+    { 10203, "Scale: this event's size\nparameters (e.g. wavelength,\namplitude, slip, radius)." },
+    { 10204, "Time: this event's relative\ntiming/duration, used to pace\nmovies/animations." },
+    { 10205, "Form (Surface): this event's\nshape expressed as a 3D grid\ninstead of a simple profile." },
+    { 10206, "Scale (Ellipsoid): the 3D\nellipsoidal extent of this event's\nzone of influence." },
+
+    /* Drawn directly on Section/Map/Block diagrams (nodwork2.c) to mark
+     * an event's location -- not part of the toolbar or tab strip, but
+     * drawn via the same xvt_dwin_draw_icon() primitive. */
+    { 10100, "Marks where this event is located\non the diagram." },
+};
+extern const int g_iconTooltipsCount = (int)(sizeof(g_iconTooltips) / sizeof(g_iconTooltips[0]));
