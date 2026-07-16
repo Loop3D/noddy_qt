@@ -38,14 +38,21 @@
 #     with Qt5 already on their search path.
 #
 # Usage (same on every platform, from the appropriate shell above):
-#   make                            # build ./noddy (or noddy.exe on Windows)
+#   make                            # build ./noddy (or noddy.exe / noddy.app)
 #   make clean
 # ============================================================================
 
 CXX      := g++
 CC       := gcc
 
-# ---- Platform detection --------------------------------------------------
+# ---- Source and Object Files -----------------------------------------------
+# Automatically finds all .c and .cpp files in the root and qt_compat directories
+SRCS_C   := $(wildcard *.c) $(wildcard qt_compat/*.c)
+SRCS_CXX := $(wildcard qt_compat/*.cpp)
+
+OBJS     := $(SRCS_C:.c=.o) $(SRCS_CXX:.cpp=.o)
+
+# ---- Platform detection ----------------------------------------------------
 # $(OS) is set to "Windows_NT" by the environment on Windows regardless of
 # shell (cmd.exe, PowerShell, or an MSYS2/MinGW shell) -- reliable even
 # though `uname` also works from an MSYS2 shell, since it's a plain env var
@@ -80,12 +87,16 @@ endif
 # ---- Executable name -------------------------------------------------------
 ifeq ($(NODDY_PLATFORM),Windows)
     TARGET := noddy.exe
+else ifeq ($(NODDY_PLATFORM),macOS)
+    # On macOS, the final output binary must sit deep inside a .app bundle folder structure
+    BUNDLE := noddy.app
+    TARGET := $(BUNDLE)/Contents/MacOS/noddy
 else
     TARGET := noddy
 endif
 
 
-# ---- Qt5 discovery ----------------------------------------------------------
+# ---- Qt5 discovery ---------------------------------------------------------
 # All three platforms use pkg-config to find Qt5's include/lib flags -- the
 # only difference is macOS Homebrew's Qt5 formula is "keg-only" (deliberately
 # not linked onto the default pkg-config search path, since Homebrew doesn't
@@ -151,52 +162,38 @@ endif
 ifeq ($(NODDY_PLATFORM),Windows)
     CXXFLAGS := $(filter-out -fPIC,$(CXXFLAGS))
     CFLAGS   := $(filter-out -fPIC,$(CFLAGS))
-    # MinGW's runtime needs this for Qt's exception-based event loop
-    # plumbing to unwind correctly across the app/Qt DLL boundary.
-    LDFLAGS  += -mthreads
-    # [Qt port ADDITION] todo.txt #64 -- application icon (noddy_win.rc,
-    # NODDY.ICO), compiled via MinGW's resource compiler and linked
-    # straight into the .exe. Windows-only: .rc/windres has no equivalent
-    # on Linux/macOS, where the app icon comes from the desktop file/.app
-    # bundle instead (not set up in this tree yet).
-    WINDRES         := windres
-    RESOURCE_OBJECTS := noddy_win.o
-else
-    RESOURCE_OBJECTS :=
 endif
 
-# All original application .c files are compiled as plain C (gcc) -- most of
-# this 1990s-2000s codebase uses old K&R-style function definitions that
-# C++ never supported, so compiling as C++ (-x c++) fails on those files
-# even though qt_compat/xvt.h itself is C++-compatible. Only xvt_compat.cpp
-# (the Qt5 implementation) is C++; the final link is done with g++ so the
-# C++/Qt runtime is pulled in correctly. Nothing in these .c files is
-# modified to make this work.
-#
-# noddylic.c is excluded: it's a separate standalone license-file-generator
-# utility with its own `main()` (a companion tool, not part of the noddy
-# binary itself) -- linking it in alongside noddy.c's main() is a link
-# error on any toolchain, XVT included.
-APP_SOURCES := $(filter-out noddylic.c,$(wildcard *.c))
-APP_OBJECTS := $(APP_SOURCES:.c=.o)
-
-COMPAT_SOURCES := qt_compat/xvt_compat.cpp qt_compat/dialog_registry.cpp qt_compat/dialog_positions.cpp qt_compat/menu_registry.cpp qt_compat/win_console.cpp qt_compat/tooltip_registry.cpp
-COMPAT_OBJECTS := $(COMPAT_SOURCES:.cpp=.o)
+# ---- Build Recipes ---------------------------------------------------------
 
 .PHONY: all clean
-all: $(TARGET)
 
-$(TARGET): $(APP_OBJECTS) $(COMPAT_OBJECTS) $(RESOURCE_OBJECTS)
-	$(CXX) -o $@ $^ $(LDFLAGS)
+all: $(TARGET)
+ifeq ($(NODDY_PLATFORM),macOS)
+	@echo "Creating macOS Bundle Structure and Info.plist..."
+	@mkdir -p $(BUNDLE)/Contents
+	@echo '<?xml version="1.0" encoding="UTF-8"?>' > $(BUNDLE)/Contents/Info.plist
+	@echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">' >> $(BUNDLE)/Contents/Info.plist
+	@echo '<plist version="1.0"><dict>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>CFBundleExecutable</key><string>noddy</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>CFBundleIdentifier</key><string>com.yourcompany.noddy</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>CFBundleName</key><string>Noddy</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>CFBundlePackageType</key><string>APPL</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>CFBundleShortVersionString</key><string>1.0</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>NSPrincipalClass</key><string>NSApplication</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '</dict></plist>' >> $(BUNDLE)/Contents/Info.plist
+endif
+
+$(TARGET): $(OBJS)
+	@mkdir -p $(dir $(TARGET))
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-qt_compat/%.o: qt_compat/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-noddy_win.o: noddy_win.rc NODDY.ICO
-	$(WINDRES) $< -O coff -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(APP_OBJECTS) $(COMPAT_OBJECTS) $(RESOURCE_OBJECTS) noddy noddy.exe
+	@echo "Cleaning up build artifacts..."
+	rm -f *.o
+	rm -f qt_compat/*.o
+	rm -f noddy noddy.exe
+	rm -rf noddy.app
