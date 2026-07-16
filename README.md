@@ -16,8 +16,8 @@ This port has allowed several new features to be added to the code:
 ## Compiled versions
 Compiled versions of the code are available for:
 - Windows (with all libraries suplied) https://github.com/Loop3D/noddy_windows 
-- MacOS (requires Qt5 libraries to be installed, see below) https://github.com/Loop3D/noddy_macos (coming soon)
-- Ubuntu (requires Qt5 libraries to be installed, see below) https://github.com/Loop3D/noddy_ubuntu (coming soon) 
+- MacOS https://github.com/Loop3D/noddy_macos 
+- Ubuntu (requires Qt5 libraries to be installed, see below) https://github.com/Loop3D/noddy_ubuntu 
 ## Porting information
 
 The original GUI was built on **XVT**, a  cross-platform C
