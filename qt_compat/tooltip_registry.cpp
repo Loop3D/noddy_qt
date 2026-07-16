@@ -60,15 +60,15 @@ extern const TooltipEntry g_tooltips[] = {
  * that also carry a lineation (fold hinge, slip direction) needing a
  * pitch, unlike DDD's dip/dip-direction-only pair below. ===== */
 { 140, 1, "Groups the dip, dip direction and pitch\nfields describing this surface's\norientation." },
-{ 140, 2, "Dip direction: the compass direction\n(0-360 degrees, clockwise from north)\nthat the surface dips towards -- the\ndirection water would run if poured onto\nit." },
-{ 140, 3, "Dip: the angle, in degrees, between this\nsurface and the horizontal, measured\nperpendicular to strike -- 0 is\nflat-lying, 90 is vertical." },
-{ 140, 4, "Pitch: the angle, in degrees, between a\nlineation on this surface (e.g. a fold\nhinge or slip direction) and the\nsurface's strike line, measured within\nthe surface itself." },
-{ 140, 5, "Dip direction: the compass direction\n(0-360 degrees, clockwise from north)\nthat the surface dips towards." },
-{ 140, 6, "Dip: the angle, in degrees, between this\nsurface and the horizontal, measured\nperpendicular to strike." },
-{ 140, 7, "Pitch: the angle, in degrees, between a\nlineation on this surface and its strike\nline, measured within the surface\nitself." },
-{ 140, 8, "Dip direction: the compass direction\n(0-360 degrees, clockwise from north)\nthat the surface dips towards." },
-{ 140, 9, "Pitch: the angle, in degrees, between a\nlineation on this surface and its strike\nline, measured within the surface\nitself." },
-{ 140, 10, "Dip: the angle, in degrees, between this\nsurface and the horizontal, measured\nperpendicular to strike." },
+{ 140, 2, "Dip direction: the compass direction\n(0-360 degrees, clockwise from north)\nthat the fold axial surface dips towards\nthe direction water would run if poured onto\nit." },
+{ 140, 3, "Dip: the angle, in degrees, between the\nsurface and the horizontal, measured\nperpendicular to strike -- 0 is\nflat-lying, 90 is vertical." },
+{ 140, 4, "Pitch: the angle, in degrees, between a\nlineation on this surface (e.g. a\nfold hinge or slip direction) and the\nsurface's strike line, measured within\nthe surface itself." },
+{ 140, 5, "Dip direction: the compass direction\n(0-360 degrees, clockwise from north)\nthat the fold axial surface dips towards\nthe direction water would run if poured onto\nit." },
+{ 140, 6, "Dip: the angle, in degrees, between the\nsurface and the horizontal, measured\nperpendicular to strike -- 0 is\nflat-lying, 90 is vertical." },
+{ 140, 7, "Pitch: the angle, in degrees, between a\nlineation on this surface (e.g. a\nfold hinge or slip direction) and the\nsurface's strike line, measured within\nthe surface itself." },
+{ 140, 8, "Dip direction: the compass direction\n(0-360 degrees, clockwise from north)\nthat the fold axial surface dips towards." },
+{ 140, 9, "Pitch: the angle, in degrees, between a\nlineation on this surface (e.g. a\nfold hinge or slip direction) and the\nsurface's strike line, measured within\nthe surface itself." },
+{ 140, 10, "Dip: the angle, in degrees, between the\nsurface and the horizontal, measured\nperpendicular to strike." },
 
 /* ===== 141: ROTATION WINDOW -- Tilt event's "Scale" tab (the rotation
  * amount; the axis point and orientation live on the Position/
@@ -192,12 +192,12 @@ extern const TooltipEntry g_tooltips[] = {
 { 153, 1, "Groups the fold's Scale controls:\nwavelength, amplitude and cyclicity." },
 { 153, 2, "Wavelength: the distance, in metres,\nover which the fold's profile repeats\none full cycle." },
 { 153, 3, "Amplitude: half the vertical distance,\nin metres, between the fold's crest and\ntrough -- how tight or open the fold is." },
-{ 153, 4, "Cyclicity: how many times the fold's\nprofile repeats; higher values produce a\ntrain of several fold cycles instead of\na single one." },
+{ 153, 4, "Cyclicity: how strongly fold\namplitude decays along its axis; higher values produce\nmore elongate folds\n0 = completelty cylindrical." },
 { 153, 5, "Wavelength: the distance, in metres,\nover which the fold's profile repeats\none full cycle." },
 { 153, 6, "Amplitude: half the vertical distance,\nin metres, between the fold's crest and\ntrough -- how tight or open the fold is." },
-{ 153, 7, "Cyclicity: how many times the fold's\nprofile repeats; higher values produce a\ntrain of several fold cycles instead of\na single one." },
+{ 153, 7, "Cyclicity: how strongly fold\namplitude decays along its axis; higher values produce\nmore elongate folds\n0 = completelty cylindrical" },
 { 153, 8, "Wavelength: the distance, in metres,\nover which the fold's profile repeats\none full cycle." },
-{ 153, 9, "Cyclicity: how many times the fold's\nprofile repeats; higher values produce a\ntrain of several fold cycles instead of\na single one." },
+{ 153, 9, "Cyclicity: how strongly fold\namplitude decays along its axis; higher values produce\nmore elongate folds\n0 = completelty cylindrical" },
 { 153, 10, "Amplitude: half the vertical distance,\nin metres, between the fold's crest and\ntrough -- how tight or open the fold is." },
 
 /* ===== 154: TGMA WINDOW (tgmawin.c) -- Shear Zone event's "Form" tab
@@ -362,8 +362,8 @@ extern const TooltipEntry g_tooltips[] = {
 /* ===== 169: STRATIGRAPHY WINDOW -- manages the ordered list of rock
  * units for a Stratigraphy event (the base of the model, or a Layers
  * page on an Unconformity). ===== */
-{ 169, 1, "The ordered list of rock units in this\nstratigraphic sequence, from youngest\n(top) to oldest (bottom) -- double-click\n(or Edit) a unit to set its properties." },
-{ 169, 2, "Adds a new rock unit to the\nstratigraphic sequence." },
+{ 169, 1, "The ordered list of rock units in this\nstratigraphic sequence, from youngest\n(top) to oldest (bottom)\nSelect a unit then Edit to set its properties." },
+{ 169, 2, "Adds a new rock unit to the\nstratigraphic sequence.\nbeneatht the currently selected unit" },
 { 169, 3, "Removes the selected rock unit from the\nstratigraphic sequence." },
 { 169, 4, "Opens the rock-property editor for the\nselected unit (name, density,\nsusceptibility, colour, etc.)." },
 { 169, 5, "Moves the selected rock unit up\n(younger) in the sequence." },
