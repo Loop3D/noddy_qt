@@ -1032,12 +1032,15 @@ int xvt_app_create(int argc, char **argv, long /*flags*/, WIN_EVENT_HANDLER task
      * taskbar/window-switcher icon on X11/Wayland via _NET_WM_ICON) and
      * the task window's own titlebar icon explicitly, since a top-level
      * window doesn't always inherit the application icon depending on
-     * window manager. NODDY.ICO is the real icon from the original
-     * resource file (qt_compat/icons/, see loadIcon's provenance comment
-     * for how the other .ICO files were recovered the same way). */
+     * window manager. Prefers qt_compat/icons/png/NODDY.png, same as
+     * loadIcon() does for every other event icon (a repainted-color
+     * replacement for the old 16-colour qt_compat/icons/NODDY.ICO), and
+     * falls back to the .ICO if the PNG is ever missing. */
     {
-        QString iconPath = QCoreApplication::applicationDirPath() + "/qt_compat/icons/NODDY.ICO";
+        QString iconPath = QCoreApplication::applicationDirPath() + "/qt_compat/icons/png/NODDY.png";
         QIcon appIcon(iconPath);
+        if (appIcon.isNull())
+            appIcon = QIcon(QCoreApplication::applicationDirPath() + "/qt_compat/icons/NODDY.ICO");
         if (!appIcon.isNull()) {
             g_app->setWindowIcon(appIcon);
             taskWidget->setWindowIcon(appIcon);

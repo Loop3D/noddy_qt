@@ -164,6 +164,19 @@ ifeq ($(NODDY_PLATFORM),Windows)
     CFLAGS   := $(filter-out -fPIC,$(CFLAGS))
 endif
 
+# [Qt port fix] todo.txt #64: noddy_win.rc (gives noddy.exe its application
+# icon, see that file) existed in the tree but was never actually wired
+# into a build rule here -- windres was never invoked and nothing was
+# linked in, so Windows builds silently produced an exe with no custom
+# icon at all. Windows-only, since windres/.rc resources aren't a thing
+# on Linux/macOS.
+ifeq ($(NODDY_PLATFORM),Windows)
+    OBJS += noddy_win.o
+endif
+
+%.o: %.rc
+	windres $< -o $@
+
 # ---- Build Recipes ---------------------------------------------------------
 
 .PHONY: all clean
