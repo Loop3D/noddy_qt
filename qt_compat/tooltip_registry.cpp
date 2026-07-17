@@ -1441,7 +1441,7 @@ extern const IconTooltipEntry g_iconTooltips[] = {
     { 10003, "Fault: displaces rock on either\nside of a surface by a chosen\nslip, dip and dip direction.\nStratigraphy icon must be present in the History window." },
     { 10004, "Unconformity: an erosion surface,\nwith a new sequence of layers\ndeposited on top of it.\nStratigraphy icon must be present in the History window." },
     { 10005, "Shear Zone: spreads fault-like\ndisplacement across a finite width\ninstead of a single surface.\nStratigraphy icon must be present in the History window." },
-    { 10006, "Dyke: a sheet-like intrusion of\nrock that cuts across the existingvlayers.\nStratigraphy icon must be present in the History window." },
+    { 10006, "Dyke: a sheet-like intrusion of\nrock that cuts across the existing layers.\nStratigraphy icon must be present in the History window." },
     { 10007, "Plug: a roughly cylindrical or\nconical intrusion of rock, such as a magmatic plug.\nStratigraphy icon must be present in the History window." },
     { 10008, "Strain: applies a uniform 3x3\ndeformation (stretch, shear,\nrotation) to everything below it.\nStratigraphy icon must be present in the History window." },
     { 10009, "Tilt: rotates everything below it\nby a chosen angle around a chosen axis.\nStratigraphy icon must be present in the History window." },
