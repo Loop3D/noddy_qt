@@ -179,7 +179,7 @@ endif
 
 # ---- Build Recipes ---------------------------------------------------------
 
-.PHONY: all clean
+.PHONY: all clean dmg
 
 all: $(TARGET)
 ifeq ($(NODDY_PLATFORM),macOS)
@@ -193,11 +193,14 @@ ifeq ($(NODDY_PLATFORM),macOS)
 	@echo '  <key>CFBundleName</key><string>Noddy</string>' >> $(BUNDLE)/Contents/Info.plist
 	@echo '  <key>CFBundlePackageType</key><string>APPL</string>' >> $(BUNDLE)/Contents/Info.plist
 	@echo '  <key>CFBundleShortVersionString</key><string>1.0</string>' >> $(BUNDLE)/Contents/Info.plist
+	@echo '  <key>CFBundleIconFile</key><string>AppIcon</string>' >> $(BUNDLE)/Contents/Info.plist
 	@echo '  <key>NSPrincipalClass</key><string>NSApplication</string>' >> $(BUNDLE)/Contents/Info.plist
 	@echo '</dict></plist>' >> $(BUNDLE)/Contents/Info.plist
 	@echo "Copying icons into bundle..."
 	@mkdir -p $(dir $(TARGET))/qt_compat
 	@cp -R qt_compat/icons $(dir $(TARGET))/qt_compat/
+	@mkdir -p $(BUNDLE)/Contents/Resources
+	@cp qt_compat/icons/NODDY.icns $(BUNDLE)/Contents/Resources/AppIcon.icns
 endif
 
 $(TARGET): $(OBJS)
@@ -207,9 +210,48 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# ---- macOS .dmg packaging ---------------------------------------------------
+# `make dmg` builds noddy.app (via the `all` dependency) and packages it into
+# noddy.dmg. A plain .icns embedded in the .app's Info.plist only controls
+# how the *app* looks once you open the disk image -- Finder shows a
+# separate, unrelated generic icon for the .dmg file itself unless one is
+# explicitly stamped onto it. That's done the classic (pre-App-Sandbox)
+# way, since there's no `hdiutil` flag for it: `sips -i` embeds the .icns
+# as an 'icns' resource inside a scratch copy of itself, `DeRez`/`Rez`
+# transplant that resource into the .dmg's own resource fork, and
+# `SetFile -a C` flips the Finder-info "has custom icon" bit that tells
+# Finder to display it instead of the generic disk-image icon. This has to
+# be redone on every rebuild -- it's a property of that specific .dmg file
+# (its resource fork + Finder flags), not something `hdiutil create`
+# preserves from a previous run.
+DMG_NAME    := noddy.dmg
+DMG_VOLNAME := Noddy
+DMG_STAGING := dmg_staging
+
+dmg: all
+ifeq ($(NODDY_PLATFORM),macOS)
+	@echo "Packaging $(DMG_NAME)..."
+	@rm -rf $(DMG_STAGING) $(DMG_NAME)
+	@mkdir -p $(DMG_STAGING)
+	@cp -R $(BUNDLE) $(DMG_STAGING)/
+	@hdiutil create -volname "$(DMG_VOLNAME)" -srcfolder $(DMG_STAGING) -format UDZO -fs HFS+ $(DMG_NAME)
+	@rm -rf $(DMG_STAGING)
+	@echo "Stamping custom icon onto $(DMG_NAME)..."
+	@cp $(BUNDLE)/Contents/Resources/AppIcon.icns $(DMG_STAGING).icns
+	@sips -i $(DMG_STAGING).icns >/dev/null
+	@DeRez -only icns $(DMG_STAGING).icns > $(DMG_STAGING).rsrc
+	@Rez -append $(DMG_STAGING).rsrc -o $(DMG_NAME)
+	@SetFile -a C $(DMG_NAME)
+	@rm -f $(DMG_STAGING).icns $(DMG_STAGING).rsrc
+	@echo "Created $(DMG_NAME)"
+else
+	@echo "make dmg is only supported on macOS"
+endif
+
 clean:
 	@echo "Cleaning up build artifacts..."
 	rm -f *.o
 	rm -f qt_compat/*.o
 	rm -f noddy noddy.exe
 	rm -rf noddy.app
+	rm -rf $(DMG_STAGING) $(DMG_STAGING).icns $(DMG_STAGING).rsrc
