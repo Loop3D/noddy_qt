@@ -182,6 +182,9 @@ ifeq ($(NODDY_PLATFORM),macOS)
 	@echo '  <key>CFBundleShortVersionString</key><string>1.0</string>' >> $(BUNDLE)/Contents/Info.plist
 	@echo '  <key>NSPrincipalClass</key><string>NSApplication</string>' >> $(BUNDLE)/Contents/Info.plist
 	@echo '</dict></plist>' >> $(BUNDLE)/Contents/Info.plist
+	@echo "Copying icons into bundle..."
+	@mkdir -p $(dir $(TARGET))/qt_compat
+	@cp -R qt_compat/icons $(dir $(TARGET))/qt_compat/
 endif
 
 $(TARGET): $(OBJS)
