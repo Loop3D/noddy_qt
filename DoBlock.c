@@ -149,13 +149,113 @@ int resolution;
    else if (blockDiagram->boreHoles)
       drawBlockBoreHoles (blockDiagram);
    else
-   {   
+   {
       drawBlockSurfaces (blockDiagram);
-   
+
       xvt_vobj_get_client_rect (win, &border);
       directionPos.h = 35;
       directionPos.v = border.bottom - 35;
       drawDirectionIndicator (win, directionPos);
+   }
+
+                           /* *********************************************** */
+                           /* [Feature ADDITION] user-requested: label the two
+                           ** opposite corners of the block with their real-
+                           ** world (X,Y,Z) coordinates, tracking rotation/
+                           ** zoom automatically since DoBlockDiagram() re-runs
+                           ** on every redraw. Placed HERE (not inside
+                           ** renderBlockDiagram(), where an earlier attempt
+                           ** silently never ran) because initBlockDiagramData()
+                           ** leaves blockDiagram->blockData NULL until the
+                           ** user explicitly picks a cube/property Display
+                           ** Type -- the DEFAULT view goes through the
+                           ** drawBlockSurfaces() branch above instead, so
+                           ** code living only inside renderBlockDiagram()
+                           ** never executes for the common case. This point
+                           ** covers all three branches uniformly. */
+   {
+      Point3d cornerPt, centerPt, start3d, end3d;
+      Point2d cornerScreen, centerScreen;
+      char cornerLabel[64];
+      RCT clientRect;
+      int textW, sx, sy;
+      COLOR invColor;
+      double minY, maxY, minZ, maxZ;
+      double dx, dy, len, ux, uy;
+      const double OUTSET = 22.0;  /* pixels clear of the block's own silhouette */
+
+      minY = blockDiagram->minYLoc;
+      maxY = minY + blockDiagram->ny*blockDiagram->blockSize;
+      minZ = blockDiagram->minZLoc;
+      maxZ = minZ + blockDiagram->nz*blockDiagram->blockSize;
+
+      /* Local-draw-space remapping: x=real Y, y=real Z (matching
+      ** renderBlockDiagram/drawBlockDiagramFrame, and confirmed correct --
+      ** N/S and up/down both land right). The real-X (Easting) axis,
+      ** by contrast, is mirrored specifically in drawBlockSurfaces()
+      ** (calc3d.c, the actual path drawing the default view) relative to
+      ** that DoBlock.c convention -- user report: the max-corner label
+      ** landed NW instead of NE and the min-corner label SE instead of SW,
+      ** a pure east-west flip with north-south/vertical unaffected. Feed
+      ** the OPPOSITE real-X extreme into local z here (min<->maxX
+      ** swapped) so the projected position matches drawBlockSurfaces'
+      ** actual on-screen geometry, while the label TEXT below still
+      ** reports the true min/max X value for that corner. */
+      start3d.x = minY; start3d.y = minZ; start3d.z = maxX;
+      end3d.x   = maxY; end3d.y   = maxZ; end3d.z   = minX;
+      centerPt.x = (start3d.x + end3d.x) / 2.0;
+      centerPt.y = (start3d.y + end3d.y) / 2.0;
+      centerPt.z = (start3d.z + end3d.z) / 2.0;
+
+      xvt_vobj_get_client_rect (win, &clientRect);
+      invColor = XVT_MAKE_COLOR ((unsigned char) (255 - XVT_GET_RED(backgroundColor)),
+                                  (unsigned char) (255 - XVT_GET_GREEN(backgroundColor)),
+                                  (unsigned char) (255 - XVT_GET_BLUE(backgroundColor)));
+      xvt_dwin_set_fore_color (win, invColor);
+
+      ApplyTransform (&centerPt, &centerPt, &xFormViewer);
+      Project (&centerPt, &centerScreen);
+
+      /* [user-requested] push each label out along the screen-space
+      ** direction from the block's own centre through that corner, so it
+      ** clears the drawn silhouette (rather than sitting right on/inside
+      ** the vertex) at any rotation/zoom -- not just a fixed pixel nudge,
+      ** which only reliably clears the block for some camera angles. */
+      cornerPt = start3d;
+      ApplyTransform (&cornerPt, &cornerPt, &xFormViewer);
+      Project (&cornerPt, &cornerScreen);
+      dx = cornerScreen.x - centerScreen.x; dy = cornerScreen.y - centerScreen.y;
+      len = sqrt(dx*dx + dy*dy); if (len < 1.0) len = 1.0;
+      ux = dx/len; uy = dy/len;
+      sprintf (cornerLabel, "%.0f,%.0f,%.0f", minX, minY, minZ);
+      textW = xvt_dwin_get_text_width (win, cornerLabel, -1);
+      sx = Fix2Int(cornerScreen.x + ux*OUTSET);
+      sy = Fix2Int(cornerScreen.y + uy*OUTSET);
+      if (ux < 0.0) sx -= textW;      /* anchor so text extends further away from the block, not back over it */
+      if (uy < 0.0) sy -= 4; else sy += 12;
+      if (sx + textW > clientRect.right - 2)  sx = clientRect.right - 2 - textW;
+      if (sx < clientRect.left + 2)            sx = clientRect.left + 2;
+      if (sy > clientRect.bottom - 2)          sy = clientRect.bottom - 2;
+      if (sy < clientRect.top + 12)            sy = clientRect.top + 12;
+      xvt_dwin_draw_text (win, (short) sx, (short) sy, cornerLabel, -1);
+
+      cornerPt = end3d;
+      ApplyTransform (&cornerPt, &cornerPt, &xFormViewer);
+      Project (&cornerPt, &cornerScreen);
+      dx = cornerScreen.x - centerScreen.x; dy = cornerScreen.y - centerScreen.y;
+      len = sqrt(dx*dx + dy*dy); if (len < 1.0) len = 1.0;
+      ux = dx/len; uy = dy/len;
+      sprintf (cornerLabel, "%.0f,%.0f,%.0f", maxX, maxY, maxZ);
+      textW = xvt_dwin_get_text_width (win, cornerLabel, -1);
+      sx = Fix2Int(cornerScreen.x + ux*OUTSET);
+      sy = Fix2Int(cornerScreen.y + uy*OUTSET);
+      if (ux < 0.0) sx -= textW;
+      if (uy < 0.0) sy -= 4; else sy += 12;
+      if (sx + textW > clientRect.right - 2)  sx = clientRect.right - 2 - textW;
+      if (sx < clientRect.left + 2)            sx = clientRect.left + 2;
+      if (sy > clientRect.bottom - 2)          sy = clientRect.bottom - 2;
+      if (sy < clientRect.top + 12)            sy = clientRect.top + 12;
+      xvt_dwin_draw_text (win, (short) sx, (short) sy, cornerLabel, -1);
    }
 
 /*            Calculation keeping block in memory

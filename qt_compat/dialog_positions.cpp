@@ -404,6 +404,22 @@ static const DialogCtlPosition g_pos_137[] = {
  * "close enough, not pixel-exact" as this file's other screenshot-based
  * entries), not exact -- unlike the NoddyNG.rc-derived entries below,
  * there's no real resource data backing these.
+ *
+ * [Bug fix] user report: preview panes did not update for the Block tab's
+ * Dimension X/Y/Z fields (dimwin.c) here, while an event dialog's own
+ * fields (e.g. Fold's FSCL_AMPLITUDE) worked fine. Root cause: without a
+ * titleOverride, this window's title fell back to dialog_registry.cpp's
+ * auto-generated raw name, "OPTIONS WINDOW" -- but nodwork1.c's
+ * update3dPreviewImpl (the shared preview-refresh routine) only commits
+ * the just-edited fields into the live BLOCK_VIEW_OPTIONS struct
+ * (saveOptions()) when the preview's parent window's title is exactly
+ * "Options" or contains "- Options" (case-sensitive strcmp/strstr) --
+ * neither matched "OPTIONS WINDOW", so edits to any field here (not just
+ * Dimension) were silently never saved before the preview redrew, always
+ * showing stale values. Event dialogs (Fold etc.) don't go through this
+ * title check at all -- they pass a real OBJECT* straight to
+ * update3dPreview(), which takes an entirely different, unaffected branch
+ * (saveEventOptions()). Fixed by giving this entry a real titleOverride.
  * ---------------------------------------------------------------------- */
 static const DialogCtlPosition g_pos_183[] = {
     /* Both the Option Selection groupbox+dropdown and the Preview
@@ -1198,6 +1214,33 @@ static const DialogCtlPosition g_pos_125[] = {
 };
 
 /* ----------------------------------------------------------------------
+ * DLG_126, "About Noddy" -- reconstructed from a real screenshot the user
+ * provided in-conversation of the app's actual About box (Noddy logo top
+ * left, "Noddy <version>" title, OK top right, licence line, then a
+ * credits paragraph). nodInc.h only recovers 8 TEXT ctlIds + the OK
+ * button, no pixel positions or original static strings (those lived in
+ * the compiled .uid resource, not in this repo) -- the strings themselves
+ * are set directly in aboutBox.c's E_CREATE (see that file; ctlIds 3/4,
+ * DLG_126_TEXT_2/_3, are left unset/blank there, kept here only as
+ * harmless zero-text placeholders), this table just places them. ctlId 6
+ * (DLG_126_TEXT_5, the licence name) and the logo itself get special-
+ * cased bold font/pixmap treatment in xvt_compat.cpp's
+ * createPositionedWindow (search for "resId == 126"), since
+ * DialogCtlPosition has no font field and the logo isn't a registered
+ * control at all in nodInc.h. */
+static const DialogCtlPosition g_pos_126[] = {
+    { 1, 336, 16, 400, 40, WC_PUSHBUTTON, "OK" },                  /* DLG_ABOUT_CANCEL */
+    { 2,  96, 14, 240, 46 },                                       /* DLG_126_TEXT_1 "Noddy" */
+    { 9, 240, 14, 330, 46 },                                       /* DLG_126_TEXT_9 version, dynamic */
+    { 3,  16, 62, 404, 78, WC_TEXT, "" },                          /* DLG_126_TEXT_2, unused (aboutBox.c no longer sets it) */
+    { 4,  16, 78, 404, 94, WC_TEXT, "" },                          /* DLG_126_TEXT_3, unused (aboutBox.c no longer sets it) */
+    { 5, 110, 66, 168, 82, WC_TEXT },                              /* DLG_126_TEXT_4 "Licence:" */
+    { 6, 168, 66, 320, 82 },                                       /* DLG_126_TEXT_5 licence name */
+    { 7,  16, 96, 404, 186, WC_TEXT },                             /* DLG_126_TEXT_7 credits para 1 */
+    { 8,  16, 196, 404, 256, WC_TEXT },                            /* DLG_126_TEXT_8 credits para 2 */
+};
+
+/* ----------------------------------------------------------------------
  * OPTIONS_WINDOW's "Volume/Surface" tab (optnlib.c VOLUME_SURFACE_OP
  * case): VOLUME_WINDOW(216) then SURFACE_SELECTION_WINDOW(215) stacked
  * vertically. Reconstructed from noddy_help_lowercase/IMG00088.GIF
@@ -1607,7 +1650,7 @@ extern const DialogPositionEntry g_dialogPositions[] = {
     { 161, 260,  98, g_pos_161, (int)(sizeof(g_pos_161)/sizeof(g_pos_161[0])) },
     { 164, 205,  24, g_pos_164, (int)(sizeof(g_pos_164)/sizeof(g_pos_164[0])) },
     { 163, 205,  74, g_pos_163, (int)(sizeof(g_pos_163)/sizeof(g_pos_163[0])) },
-    { 183, 740, 605, g_pos_183, (int)(sizeof(g_pos_183)/sizeof(g_pos_183[0])) },
+    { 183, 740, 605, g_pos_183, (int)(sizeof(g_pos_183)/sizeof(g_pos_183[0])), "Options" },
     { 211, 280, 210, g_pos_211, (int)(sizeof(g_pos_211)/sizeof(g_pos_211[0])) },
     { 210, 280, 210, g_pos_210, (int)(sizeof(g_pos_210)/sizeof(g_pos_210[0])) },
     { 187, 280,  95, g_pos_187, (int)(sizeof(g_pos_187)/sizeof(g_pos_187[0])) },
@@ -1640,6 +1683,7 @@ extern const DialogPositionEntry g_dialogPositions[] = {
     { 208, 175,  75, g_pos_208, (int)(sizeof(g_pos_208)/sizeof(g_pos_208[0])) },
     { 207, 200,  20, g_pos_207, (int)(sizeof(g_pos_207)/sizeof(g_pos_207[0])) },
     { 125, 335, 200, g_pos_125, (int)(sizeof(g_pos_125)/sizeof(g_pos_125[0])), "Topography Options" },
+    { 126, 420, 280, g_pos_126, (int)(sizeof(g_pos_126)/sizeof(g_pos_126[0])), "About Noddy" },
     { 216, 360,  55, g_pos_216, (int)(sizeof(g_pos_216)/sizeof(g_pos_216[0])) },
     { 215, 360, 230, g_pos_215, (int)(sizeof(g_pos_215)/sizeof(g_pos_215[0])) },
     { 209, 360, 165, g_pos_209, (int)(sizeof(g_pos_209)/sizeof(g_pos_209[0])) },

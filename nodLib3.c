@@ -2669,8 +2669,23 @@ int *error;
 		*error = TRUE;
 	else
 	{
-		/*value = topoArray[topoX][numTopoY-topoY+1];   .* Changed 9/4/97 - because draped survery was around the wrong way */
-		value = topoArray[topoX][topoY];
+		/* [Bug fix] user report: topography in block models (the "Show
+		** Topo" cube-culling checkbox, nodLib2.c's filterBlockDataAboveTopo,
+		** the only real caller of this function today) came out flipped
+		** N-S. Verified empirically against a real .top file plus an
+		** independently-rendered reference image of the same grid (a
+		** course lab's topo.top/topo..tif pair): the file's first data row
+		** is the NORTH edge, but topoY here is computed to increase with
+		** increasing real-world Y (i.e. topoY==1 at the SOUTH edge) --
+		** so topoArray[topoX][topoY] fetched the opposite row from the one
+		** actually asked for. Restored the reversal this function used to
+		** have (removed 9/4/97 per the comment this replaces, "because
+		** draped survery was around the wrong way") -- whatever test file
+		** motivated that change evidently used the opposite row order from
+		** modern .top files; overlayTopoOnArray (nodLib3.c, used by
+		** block.c/DoSect.c/calcanom.c/ldotmap.c's topo draping) still has
+		** this same reversal and was NOT the bug. */
+		value = topoArray[topoX][numTopoY-topoY+1];
 		*error = FALSE;
 	}
    

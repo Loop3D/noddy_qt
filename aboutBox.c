@@ -59,12 +59,21 @@ EVENT *xdEvent;
 		{
 		/* TAG BEGIN EVNT:Create */
 		char versionString[50];
-#include "Licence.h"
 #include "noddy.h"
-		
-		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_4), (char *) registrationID);
-		sprintf(versionString, "%.2lf %s",(double) VERSION_NUMBER, VERSION_TYPE);
+
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_1), "Noddy");
+		sprintf(versionString, "%.2lf",(double) VERSION_NUMBER);
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_9), (char *) versionString);
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_4), "Licence:");
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_5), "MIT");
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_7),
+			"Noddy has been developed by Dr M.W.Jessell at Imperial College, Monash University and UWA\n"
+			"Copyright 1981-2026 - M.W.Jessell\n"
+			"\n"
+			"This software is provided 'as-is', without any implied warranty.");
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_8),
+			"Additional coding by Encom Technology\n"
+			"All requests for support should go via github.com/loop3d/noddy_qt");
 		/* TAG END EVNT:Create */
 		}
 		break;

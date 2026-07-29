@@ -997,6 +997,27 @@ static QApplication *g_app = nullptr;
 static void ensureQApp()
 {
     if (g_app) return;
+    /* [Bug fix] user report: on a Windows machine with a very high-
+     * resolution display (>3000px wide -- i.e. a 4K/5K panel at a Windows
+     * display-scaling setting well above 100%), every icon and dialog came
+     * out tiny. This whole UI is laid out in hardcoded logical-pixel
+     * rects (dialog_positions.cpp etc, reconstructed from ~1994-2009-era
+     * low-DPI screenshots) with no DPI awareness of its own. Qt5 apps are
+     * high-DPI-UNAWARE by default -- Windows then either bitmap-stretches
+     * the whole (blurry but correctly sized) app, or, if something already
+     * marked the process DPI-aware (Qt5's own qwindows platform plugin
+     * does exactly that internally), Windows does NOT stretch it and every
+     * logical pixel this app draws maps 1:1 to a physical pixel, rendering
+     * a "320x200" dialog at its literal 1994 pixel size on a screen with
+     * 2-3x the pixel density -- reads as "everything is tiny". Both
+     * attributes must be set before the QApplication is constructed to
+     * take effect; AA_EnableHighDpiScaling makes Qt scale all logical-
+     * pixel layout by the OS's reported scale factor (so that same
+     * "320x200" dialog actually occupies ~640x400 physical pixels at
+     * 200%), and AA_UseHighDpiPixmaps does the same for icon/pixmap
+     * assets so they aren't upscaled blurry after the fact. */
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     static int fakeArgc = 1;
     static char fakeProgName[] = "noddy";
     static char *fakeArgv[] = { fakeProgName, nullptr };
@@ -1983,6 +2004,26 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
             sendControlEvent(parentWin, ctlId, h, type);
         });
     } else if (auto *le = qobject_cast<QLineEdit *>(w)) {
+        /* [Bug fix] user report: preview panes in options/event dialogs
+         * (e.g. Options > Block > Dimension's X/Y/Z fields, dimwin.c) never
+         * reflected a typed edit until the field lost focus. Real XVT's
+         * WC_EDIT "contents changed" E_CONTROL (xdEvent->v.ctl.ci.v.edit.
+         * focus_change == FALSE) is the Win32 EN_CHANGE equivalent -- it
+         * fires on every keystroke, not just on commit/blur (matches every
+         * app handler's own shape: `if (focus_change) {...} else { the
+         * real work, e.g. updateScrollAndText()+update3dPreview() }`, which
+         * only ever ran the real branch, so it needed to run per edit).
+         * Only editingFinished (Qt's blur/Enter-only signal) was wired,
+         * so every live-updating consumer -- preview panes foremost --
+         * silently only refreshed on tab-away instead of while typing.
+         * textEdited (unlike textChanged) fires solely on user keystrokes,
+         * not our own setText() calls elsewhere, so this can't loop back
+         * on a programmatic field refresh. Kept editingFinished too since
+         * some handlers may still rely on a final commit signal; the
+         * update3dPreview call chain already coalesces rapid repeats. */
+        QObject::connect(le, &QLineEdit::textEdited, [parentWin, ctlId, h, type](const QString &) {
+            sendControlEvent(parentWin, ctlId, h, type);
+        });
         QObject::connect(le, &QLineEdit::editingFinished, [parentWin, ctlId, h, type]() {
             sendControlEvent(parentWin, ctlId, h, type);
         });
@@ -2202,6 +2243,49 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
             createControlWidget(h, win, layout, ce.ctlId,
                                  ctlType,
                                  label, ctlPos, i, resId);
+        }
+        if (resId == 126) {
+            /* [Qt port, user-requested] "About Noddy" -- text content and
+             * rough positions are reconstructed in aboutBox.c/
+             * dialog_positions.cpp (g_pos_126) against a real screenshot
+             * the user provided in-conversation, but DialogCtlPosition has
+             * no font field and the logo isn't a registered nodInc.h
+             * control at all -- both handled directly here instead. */
+            auto setCtlFont = [&](int ctlId, int pointSize, bool bold, Qt::Alignment align) {
+                QWidget *cw = widgetFor(xvt_win_get_ctl(h, ctlId));
+                if (!cw) return;
+                QFont f = cw->font();
+                f.setPointSize(pointSize);
+                f.setBold(bold);
+                cw->setFont(f);
+                if (auto *lbl = qobject_cast<QLabel *>(cw)) {
+                    lbl->setAlignment(align);
+                    lbl->setWordWrap(true);
+                }
+            };
+            setCtlFont(2, 20, true,  Qt::AlignLeft   | Qt::AlignVCenter); /* "Noddy" */
+            setCtlFont(9, 20, true,  Qt::AlignLeft   | Qt::AlignVCenter); /* version, dynamic */
+            setCtlFont(3,  9, false, Qt::AlignHCenter| Qt::AlignVCenter); /* unused, blank (aboutBox.c) */
+            setCtlFont(4,  9, false, Qt::AlignHCenter| Qt::AlignVCenter); /* unused, blank (aboutBox.c) */
+            setCtlFont(5,  9, false, Qt::AlignRight  | Qt::AlignVCenter); /* "Licence:" */
+            setCtlFont(6,  9, true,  Qt::AlignLeft   | Qt::AlignVCenter); /* licence name */
+            setCtlFont(7,  8, false, Qt::AlignLeft   | Qt::AlignTop);     /* credits para 1 */
+            setCtlFont(8,  8, false, Qt::AlignLeft   | Qt::AlignTop);     /* credits para 2 */
+
+            /* Same logo file/fallback the app-wide window icon uses
+             * (see the taskWidget->setWindowIcon block above) -- not a
+             * nodInc.h control, so a plain child QLabel positioned by
+             * hand rather than going through createControlWidget. */
+            QString iconPath = QCoreApplication::applicationDirPath() + "/qt_compat/icons/png/NODDY.png";
+            QPixmap pm(iconPath);
+            if (pm.isNull())
+                pm = QPixmap(QCoreApplication::applicationDirPath() + "/qt_compat/icons/NODDY.ICO");
+            if (!pm.isNull()) {
+                auto *logo = new QLabel(win);
+                logo->setPixmap(pm.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                logo->setGeometry(16, 14, 64, 64);
+                logo->show();
+            }
         }
         if (!rct && posEntry && posEntry->width > 0)
             win->resize(posEntry->width, posEntry->height);
