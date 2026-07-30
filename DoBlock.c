@@ -184,6 +184,17 @@ int resolution;
       double dx, dy, len, ux, uy;
       const double OUTSET = 22.0;  /* pixels clear of the block's own silhouette */
 
+      xvt_vobj_get_client_rect (win, &clientRect);
+      /* [user report] the small preview pane (e.g. an event dialog's own
+      ** "Block" preview, ~260x230) has no room for these -- both labels
+      ** crowded the tiny diagram and overlapped each other/the model.
+      ** Skip entirely below a size that only the cramped preview, never
+      ** the real interactive Block Diagram window (several hundred px),
+      ** falls under. */
+      if ((clientRect.right - clientRect.left) < 320 ||
+          (clientRect.bottom - clientRect.top) < 260)
+         goto skipCornerLabels;
+
       minY = blockDiagram->minYLoc;
       maxY = minY + blockDiagram->ny*blockDiagram->blockSize;
       minZ = blockDiagram->minZLoc;
@@ -207,7 +218,6 @@ int resolution;
       centerPt.y = (start3d.y + end3d.y) / 2.0;
       centerPt.z = (start3d.z + end3d.z) / 2.0;
 
-      xvt_vobj_get_client_rect (win, &clientRect);
       invColor = XVT_MAKE_COLOR ((unsigned char) (255 - XVT_GET_RED(backgroundColor)),
                                   (unsigned char) (255 - XVT_GET_GREEN(backgroundColor)),
                                   (unsigned char) (255 - XVT_GET_BLUE(backgroundColor)));
@@ -256,6 +266,8 @@ int resolution;
       if (sy > clientRect.bottom - 2)          sy = clientRect.bottom - 2;
       if (sy < clientRect.top + 12)            sy = clientRect.top + 12;
       xvt_dwin_draw_text (win, (short) sx, (short) sy, cornerLabel, -1);
+skipCornerLabels:
+      ;
    }
 
 /*            Calculation keeping block in memory
