@@ -86,13 +86,16 @@
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QPageSetupDialog>
+#include <QStyleFactory>
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <functional>
 
 /* ==========================================================================
  * Handle table
@@ -550,6 +553,14 @@ static void revertTaskMenuBarIfOwnedBy(WINDOW win); /* see definition near build
                                     * subWindowActivated hook, todo.txt #39: "make extra
                                     * menus disappear if map or section window is not at
                                     * front"). */
+static void scheduleFitToText(QWidget *container); /* see "Fit-to-text reflow" near
+                                    * createControlWidget -- widens clipped controls in
+                                    * an absolutely-positioned dialog and shifts their
+                                    * right-hand neighbours out of the way. */
+static void refitAfterTextChange(QWidget *ctl);
+static const char *const kOrigRectProp = "xvtOrigRect";   /* QRect, on each positioned child */
+static const char *const kOrigSizeProp = "xvtOrigSize";   /* QSize, on each fit container */
+static const char *const kFitPendingProp = "xvtFitPending";
 
 /* ==========================================================================
  * XvtWindow: turns native Qt events into EVENT structs for the app's
@@ -1331,6 +1342,7 @@ void xvt_vobj_set_title(WINDOW win, const char *title)
         if (auto *sub = qobject_cast<QMdiSubWindow *>(w->parentWidget()))
             sub->setWindowTitle(QString::fromLocal8Bit(title));
     }
+    refitAfterTextChange(w);
 }
 
 BOOLEAN xvt_vobj_get_title(WINDOW win, char *buf, int maxlen)
@@ -1385,6 +1397,18 @@ void xvt_vobj_move(WINDOW win, RCT *rct)
     QWidget *w = widgetFor(win);
     if (!w || !rct) return;
     QRect r = toQRect(rct);
+    /* Keep the fit-to-text reflow's notion of "original" geometry in step
+     * with the app's own moves. Skipped when the app just moves something
+     * back to where it already is (e.g. get_outer_rect then move), which
+     * would otherwise bake the reflow's own shift into the original. */
+    if (w->property(kOrigRectProp).isValid() && r != w->geometry()) {
+        w->setProperty(kOrigRectProp, r);
+        scheduleFitToText(w->parentWidget());
+    }
+    if (dynamic_cast<XvtWindow *>(w)) {
+        w->setProperty(kOrigSizeProp, r.size());
+        scheduleFitToText(w);
+    }
     if (auto *subWin = qobject_cast<QMdiSubWindow *>(w->parentWidget())) {
         int titleBar = subWin->style()->pixelMetric(QStyle::PM_TitleBarHeight, nullptr, subWin);
         int frame = subWin->style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth, nullptr, subWin);
@@ -1784,6 +1808,275 @@ static void sendScrollControlEvent(WINDOW parentWin, int ctlId, WINDOW ctlWin, W
     o->handler(parentWin, &ev);
 }
 
+/* ==========================================================================
+ * Fit-to-text reflow (user-requested: "update all the buttons etc so they
+ * scale to the text they display" -- labels/buttons/checkboxes were
+ * visibly truncated on macOS).
+ *
+ * Every positioned control rect in dialog_positions.cpp (and every rect
+ * the app itself passes to xvt_ctl_create/createPositionedWindow) was
+ * measured against the original Windows build's 8pt MS Sans Serif. Native
+ * macOS text is 13pt (16px line height), and its push buttons/combos add
+ * far more padding, so the same text simply doesn't fit its old rect.
+ *
+ * Rather than hand-retuning ~150 dialogs, each positioned child remembers
+ * its ORIGINAL rect (kOrigRectProp) and, after the app has finished
+ * setting its text, this pass recomputes the layout from those originals:
+ *   - any text-bearing control narrower than its text grows to the right
+ *     (labels/checkboxes/radios also grow vertically about their centre);
+ *   - any control/groupbox/sub-panel whose original left edge is at or
+ *     beyond another's original right edge, on an overlapping row, is
+ *     pushed right just far enough to keep (at most) its original gap;
+ *   - controls inside a groupbox move with it, and the groupbox widens to
+ *     keep its original right padding around whatever grew inside it;
+ *   - controls sharing an original left edge within the same groupbox
+ *     keep sharing it, so columns of labels/edits stay aligned;
+ *   - the window widens (never narrower than its original size) to fit,
+ *     and tells its own parent to re-fit if it's a nested sub-panel.
+ * Always recomputed from the originals, so repeated passes (text changed
+ * again, combo repopulated) never accumulate drift. Deferred by one event
+ * loop tick so the app's E_CREATE handler sees -- and builds its own
+ * sub-panels from -- the original coordinates it was written against.
+ * ========================================================================== */
+
+/* Size this widget needs to show all its text, or an invalid QSize if it
+ * has no text worth fitting (edits, scrollbars, lists, pixmaps, ...).
+ * Push buttons/combos deliberately don't use sizeHint(): QMacStyle's hint
+ * is for the full-height (32px) native bezel, with an 81px minimum width
+ * even for "OK" -- but at the ~20px heights these dialogs use, Qt draws
+ * the compact bevel style, which needs only modest padding. */
+static QSize textFitSize(QWidget *w)
+{
+    QFontMetrics fm(w->font());
+    if (auto *btn = qobject_cast<QPushButton *>(w)) {
+        if (btn->text().isEmpty()) return QSize();
+        return QSize(fm.horizontalAdvance(btn->text()) + 18, fm.height());
+    }
+    if (auto *btn = qobject_cast<QAbstractButton *>(w)) {   /* checkbox/radio */
+        if (btn->text().isEmpty()) return QSize();
+        return btn->sizeHint();
+    }
+    if (auto *lbl = qobject_cast<QLabel *>(w)) {
+        if (lbl->text().isEmpty() || lbl->wordWrap() || !lbl->pixmap(Qt::ReturnByValue).isNull()) return QSize();
+        return lbl->sizeHint();
+    }
+    if (auto *combo = qobject_cast<QComboBox *>(w)) {
+        int textW = combo->isEditable() ? fm.horizontalAdvance(combo->currentText()) : 0;
+        for (int i = 0; i < combo->count(); i++)
+            textW = qMax(textW, fm.horizontalAdvance(combo->itemText(i)));
+        if (textW == 0) return QSize();
+        return QSize(textW + 34, fm.height());
+    }
+    if (auto *box = qobject_cast<QGroupBox *>(w)) {
+        if (box->title().isEmpty()) return QSize();
+        return QSize(fm.horizontalAdvance(box->title()) + 24, 0);
+    }
+    return QSize();
+}
+
+/* macOS's native push-button bezel has a fixed natural height (28px for
+ * the regular size); QMacStyle doesn't scale it to fit a shorter rect, it
+ * just clips the bottom off -- rounded top, flat cut-off bottom. Nearly
+ * every button in dialog_positions.cpp is 20-22px tall (Windows button
+ * metrics), and growing them to 28px would collide with the rows above/
+ * below. The mini native size does fit at 20px but drops the text to
+ * 9pt, so instead draw short buttons with Fusion, which renders cleanly at
+ * any height and keeps the normal font; buttons with room for the native
+ * bezel keep it. Combo boxes have the same problem below 22px (most
+ * WC_LISTBUTTONs here are 18-20px). Not needed on Windows/Linux, whose
+ * styles scale fine. */
+static void applyNativeStyleForHeight(QWidget *w)
+{
+#ifdef Q_OS_MACOS
+    int minNativeHeight;
+    if (qobject_cast<QPushButton *>(w)) minNativeHeight = 28;
+    else if (qobject_cast<QComboBox *>(w)) minNativeHeight = 22;
+    else return;
+    static QStyle *fusion = QStyleFactory::create("Fusion");
+    QStyle *want = w->height() < minNativeHeight ? fusion : QApplication::style();
+    if (want && w->style() != want) w->setStyle(want);
+#else
+    Q_UNUSED(w);
+#endif
+}
+
+static void fitControlsToText(QWidget *container)
+{
+    struct Item {
+        QWidget *w;
+        QRect orig;
+        int extraW = 0;       /* growth needed for its own text / sub-panel content */
+        bool isBox = false;
+        int box = -1;         /* index of innermost groupbox containing it, or -1 */
+        int newLeft = 0;
+        bool placed = false;
+    };
+    QVector<Item> items;
+    for (QObject *obj : container->children()) {
+        auto *w = qobject_cast<QWidget *>(obj);
+        if (!w || w->isWindow()) continue;
+        QVariant v = w->property(kOrigRectProp);
+        if (!v.isValid()) continue;
+        Item it;
+        it.w = w;
+        it.orig = v.toRect();
+        it.isBox = qobject_cast<QGroupBox *>(w) != nullptr;
+        if (dynamic_cast<XvtWindow *>(w)) {
+            /* Nested sub-panel (e.g. an event dialog's Form/Scale panels):
+             * its own fit pass already sized it to its content. */
+            it.extraW = qMax(0, w->width() - it.orig.width());
+        } else {
+            QSize need = textFitSize(w);
+            if (need.isValid()) it.extraW = qMax(0, need.width() - it.orig.width());
+        }
+        items.append(it);
+    }
+    if (items.isEmpty()) return;
+
+    const int tol = 2;
+    auto contains = [&](const QRect &outer, const QRect &inner) {
+        return inner.left() >= outer.left() - tol && inner.right() <= outer.right() + tol &&
+               inner.top() >= outer.top() - tol && inner.bottom() <= outer.bottom() + tol;
+    };
+    auto sameRow = [&](const QRect &a, const QRect &b) {
+        return qMin(a.bottom(), b.bottom()) - qMax(a.top(), b.top()) > tol;
+    };
+    for (int i = 0; i < items.size(); i++) {
+        long bestArea = -1;
+        for (int j = 0; j < items.size(); j++) {
+            if (i == j || !items[j].isBox || !contains(items[j].orig, items[i].orig)) continue;
+            if (items[i].isBox && items[i].orig == items[j].orig) continue;
+            long area = (long)items[j].orig.width() * items[j].orig.height();
+            if (bestArea < 0 || area < bestArea) { bestArea = area; items[i].box = j; }
+        }
+    }
+
+    /* Right edge after reflow. A groupbox's depends on its (already
+     * placed -- they all start left of its right edge) contents. */
+    std::function<int(int)> newRight = [&](int i) -> int {
+        const Item &it = items[i];
+        int r = it.newLeft + it.orig.width() + it.extraW;
+        if (it.isBox) {
+            int shift = it.newLeft - it.orig.left();
+            for (int j = 0; j < items.size(); j++) {
+                if (items[j].box != i || !items[j].placed) continue;
+                int grown = newRight(j) - (items[j].orig.right() + 1) - shift;
+                if (grown > 0) r = qMax(r, it.newLeft + it.orig.width() + grown);
+            }
+        }
+        return r;
+    };
+
+    /* Sweep original left edges left-to-right; each item only depends on
+     * items strictly to its left (or its enclosing groupbox). */
+    QVector<int> order(items.size());
+    for (int i = 0; i < order.size(); i++) order[i] = i;
+    std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
+        if (items[a].orig.left() != items[b].orig.left()) return items[a].orig.left() < items[b].orig.left();
+        return items[a].isBox && !items[b].isBox;
+    });
+    for (int k = 0; k < order.size();) {
+        int x = items[order[k]].orig.left();
+        int end = k;
+        while (end < order.size() && items[order[end]].orig.left() == x) end++;
+        for (int pass = 0; pass < 2; pass++) {       /* groupboxes first, then their contents */
+            for (int m = k; m < end; m++) {
+                Item &it = items[order[m]];
+                if (it.isBox != (pass == 0)) continue;
+                int left = it.orig.left();
+                if (it.box >= 0) {
+                    const Item &b = items[it.box];
+                    left = qMax(left, b.newLeft + (it.orig.left() - b.orig.left()));
+                }
+                for (int j = 0; j < items.size(); j++) {
+                    const Item &a = items[j];
+                    if (!a.placed || j == it.box) continue;
+                    if (a.orig.right() + 1 > it.orig.left() + tol) continue;   /* not to its left */
+                    if (!sameRow(a.orig, it.orig)) continue;
+                    if (it.isBox && contains(it.orig, a.orig)) continue;
+                    int gap = qMin(qMax(0, it.orig.left() - (a.orig.right() + 1)), 6);
+                    left = qMax(left, newRight(j) + gap);
+                }
+                it.newLeft = left;
+            }
+            /* Keep columns aligned within the same groupbox. */
+            for (int m = k; m < end; m++) {
+                Item &it = items[order[m]];
+                if (it.isBox != (pass == 0)) continue;
+                for (int n = k; n < end; n++) {
+                    const Item &other = items[order[n]];
+                    if (other.isBox == it.isBox && other.box == it.box)
+                        it.newLeft = qMax(it.newLeft, other.newLeft);
+                }
+            }
+            for (int m = k; m < end; m++)
+                if (items[order[m]].isBox == (pass == 0)) items[order[m]].placed = true;
+        }
+        k = end;
+    }
+
+    /* Apply, and work out how wide the container itself now needs to be. */
+    int maxOrigRight = 0, maxNewRight = 0;
+    for (int i = 0; i < items.size(); i++) {
+        Item &it = items[i];
+        QRect r(it.newLeft, it.orig.top(), newRight(i) - it.newLeft, it.orig.height());
+        if (qobject_cast<QLabel *>(it.w) || qobject_cast<QCheckBox *>(it.w) || qobject_cast<QRadioButton *>(it.w)) {
+            QSize need = textFitSize(it.w);
+            if (need.isValid() && need.height() > r.height()) {
+                int grow = need.height() - r.height();
+                r.adjust(0, -grow / 2, 0, grow - grow / 2);
+            }
+        }
+        if (it.w->geometry() != r) it.w->setGeometry(r);
+        applyNativeStyleForHeight(it.w);
+        maxOrigRight = qMax(maxOrigRight, it.orig.right() + 1);
+        maxNewRight = qMax(maxNewRight, r.right() + 1);
+    }
+
+    QVariant origSizeV = container->property(kOrigSizeProp);
+    QSize origSize = origSizeV.isValid() ? origSizeV.toSize() : container->size();
+    int margin = qMax(0, origSize.width() - maxOrigRight);
+    QSize target(qMax(origSize.width(), maxNewRight + margin), origSize.height());
+    if (target.width() != container->width()) {
+        int dw = target.width() - container->width();
+        if (auto *sub = qobject_cast<QMdiSubWindow *>(container->parentWidget())) {
+            bool fixed = sub->minimumSize() == sub->maximumSize();
+            QSize s(sub->width() + dw, sub->height());
+            if (fixed) sub->setFixedSize(s); else sub->resize(s);
+        } else if (container->isWindow()) {
+            bool fixed = container->minimumSize() == container->maximumSize();
+            if (fixed) container->setFixedSize(target); else container->resize(target);
+        } else {
+            container->resize(target);
+        }
+        if (container->width() != target.width()) container->resize(target);
+    }
+    /* A nested sub-panel that changed width makes its parent re-fit too. */
+    if (!container->isWindow() && container->property(kOrigRectProp).isValid())
+        scheduleFitToText(container->parentWidget());
+}
+
+static void scheduleFitToText(QWidget *container)
+{
+    if (!container || container->property(kFitPendingProp).toBool()) return;
+    container->setProperty(kFitPendingProp, true);
+    QPointer<QWidget> guard(container);
+    QTimer::singleShot(0, [guard]() {
+        if (!guard) return;
+        guard->setProperty(kFitPendingProp, false);
+        fitControlsToText(guard);
+    });
+}
+
+/* Called whenever a control's text/items change -- re-fit its window if
+ * that window is laid out by position (not the QFormLayout fallback, which
+ * already sizes itself to its contents). */
+static void refitAfterTextChange(QWidget *ctl)
+{
+    if (ctl && ctl->property(kOrigRectProp).isValid())
+        scheduleFitToText(ctl->parentWidget());
+}
+
 /* Creates the Qt widget for a control of the given type, wires its natural
  * Qt signal to synthesize the matching E_CONTROL event back to the owning
  * window's handler (unchanged application code), and registers it in the
@@ -1891,6 +2184,9 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
             if (h > natural + 4) h = natural;
         }
         w->setGeometry(pos->left, pos->top, pos->right - pos->left, h);
+        w->setProperty(kOrigRectProp, w->geometry());
+        applyNativeStyleForHeight(w);
+        scheduleFitToText(parentWidget);
     } else if (!layout) {
         /* This dialog has a position-override table, but this particular
          * control isn't in it (incomplete manual reconstruction) -- stack
@@ -2204,6 +2500,7 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
                                  win->width() + 2 * frame, win->height() + titleBar + 2 * frame);
         } else {
             win->setGeometry(toQRect(rct));
+            if (flatChild) win->setProperty(kOrigRectProp, win->geometry());
         }
     }
     WINDOW h = allocHandle(o);
@@ -2294,6 +2591,7 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
     }
 
     if (!dlg && !rct) win->resize(320, 200);
+    win->setProperty(kOrigSizeProp, win->size());
     ensureBacking(o, qMax(1, win->width()), qMax(1, win->height()));
     if (subWin) {
         if (!rct) {
@@ -2977,6 +3275,7 @@ void xvt_list_add(WINDOW list_win, int index, const char *text)
         if (index < 0 || index >= combo->count()) combo->addItem(qtext);
         else combo->insertItem(index, qtext);
         combo->blockSignals(old);
+        refitAfterTextChange(combo);
     }
 }
 
@@ -4493,6 +4792,7 @@ static void bulkAddFromSlist(QWidget *w, SLIST l)
         for (SLIST_ELT e : l->items)
             combo->addItem(QString::fromLocal8Bit(e->text));
         combo->blockSignals(old);
+        refitAfterTextChange(combo);
     }
 }
 
@@ -5067,3 +5367,4 @@ void xvt_errmsg_sig_if(BOOLEAN cond, WINDOW, int severity, long, const char *arg
     qWarning("XVT fatal assert (sev=%d, arg=%s): %s", severity, arg1 ? arg1 : "", msg ? msg : "");
     if (severity >= SEV_FATAL) abort();
 }
+
