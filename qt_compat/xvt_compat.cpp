@@ -2163,6 +2163,17 @@ static WINDOW makeWindow(WIN_TYPE type, RCT *rct, const char *title, WINDOW pare
             subWin = area->addSubWindow(win);
             subWin->setWindowTitle(win->windowTitle());
             subWin->installEventFilter(win);
+            /* [Qt port change] The Toolbar and the main History window
+             * (titled " Noddy ", see noddy.c) must not be closable: no red X
+             * on their title bars. Customize the hints so only the close
+             * button is dropped. */
+            if (title && (strcmp(title, "Toolbar") == 0 || strcmp(title, " Noddy ") == 0)) {
+                /* Qt's common/Windows title-bar styles tie the close
+                 * button to the system-menu hint as well, so dropping only
+                 * WindowCloseButtonHint leaves the X showing. */
+                subWin->setWindowFlags((subWin->windowFlags() | Qt::CustomizeWindowHint)
+                                       & ~(Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint));
+            }
         }
     }
 
@@ -3652,6 +3663,27 @@ FL_STATUS xvt_dm_post_file_save(FILE_SPEC *fs, const char *prompt)
     strncpy(fs->name, fi.fileName().toLocal8Bit().constData(), SZ_FNAME);
     fs->name[SZ_FNAME] = '\0';
     strncpy(fs->dir.path, fi.absolutePath().toLocal8Bit().constData(), sizeof(fs->dir.path) - 1);
+    return FL_OK;
+}
+
+FL_STATUS xvt_dm_post_dir_select(DIRECTORY *dir, const char *prompt)
+{
+    ensureQApp();
+    if (!dir) return FL_BAD;
+    /* Qt's own (non-native) dialog so the field can be labelled
+     * "Directory Name" and there is no file-type row; it also offers the
+     * "Create New Folder" button. */
+    QFileDialog dlg(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Select Directory",
+                    dir->path[0] ? QString::fromLocal8Bit(dir->path) : QString());
+    dlg.setFileMode(QFileDialog::Directory);
+    dlg.setOption(QFileDialog::ShowDirsOnly, true);
+    dlg.setOption(QFileDialog::DontUseNativeDialog, true);
+    dlg.setLabelText(QFileDialog::FileName, "Directory Name:");
+    dlg.setLabelText(QFileDialog::Accept, "Select");
+    if (dlg.exec() != QDialog::Accepted || dlg.selectedFiles().isEmpty()) return FL_CANCEL;
+    QByteArray b = QDir::toNativeSeparators(dlg.selectedFiles().first()).toLocal8Bit();
+    strncpy(dir->path, b.constData(), sizeof(dir->path) - 1);
+    dir->path[sizeof(dir->path) - 1] = '\0';
     return FL_OK;
 }
 

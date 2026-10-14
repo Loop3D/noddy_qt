@@ -1914,6 +1914,12 @@ EVENT *xdEvent;
 		/* TAG END TASK_MENUBAR_85_141_73 EVNT:Select */
 		}
 		break;
+	case TASK_MENUBAR_EXPORT_TOMOFAST: /* Menu "Tomofast-x Inversion Files..." */
+		{
+		extern int exportTomofastFiles (void);
+		exportTomofastFiles ();
+		}
+		break;
 	case TASK_MENUBAR_85_141_22: /* Menu "Tabulated Columns..." */
 		{
 		/* TAG BEGIN TASK_MENUBAR_85_141_22 EVNT:Select */
