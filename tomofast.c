@@ -12,6 +12,10 @@
  *   paramfile_magn.txt        magnetic inversion
  *   paramfile_joint.txt       joint (cross-gradient) inversion
  *
+ * All file paths in the parameter files are relative to this directory, so it
+ * can be moved or zipped; run the inversion with it as the working directory
+ * (the Tomofast-x QGIS plugin does this).
+ *
  * The parameter files set useSyntheticModelForDataValues = 1 so Tomofast-x
  * forward-calculates the "observed" data from the exported density and
  * susceptibility models before inverting them.
@@ -148,7 +152,9 @@ static int writeParamFile (const char *dir, const char *fileName, const char *ta
       return FALSE;
 
    section (f, "GLOBAL");
-   fprintf (f, "global.outputFolderPath             = %s/OUTPUT_%s\n", dir, tag);
+   /* All paths are relative to the folder holding the parameter files; the
+   ** inversion must be run with that folder as its working directory. */
+   fprintf (f, "global.outputFolderPath             = OUTPUT_%s\n", tag);
    fprintf (f, "global.description                  = Noddy model, %s inversion\n", tag);
    /* read by the Tomofast-x QGIS plugin (same comment line it writes itself) */
    fprintf (f, "#global.experimentType               = %d\n", mode);
@@ -167,9 +173,9 @@ static int writeParamFile (const char *dir, const char *fileName, const char *ta
    section (f, "MODEL GRID parameters");
    fprintf (f, "modelGrid.size                      = %d %d %d\n", nx, ny, nz);
    if (doGrav)
-      fprintf (f, "modelGrid.grav.file                 = %s/model_grid.txt\n", dir);
+      fprintf (f, "modelGrid.grav.file                 = model_grid.txt\n");
    if (doMagn)
-      fprintf (f, "modelGrid.magn.file                 = %s/model_grid.txt\n", dir);
+      fprintf (f, "modelGrid.magn.file                 = model_grid.txt\n");
 
    if (doMagn)
    {
@@ -185,16 +191,16 @@ static int writeParamFile (const char *dir, const char *fileName, const char *ta
    {
       fprintf (f, "# Density model = Noddy density minus %g kg/m3 (mean density of the block).\n", refDensity);
       fprintf (f, "forward.data.grav.nData             = %d\n", nData);
-      fprintf (f, "forward.data.grav.dataGridFile      = %s/data_grav.csv\n", dir);
+      fprintf (f, "forward.data.grav.dataGridFile      = data_grav.csv\n");
       fprintf (f, "forward.data.grav.useSyntheticModelForDataValues = 1\n");
-      fprintf (f, "forward.data.grav.syntheticModelFile = %s/model_density.txt\n", dir);
+      fprintf (f, "forward.data.grav.syntheticModelFile = model_density.txt\n");
    }
    if (doMagn)
    {
       fprintf (f, "forward.data.magn.nData             = %d\n", nData);
-      fprintf (f, "forward.data.magn.dataGridFile      = %s/data_magn.csv\n", dir);
+      fprintf (f, "forward.data.magn.dataGridFile      = data_magn.csv\n");
       fprintf (f, "forward.data.magn.useSyntheticModelForDataValues = 1\n");
-      fprintf (f, "forward.data.magn.syntheticModelFile = %s/model_susceptibility.txt\n", dir);
+      fprintf (f, "forward.data.magn.syntheticModelFile = model_susceptibility.txt\n");
    }
 
    section (f, "DEPTH WEIGHTING");
@@ -206,7 +212,7 @@ static int writeParamFile (const char *dir, const char *fileName, const char *ta
 
    section (f, "SENSITIVITY KERNEL");
    fprintf (f, "sensit.readFromFiles                = 0\n");
-   fprintf (f, "sensit.folderPath                   = %s/OUTPUT_%s/SENSIT/\n", dir, tag);
+   fprintf (f, "sensit.folderPath                   = OUTPUT_%s/SENSIT/\n", tag);
 
    section (f, "MATRIX COMPRESSION");
    fprintf (f, "# 0-none, 1-Haar, 2-Daubechies D4.\n");
