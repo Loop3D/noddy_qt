@@ -2407,6 +2407,48 @@ static void populateMenu(QMenu *menu, const char *parentPath, WINDOW handle)
     }
 }
 
+extern "C" WINDOW getJobStatusWindow(void);
+
+/* [Qt port ADDITION] Real XVT's Windows menu ends with one entry per open
+ * top-level Noddy window (nodLib1.c's updateWindowsMenu builds them into the
+ * MENU_ITEM bookkeeping tree, which the static bar never renders -- see
+ * xvt_menu_set_tree's menuBarIsStatic early-out). Rebuild that list straight
+ * from xvt_scr_list_wins each time the menu opens. Tags follow mainMenu.c's
+ * default case: raiseWindow(tag - TASK_MENUBAR_77_18 - 2001), i.e. 3019 + n
+ * for the n-th (1-based) non-status-window, matching raiseWindow's counting. */
+static void hookWindowsMenuList(QMenu *menu, WINDOW handle)
+{
+    auto *dynActions = new QList<QAction *>;
+    QObject::connect(menu, &QMenu::aboutToShow, menu, [menu, handle, dynActions]() {
+        for (QAction *a : *dynActions) { menu->removeAction(a); delete a; }
+        dynActions->clear();
+        SLIST winList = xvt_scr_list_wins();
+        if (!winList) return;
+        WINDOW statusWin = getJobStatusWindow();
+        int n = 0;
+        for (SLIST_ELT e = xvt_slist_get_first(winList); e; e = xvt_slist_get_next(winList, e)) {
+            long w = 0;
+            const char *title = xvt_slist_get(winList, e, &w);
+            if ((WINDOW)w == statusWin) continue;
+            n++;
+            if (dynActions->isEmpty()) dynActions->append(menu->addSeparator());
+            QString text = (WINDOW)w == TASK_WIN ? QString() : QString::fromLocal8Bit(title ? title : "");
+            if (text.isEmpty()) continue;
+            long tag = 3019 + n;
+            QAction *act = menu->addAction(text);
+            QObject::connect(act, &QAction::triggered, [handle, tag](bool) {
+                XvtObj *o = objFor(handle);
+                if (!o || !o->handler) return;
+                EVENT ev{}; ev.type = E_COMMAND;
+                ev.v.cmd.tag = tag;
+                o->handler(handle, &ev);
+            });
+            dynActions->append(act);
+        }
+        xvt_slist_destroy(winList);
+    });
+}
+
 static void buildMenuBar(XvtWindow *win, WINDOW handle)
 {
     if (win->menuBarIsStatic) return; /* already built the real static menu (e.g. a second xvt_win_create_def call) */
@@ -2438,6 +2480,7 @@ static void buildMenuBar(XvtWindow *win, WINDOW handle)
         if (n.parentPath) continue; /* only the 6 top-level roots here */
         QMenu *menu = bar->addMenu(QString::fromLocal8Bit(n.label));
         populateMenu(menu, n.path, handle);
+        if (strcmp(n.label, "Windows") == 0) hookWindowsMenuList(menu, handle);
     }
     int barHeight = bar->sizeHint().height();
     bar->setGeometry(0, 0, win->width(), barHeight);
@@ -3230,11 +3273,12 @@ void xvt_menu_set_item_checked(WINDOW win, MENU_TAG tag, BOOLEAN checked)
  * does the same thing from the static g_menuTree/MenuNodeEntry data --
  * this one walks the app's own dynamically-built MENU_ITEM trees instead
  * (xvt_menu_set_tree's whole point in real XVT). */
-static void populateMenuFromItems(QMenu *menu, MENU_ITEM *items, WINDOW handle)
+static void populateMenuFromItems(QMenu *menu, MENU_ITEM *items, WINDOW handle, long skipTagsFrom = 0)
 {
     if (!items) return;
     for (int i = 0; items[i].text != nullptr; i++) {
         MENU_ITEM &m = items[i];
+        if (skipTagsFrom && m.tag >= skipTagsFrom) continue;
         if (m.child) {
             QMenu *sub = menu->addMenu(QString::fromLocal8Bit(m.text));
             populateMenuFromItems(sub, m.child, handle);
@@ -3460,7 +3504,13 @@ void xvt_menu_set_tree(WINDOW win, DATA_PTR tree)
      * even once the redirect itself was firing correctly). */
     for (MENU_ITEM *items = o->menuTree; items && items->text != nullptr; items++) {
         QMenu *menu = bar->addMenu(QString::fromLocal8Bit(items->text));
-        populateMenuFromItems(menu, items->child, win);
+        bool isWindowsMenu = strcmp(items->text, "Windows") == 0;
+        /* [Qt port ADDITION] combined Section/Line-Map bars: the open-window
+         * list comes from hookWindowsMenuList (rebuilt on every open), so
+         * drop the static per-window entries updateWindowsMenu stored in the
+         * tree (tags >= 2002, see its baseTag) to avoid duplicates. */
+        populateMenuFromItems(menu, items->child, win, isWindowsMenu ? 2002 : 0);
+        if (isWindowsMenu) hookWindowsMenuList(menu, win);
     }
     int barHeight = bar->sizeHint().height();
     bar->setGeometry(0, 0, hostXw->width(), barHeight);
