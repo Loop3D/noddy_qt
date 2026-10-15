@@ -552,6 +552,11 @@ extern long XVT_CALLCONV1
 #ifndef TASK_MENUBAR_EXPORT_TOMOFAST
 #define TASK_MENUBAR_EXPORT_TOMOFAST 1202
 #endif
+/* [Qt port ADDITION] NEW Tools > Export Block item (Tomofast-x files plus
+** TransD parameter files), same deliberately-clear range. */
+#ifndef TASK_MENUBAR_EXPORT_TRANSD
+#define TASK_MENUBAR_EXPORT_TRANSD 1203
+#endif
 #ifndef TASK_MENUBAR_5
 #define TASK_MENUBAR_5 1005
 #endif

@@ -1920,6 +1920,12 @@ EVENT *xdEvent;
 		exportTomofastFiles ();
 		}
 		break;
+	case TASK_MENUBAR_EXPORT_TRANSD: /* Menu "TransD Inversion Files..." */
+		{
+		extern int exportTransdFiles (void);
+		exportTransdFiles ();
+		}
+		break;
 	case TASK_MENUBAR_85_141_22: /* Menu "Tabulated Columns..." */
 		{
 		/* TAG BEGIN TASK_MENUBAR_85_141_22 EVNT:Select */

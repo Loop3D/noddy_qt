@@ -147,6 +147,7 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "5.3.5", "5.3", "DXF - Polylines", 1106, true },
     { "5.3.6", "5.3", "Vulcan", 1107, true },
     { "5.3.7", "5.3", "Tomofast-x Inversion Files...", 1202, true },
+    { "5.3.8", "5.3", "TransD Inversion Files...", 1203, true },
     { "5.4", "5", "Export Image", 0, false },
     { "5.4.1", "5.4", "ERMappper", 0, false },
     { "5.4.1.1", "5.4.1", "Gravity...", 1095, true },

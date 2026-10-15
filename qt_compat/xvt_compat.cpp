@@ -3656,8 +3656,14 @@ FL_STATUS xvt_dm_post_file_save(FILE_SPEC *fs, const char *prompt)
 {
     ensureQApp();
     if (!fs) return FL_BAD;
+    /* Start in the caller's directory with the caller's suggested file name
+     * prefilled, as the real XVT dialog does. */
+    QString start = fs->dir.path[0] ? QDir::fromNativeSeparators(QString::fromLocal8Bit(fs->dir.path)) : QString();
+    if (fs->name[0])
+        start = start.isEmpty() ? QString::fromLocal8Bit(fs->name)
+                                : QDir(start).filePath(QString::fromLocal8Bit(fs->name));
     QString name = QFileDialog::getSaveFileName(nullptr, prompt ? QString::fromLocal8Bit(prompt) : "Save",
-                                                 QString(), extensionFilter(fs->type));
+                                                 start, extensionFilter(fs->type));
     if (name.isEmpty()) return FL_CANCEL;
     QFileInfo fi(name);
     strncpy(fs->name, fi.fileName().toLocal8Bit().constData(), SZ_FNAME);

@@ -11,6 +11,10 @@
  *   paramfile_grav.txt        gravity inversion
  *   paramfile_magn.txt        magnetic inversion
  *   paramfile_joint.txt       joint (cross-gradient) inversion
+ * and, for Tools > Export Block > TransD Inversion Files..., also:
+ *   local_weights.txt         one weight (1.0) per mesh cell, as model_density.txt
+ *   paramfile_transd_grav.txt TransD gravity run (uses OUTPUT_grav/SENSIT)
+ *   paramfile_transd_magn.txt TransD magnetic run (uses OUTPUT_magn/SENSIT)
  *
  * All file paths in the parameter files are relative to this directory, so it
  * can be moved or zipped; run the inversion with it as the working directory
@@ -246,6 +250,119 @@ static int writeParamFile (const char *dir, const char *fileName, const char *ta
    return TRUE;
 }
 
+/* Writes one TransD parameter file (format of parfile_transd_example_sw_wa.txt).
+** mode: 1 = gravity, 2 = magnetics. All paths are relative to the export
+** directory; the Tomofast-x run for the same mode supplies the sensitivity
+** kernel (OUTPUT_<tag>/SENSIT). */
+static int writeTransdParamFile (const char *dir, const char *fileName, const char *tag, int mode)
+{
+   char path[1200];
+   FILE *f;
+
+   sprintf (path, "%s/%s", dir, fileName);
+   if (!(f = fopen (path, "w")))
+      return FALSE;
+
+   fprintf (f, "# ============================== FILE PATHS ===================================\n");
+   fprintf (f, "[FilePaths]\n");
+   fprintf (f, "# Model of the area investigated.\n");
+   fprintf (f, "model_filename = model_grid.txt\n\n");
+   fprintf (f, "# Perturbation that will be added to the model.\n");
+   fprintf (f, "perturbation_filename = None\n\n");
+   fprintf (f, "# File containing the mask (0 and 1s controlling where modifications are allowed).\n");
+   fprintf (f, "mask_filename = None\n\n");
+   fprintf (f, "# File containing local weights for prior geometrical model.\n");
+   fprintf (f, "local_weights_filename = local_weights.txt\n\n");
+   fprintf (f, "# File containing the %s data.\n", mode == 1 ? "gravity" : "magnetic");
+   fprintf (f, "data_vals_filename = data_%s.csv\n\n", tag);
+   fprintf (f, "# File containing the response of the background model.\n");
+   fprintf (f, "data_background_filename = None\n\n");
+   fprintf (f, "# Path for the outputs.\n");
+   fprintf (f, "path_output = OUTPUT_%s_TRANSD\n\n", tag);
+   fprintf (f, "# Path to the sensitivity matrix.\n");
+   fprintf (f, "sensit_path = OUTPUT_%s/SENSIT\n\n", tag);
+
+   fprintf (f, "# ============================== SOLVER PARAMETERS ============================\n");
+   fprintf (f, "[SolverParameters]\n");
+   fprintf (f, "# Type of sensitivity matrix and inversion: 'grav' (for gravity) or 'magn' (for magnetic).\n");
+   fprintf (f, "sensit_type = %s\n\n", tag);
+   fprintf (f, "# Flag on unit conversion of the input gravity data (apply a 1e2 factor to do mGal).\n");
+   fprintf (f, "unit_conv = False\n\n");
+   fprintf (f, "# Flag on whether we use a mask to reduce the domain where modifications of the model are allowed.\n");
+   fprintf (f, "use_mask_domain = False\n\n");
+   fprintf (f, "# Maximum number of time steps (= modifications of the model).\n");
+   fprintf (f, "num_epochs = 500000\n\n");
+   fprintf (f, "# Flag for use of mask from file.\n");
+   fprintf (f, "use_loaded_mask = False\n\n");
+
+   fprintf (f, "#------------- PREPROCESSING PARAMETERS -- TODO remove from current transd?\n");
+   fprintf (f, "[PreProcessingParameters]\n");
+   fprintf (f, "# Index of rock unit (by increasing density value) to define the mask on perturbations.\n");
+   fprintf (f, "ind_unit_mask = 2\n");
+   fprintf (f, "# Distance max in number of cells away from the outline of rock unit considered.\n");
+   fprintf (f, "distance_max = 10000000\n\n");
+
+   fprintf (f, "# ============================== SAVING OUTPUTS ===============================\n");
+   fprintf (f, "[SaveOutput]\n");
+   fprintf (f, "# Flag controlling whether plots will be saved.\n");
+   fprintf (f, "save_plots = True\n");
+   fprintf (f, "# How often to save models to disk (iterations). 1: save all models, 100: saves one model every 100.\n");
+   fprintf (f, "save_interval = 100\n\n");
+
+   fprintf (f, "# ============================== SAMPLING PARAMETERS ==========================\n");
+   fprintf (f, "[SamplingParams]\n");
+   fprintf (f, "# Index(es) of unit(s) that will be perturbed directly by sampling of random field.\n");
+   fprintf (f, "indices_unit_pert = all\n");
+   fprintf (f, "# Index of units whose modifications will be forced.\n");
+   fprintf (f, "ind_unit_force = None\n");
+   fprintf (f, "# Index of unit whose geometry will guide the changes.\n");
+   fprintf (f, "ind_unit_ref = None\n");
+   fprintf (f, "# Max number of births.\n");
+   fprintf (f, "n_births_max = 5\n");
+   fprintf (f, "# Type of perturbation that can be forced: 'petrophy_increase', petroph_decrease' or 'geometry'.\n");
+   fprintf (f, "force_pert_type = None\n");
+   fprintf (f, "# Use dynamic masking.\n");
+   fprintf (f, "use_dynamic_mask = False\n");
+   fprintf (f, "# Standard deviation for the likelihood.\n");
+   fprintf (f, "std_data_fit = 3.e-12\n");
+   fprintf (f, "# Standard deviation on petrophysical values.\n");
+   fprintf (f, "std_petro = 10.\n");
+   fprintf (f, "# Weight of prior model term in cost function.\n");
+   fprintf (f, "std_geom_glob = 5.e-1\n");
+   fprintf (f, "# Force accept of perturbation type 0: user-defined non-reversible perturbation.\n");
+   fprintf (f, "force_pert_0 = 0.\n");
+   fprintf (f, "# Force accept of perturbation type 1: random geometrical perturbation\n");
+   fprintf (f, "force_pert_1 = 0.\n");
+   fprintf (f, "# Force accept of perturbation type 2: random petrophysical perturbation\n");
+   fprintf (f, "force_pert_2 = 0.\n");
+   fprintf (f, "# Force accept of perturbation type 3: birth of a unit\n");
+   fprintf (f, "force_pert_3 = 0.\n");
+   fprintf (f, "# Force accept of perturbation type 4: death of a unit\n");
+   fprintf (f, "force_pert_4 = 0.\n\n");
+
+   fprintf (f, "# ============================== EXPERT PARAMETERS - PINK NOISE PARAMETERS ====\n");
+   fprintf (f, "[NoiseParams]\n");
+   fprintf (f, "# Factor multiplying power of spectrum\n");
+   fprintf (f, "factor_spectrum_min = 1.\n");
+   fprintf (f, "factor_spectrum_max = 5.\n\n");
+   fprintf (f, "# Amplitude of noise (recommended: < sqrt(2.)).\n");
+   fprintf (f, "amplitude_pert_min = 1.\n");
+   fprintf (f, "amplitude_pert_max = 2.01\n\n");
+   fprintf (f, "# Local weights multiplying the values of noise. Can be used as mask.\n");
+   fprintf (f, "weights = None\n\n");
+   fprintf (f, "# Whether to normalise before rescaling with amplitude_pert_min and amplitude_pert_max.\n");
+   fprintf (f, "normalise = True\n\n");
+   fprintf (f, "# Correlation lengths along axis 0 (z), axis 1 (x), axis 2 (y).\n");
+   fprintf (f, "correlation_length_0 = 2.\n");
+   fprintf (f, "correlation_length_1 = 2.\n");
+   fprintf (f, "correlation_length_2 = 2.\n");
+
+   fclose (f);
+   return TRUE;
+}
+
+static int exportFiles (int transd);
+
 /* ======================================================================
 FUNCTION        exportTomofastFiles
 DESCRIPTION
@@ -256,6 +373,27 @@ RETURNED
 ====================================================================== */
 int
 exportTomofastFiles (void)
+{
+   return exportFiles (FALSE);
+}
+
+/* ======================================================================
+FUNCTION        exportTransdFiles
+DESCRIPTION
+     as exportTomofastFiles, and also writes local_weights.txt and the
+     TransD parameter files (paramfile_transd_grav.txt and
+     paramfile_transd_magn.txt) into the same folder
+RETURNED
+     TRUE on success
+====================================================================== */
+int
+exportTransdFiles (void)
+{
+   return exportFiles (TRUE);
+}
+
+static int
+exportFiles (int transd)
 {
    BLOCK_VIEW_OPTIONS *bv = (BLOCK_VIEW_OPTIONS *) getViewOptions ();
    FILE_SPEC fs;
@@ -270,6 +408,7 @@ exportTomofastFiles (void)
    int useTopo, draped, ok = FALSE, maxPad = 1000, nData, comprType;
    double comprRate, refDensity = 0.0;
    FILE *fGrid = NULL, *fRho = NULL, *fSus = NULL, *fDg = NULL, *fDm = NULL;
+   FILE *fLw = NULL;
    long nElements;
 
    if (!bv)
@@ -303,7 +442,12 @@ exportTomofastFiles (void)
                                        /* Choose (or create) the output directory */
    memset (&fs, 0, sizeof (fs));
    getDefaultDirectory (&(fs.dir));
-   switch (xvt_dm_post_dir_select (&(fs.dir), "Export Tomofast-x files to ..."))
+   strcpy (fs.name, "paramfile.txt");
+   /* Only the folder of the chosen file is used: all the files are written
+   ** there under their standard names. Using the ordinary save dialog lets
+   ** the user create a new folder for them. */
+   switch (xvt_dm_post_file_save (&fs, transd ? "Export Tomofast-x and TransD files to folder (file name is ignored) ..."
+                                              : "Export Tomofast-x files to folder (file name is ignored) ..."))
    {
       case FL_OK:
          break;
@@ -313,6 +457,7 @@ exportTomofastFiles (void)
       default:
          return FALSE;
    }
+   setDefaultDirectory (&(fs.dir));
    strcpy (dir, fs.dir.path);
    toSlashes (dir);
    {
@@ -448,11 +593,19 @@ exportTomofastFiles (void)
    fRho = fopen (path, "w");
    sprintf (path, "%s/model_susceptibility.txt", dir);
    fSus = fopen (path, "w");
-   if (!fGrid || !fRho || !fSus)
+   if (transd)
+   {
+      /* one weight (1.0) per mesh cell, same layout as model_density.txt */
+      sprintf (path, "%s/local_weights.txt", dir);
+      fLw = fopen (path, "w");
+   }
+   if (!fGrid || !fRho || !fSus || (transd && !fLw))
    {
       xvt_dm_post_error ("Error, could not create files in %s", dir);
       goto cleanup;
    }
+   if (fLw)
+      fprintf (fLw, "%ld\n", nElements);
    fprintf (fGrid, "%ld\n", nElements);
    fprintf (fRho, "%ld\n", nElements);
    fprintf (fSus, "%ld\n", nElements);
@@ -467,6 +620,8 @@ exportTomofastFiles (void)
                      xEdge[ip] + eastOff,  xEdge[ip+1] + eastOff,
                      yEdge[jp] + northOff, yEdge[jp+1] + northOff,
                      zBot, zTop, ip + 1, jp + 1, k + 1);
+            if (fLw)
+               fprintf (fLw, "1.0\n");
 
             cx = ip - nPad;
             cy = jp - nPad;
@@ -493,6 +648,10 @@ exportTomofastFiles (void)
    fclose (fGrid);  fGrid = NULL;
    fclose (fRho);   fRho = NULL;
    fclose (fSus);   fSus = NULL;
+   if (fLw)
+   {
+      fclose (fLw);  fLw = NULL;
+   }
 
                                        /* ************************* */
                                        /* Observation points        */
@@ -544,14 +703,21 @@ exportTomofastFiles (void)
       xvt_dm_post_error ("Error, could not write the parameter files in %s", dir);
       goto cleanup;
    }
+   if (transd
+    && (!writeTransdParamFile (dir, "paramfile_transd_grav.txt", "grav", 1)
+     || !writeTransdParamFile (dir, "paramfile_transd_magn.txt", "magn", 2)))
+   {
+      xvt_dm_post_error ("Error, could not write the TransD parameter files in %s", dir);
+      goto cleanup;
+   }
 
    ok = TRUE;
    if (comprType)
-      xvt_dm_post_note ("Tomofast-x files written to %s\n\nMesh %d x %d x %d (core %d x %d, %d padding cells each side), %d data points.\nDensity is relative to the mean %.0f kg/m3.\nHaar matrix compression rate %.4g.",
-                        dir, nxm, nym, nzm, nx, ny, nPad, nData, refDensity, comprRate);
+      xvt_dm_post_note ("%s files written to %s\n\nMesh %d x %d x %d (core %d x %d, %d padding cells each side), %d data points.\nDensity is relative to the mean %.0f kg/m3.\nHaar matrix compression rate %.4g.",
+                        transd ? "Tomofast-x and TransD" : "Tomofast-x", dir, nxm, nym, nzm, nx, ny, nPad, nData, refDensity, comprRate);
    else
-      xvt_dm_post_note ("Tomofast-x files written to %s\n\nMesh %d x %d x %d (core %d x %d, %d padding cells each side), %d data points.\nDensity is relative to the mean %.0f kg/m3.\nModel is small, so no matrix compression.",
-                        dir, nxm, nym, nzm, nx, ny, nPad, nData, refDensity);
+      xvt_dm_post_note ("%s files written to %s\n\nMesh %d x %d x %d (core %d x %d, %d padding cells each side), %d data points.\nDensity is relative to the mean %.0f kg/m3.\nModel is small, so no matrix compression.",
+                        transd ? "Tomofast-x and TransD" : "Tomofast-x", dir, nxm, nym, nzm, nx, ny, nPad, nData, refDensity);
 
 cleanup:
    if (fGrid) fclose (fGrid);
@@ -559,6 +725,7 @@ cleanup:
    if (fSus)  fclose (fSus);
    if (fDg)   fclose (fDg);
    if (fDm)   fclose (fDm);
+   if (fLw)   fclose (fLw);
    free (pad);  free (dx);  free (dy);  free (xEdge);  free (yEdge);
    free (coreTop);  free (colTop);
    destroy3DArray ((char ***) rho, nz, nx, ny);
