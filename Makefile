@@ -214,6 +214,8 @@ ifeq ($(NODDY_PLATFORM),macOS)
 	@cp qt_compat/icons/NODDY.icns $(BUNDLE)/Contents/Resources/AppIcon.icns
 	@echo "Bundling Qt frameworks into the app (macdeployqt)..."
 	@$(MACDEPLOYQT) $(BUNDLE)
+	@echo "Bundling libraries macdeployqt missed..."
+	@bash scripts/bundle_missing_dylibs.sh $(BUNDLE)
 	@echo "Ad-hoc signing the app..."
 	@codesign --force --deep --sign - $(BUNDLE)
 endif
