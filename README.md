@@ -12,6 +12,8 @@ This port has allowed several new features to be added to the code:
 - Random 5-event history generator added (Random History menu item)
 - Voxels above topo surface in block diagrams can now be rendered transparent (In Display Type Dialog).
 - Gaussian noise can now be added to density and magnetic susceptibility at voxel level (In Geophysics Calculation Options)
+- Tomofast-x inversion input files can be exported (Tools > Export Block > Tomofast-x Inversion Files...). Into the chosen folder it writes the model mesh (`model_grid.txt`, core cells plus horizontal padding, following topography if used), density and susceptibility models, observation points, and gravity, magnetic and joint parameter files (`paramfile_grav.txt`, `paramfile_magn.txt`, `paramfile_joint.txt`). Paths in the parameter files are relative, so run Tomofast-x with that folder as the working directory. Only the folder of the file chosen in the save dialog is used; its name is ignored.
+- TransD inversion files can be exported (Tools > Export Block > TransD Inversion Files...). This writes all of the Tomofast-x files above into the same folder, plus `local_weights.txt` (a weight of 1.0 for every mesh cell) and TransD parameter files `paramfile_transd_grav.txt` and `paramfile_transd_magn.txt`. These point at the exported `model_grid.txt`, use the sensitivity matrices from the Tomofast-x run (`OUTPUT_grav/SENSIT`, `OUTPUT_magn/SENSIT`) and write results to `OUTPUT_grav_TRANSD` / `OUTPUT_magn_TRANSD`. `data_vals_filename` points at the exported observation-point file (values are 0), so replace it with your own data file before running.
 
 ## Compiled versions
 Compiled versions of the code are available for:
