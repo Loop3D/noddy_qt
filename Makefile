@@ -111,6 +111,14 @@ ifeq ($(NODDY_PLATFORM),macOS)
     export PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/opt/homebrew/opt/qt@5/lib/pkgconfig:/usr/local/opt/qt@5/lib/pkgconfig
 endif
 
+# macdeployqt copies the Qt frameworks/plugins into noddy.app so it runs on a
+# Mac with no Qt installed (and the app is then ad-hoc signed; without any
+# signature Gatekeeper reports a downloaded app as "damaged").
+ifeq ($(NODDY_PLATFORM),macOS)
+    QT_HOST_BINS := $(shell pkg-config --variable=host_bins Qt5Core 2>/dev/null)
+    MACDEPLOYQT  := $(if $(QT_HOST_BINS),$(QT_HOST_BINS)/macdeployqt,macdeployqt)
+endif
+
 QT_CFLAGS := $(shell pkg-config --cflags Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
 QT_LIBS   := $(shell pkg-config --libs Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
 
@@ -204,6 +212,10 @@ ifeq ($(NODDY_PLATFORM),macOS)
 	@cp -R qt_compat/icons $(dir $(TARGET))/qt_compat/
 	@mkdir -p $(BUNDLE)/Contents/Resources
 	@cp qt_compat/icons/NODDY.icns $(BUNDLE)/Contents/Resources/AppIcon.icns
+	@echo "Bundling Qt frameworks into the app (macdeployqt)..."
+	@$(MACDEPLOYQT) $(BUNDLE)
+	@echo "Ad-hoc signing the app..."
+	@codesign --force --deep --sign - $(BUNDLE)
 endif
 
 $(TARGET): $(OBJS)

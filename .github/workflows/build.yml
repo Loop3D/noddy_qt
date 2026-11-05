@@ -92,6 +92,13 @@ jobs:
         run: brew install qt@5 pkg-config
       - name: Build and package
         run: make -j4 dmg
+      - name: Check the app is self-contained and signed
+        run: |
+          codesign --verify --deep --strict --verbose=2 noddy.app
+          otool -L noddy.app/Contents/MacOS/noddy
+          if otool -L noddy.app/Contents/MacOS/noddy | grep -E '/opt/homebrew|/usr/local/(opt|Cellar)'; then
+            echo "app still links to the build machine's Qt"; exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: noddy-macos
