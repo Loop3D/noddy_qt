@@ -213,6 +213,24 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# ---- Program version (shown in Help > About) -------------------------------
+# Taken from the git tag, e.g. v1.0.1, or v1.0.1-3-gabc1234 for builds after
+# that tag (add -dirty for uncommitted changes). Override with
+# `make APP_VERSION=...` (the GitHub workflow does); "unknown" without git.
+# Only aboutBox.c uses it, and it is rebuilt whenever the version changes.
+APP_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null)
+ifeq ($(APP_VERSION),)
+    APP_VERSION := unknown
+endif
+
+.PHONY: FORCE
+FORCE:
+.version_stamp: FORCE
+	@echo '$(APP_VERSION)' | cmp -s - $@ || echo '$(APP_VERSION)' > $@
+
+$(SRC_DIR)/aboutBox.o: .version_stamp
+$(SRC_DIR)/aboutBox.o: CFLAGS += -DNODDY_APP_VERSION=\"$(APP_VERSION)\"
+
 # ---- macOS .dmg packaging ---------------------------------------------------
 # `make dmg` builds noddy.app (via the `all` dependency) and packages it into
 # noddy.dmg. A plain .icns embedded in the .app's Info.plist only controls
@@ -255,6 +273,6 @@ clean:
 	@echo "Cleaning up build artifacts..."
 	rm -f *.o $(SRC_DIR)/*.o
 	rm -f qt_compat/*.o
-	rm -f noddy noddy.exe
+	rm -f noddy noddy.exe .version_stamp
 	rm -rf noddy.app
 	rm -rf $(DMG_STAGING) $(DMG_STAGING).icns $(DMG_STAGING).rsrc

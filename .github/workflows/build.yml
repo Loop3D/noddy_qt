@@ -21,6 +21,11 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history and tags, for the version shown in About
+      - name: Set program version
+        shell: bash
+        run: echo "APP_VERSION=$(git describe --tags --always)" >> "$GITHUB_ENV"
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -52,6 +57,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history and tags, for the version shown in About
+      - name: Set program version
+        shell: bash
+        run: echo "APP_VERSION=$(git describe --tags --always)" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -73,6 +83,11 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history and tags, for the version shown in About
+      - name: Set program version
+        shell: bash
+        run: echo "APP_VERSION=$(git describe --tags --always)" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: brew install qt@5 pkg-config
       - name: Build and package

@@ -210,6 +210,7 @@ removed; this `Makefile` is the only build path now.
 - `src/` -- the Noddy application source (`.c` and `.h` files)
 - `qt_compat/` -- the XVT-to-Qt compatibility layer, plus the runtime icons (`qt_compat/icons`, which must sit next to the built program)
 - `Makefile` -- build for all platforms (run `make` from the repository root)
+- The program version shown in Help > About comes from the latest git tag (e.g. `v1.0.1`). It needs `git` available to `make` (in MSYS2: `pacman -S git`); otherwise it shows "unknown". `make APP_VERSION=v1.2.3` sets it by hand.
 
 See [CLAUDE.md](CLAUDE.md) for a full description of the codebase's
 architecture (the event-history model, voxelisation, geophysics forward

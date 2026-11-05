@@ -37,6 +37,10 @@
 /*
 	Handler for dialog DLG_126 ("About Noddy")
 */
+#ifndef NODDY_APP_VERSION
+#define NODDY_APP_VERSION "unknown"
+#endif
+
 long XVT_CALLCONV1
 #if XVT_CC_PROTO
 DLG_126_eh XVT_CALLCONV2 (WINDOW xdWindow, EVENT *xdEvent)
@@ -62,8 +66,11 @@ EVENT *xdEvent;
 #include "noddy.h"
 
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_1), "Noddy");
-		sprintf(versionString, "%.2lf",(double) VERSION_NUMBER);
-		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_9), (char *) versionString);
+		/* [Qt port ADDITION] program version, stamped from the git tag at build
+		** time (see Makefile); the history-file format version is listed below it */
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_9), (char *) NODDY_APP_VERSION);
+		sprintf(versionString, "History file format version %.2lf",(double) VERSION_NUMBER);
+		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_2), (char *) versionString);
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_4), "Licence:");
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_5), "MIT");
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_7),
