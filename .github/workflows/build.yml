@@ -80,3 +80,31 @@ jobs:
         with:
           name: noddy-macos
           path: noddy.dmg
+
+  # Publishes the three builds as a public GitHub Release named "latest",
+  # replaced on every push to main (Releases page of the repository).
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Package
+        run: |
+          mkdir out
+          (cd artifacts/noddy-windows && zip -qr ../../out/noddy-windows.zip .)
+          tar -C artifacts/noddy-linux -czf out/noddy-linux.tar.gz .
+          cp artifacts/noddy-macos/noddy.dmg out/noddy-macos.dmg
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest out/* --target "$GITHUB_SHA" \
+            --title "Noddy (latest build)" \
+            --notes "Automatic build of commit $GITHUB_SHA. Windows: unzip and run noddy.exe. Linux: needs Qt5 libraries installed (see README). macOS: open the .dmg."
