@@ -16,7 +16,7 @@ This port has allowed several new features to be added to the code:
 - TransD inversion files can be exported (Tools > Export Block > TransD Inversion Files...). This writes all of the Tomofast-x files above into the same folder, plus `local_weights.txt` (a weight of 1.0 for every mesh cell) and TransD parameter files `paramfile_transd_grav.txt` and `paramfile_transd_magn.txt`. These point at the exported `model_grid.txt`, use the sensitivity matrices from the Tomofast-x run (`OUTPUT_grav/SENSIT`, `OUTPUT_magn/SENSIT`) and write results to `OUTPUT_grav_TRANSD` / `OUTPUT_magn_TRANSD`. `data_vals_filename` points at the exported observation-point file (values are 0), so replace it with your own data file before running.
 
 ## Compiled versions
-Compiled versions of the code for all three platforms are built automatically from this repository and can be downloaded from the [latest release](https://github.com/Loop3D/noddy_qt/releases/tag/latest):
+Compiled versions of the code for all three platforms are built automatically from this repository and can be downloaded from the [latest release](https://github.com/Loop3D/noddy_qt/releases/latest) (older versions are on the [Releases page](https://github.com/Loop3D/noddy_qt/releases)):
 - Windows (with all libraries supplied): `noddy-windows.zip` -- unzip it and run `noddy.exe`
 - MacOS: `noddy-macos.dmg`
 - Ubuntu/Linux: `noddy-linux.tar.gz` (requires Qt5 libraries to be installed, see below)
