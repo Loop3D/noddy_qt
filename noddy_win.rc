@@ -1,0 +1,18 @@
+/* ============================================================================
+ * Windows resource script -- gives noddy.exe its application icon.
+ *
+ * [Qt port ADDITION] todo.txt #64 -- "windows version doesn't have noddy
+ * icon for app". Points at qt_compat/icons/png/NODDY.ico, a multi-resolution
+ * icon generated (ImageMagick) from qt_compat/icons/png/NODDY.png -- the
+ * same repainted-color source image used for the runtime window/taskbar
+ * icon (see xvt_compat.cpp's task-window setup) and for every other event
+ * icon in this tree (loadIcon() prefers qt_compat/icons/png/<NAME>.png over
+ * the old 16-colour qt_compat/icons/<NAME>.ICO files). The root NODDY.ICO
+ * is the original 1994-era 16-colour icon recovered from the old XVT
+ * resource file (qt_compat/original_resources/noddy_shell.rc, resource ID
+ * 9012); kept in the tree for provenance but no longer what's built into
+ * the .exe. Compiled via windres (MinGW's resource compiler) into a .o
+ * that's linked straight into noddy.exe -- see Makefile.
+ * ============================================================================
+ */
+IDI_ICON1 ICON "qt_compat/icons/png/NODDY.ico"
