@@ -69,7 +69,13 @@ EVENT *xdEvent;
 		/* [Qt port ADDITION] program version, stamped from the git tag at build
 		** time (see Makefile); the history-file format version is listed below it */
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_9), (char *) NODDY_APP_VERSION);
-		sprintf(versionString, "History file format version %.2lf",(double) VERSION_NUMBER);
+		/* VERSION_NUMBER 8.02 is shown as 8.0.2 (major.minor.patch), so it reads
+		** the same as the program version tag (v8.0.2) */
+		{
+			int v100 = (int) (VERSION_NUMBER * 100.0 + 0.5);
+			sprintf(versionString, "History file format version %d.%d.%d",
+				v100 / 100, (v100 / 10) % 10, v100 % 10);
+		}
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_2), (char *) versionString);
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_4), "Licence:");
 		xvt_vobj_set_title (xvt_win_get_ctl (xdWindow, DLG_126_TEXT_5), "MIT");

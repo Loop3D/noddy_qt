@@ -1232,7 +1232,7 @@ static const DialogCtlPosition g_pos_126[] = {
     { 1, 336, 16, 400, 40, WC_PUSHBUTTON, "OK" },                  /* DLG_ABOUT_CANCEL */
     { 2,  96, 14, 240, 46 },                                       /* DLG_126_TEXT_1 "Noddy" */
     { 9, 240, 14, 330, 46 },                                       /* DLG_126_TEXT_9 version, dynamic */
-    { 3,  16, 62, 404, 78, WC_TEXT, "" },                          /* DLG_126_TEXT_2, unused (aboutBox.c no longer sets it) */
+    { 3, 110, 46, 330, 62, WC_TEXT, "" },                          /* DLG_126_TEXT_2, history-file format version (set by aboutBox.c), between title and licence line */
     { 4,  16, 78, 404, 94, WC_TEXT, "" },                          /* DLG_126_TEXT_3, unused (aboutBox.c no longer sets it) */
     { 5, 110, 66, 168, 82, WC_TEXT },                              /* DLG_126_TEXT_4 "Licence:" */
     { 6, 168, 66, 320, 82 },                                       /* DLG_126_TEXT_5 licence name */
