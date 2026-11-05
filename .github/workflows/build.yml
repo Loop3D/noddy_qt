@@ -1,0 +1,82 @@
+name: Build
+
+# Builds Noddy on Windows (MSYS2/MinGW64), Linux (Ubuntu) and macOS with the
+# repository Makefile, and uploads each result as a downloadable artifact
+# (Actions tab > the run > Artifacts). Run manually from the Actions tab with
+# "Run workflow", or automatically on every push / pull request to main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-qt5-base
+            mingw-w64-x86_64-pkgconf
+      - name: Build
+        run: make -j4
+      - name: Collect runtime files
+        run: |
+          mkdir -p dist/platforms
+          cp noddy.exe dist/
+          mkdir -p dist/qt_compat
+          cp -R qt_compat/icons dist/qt_compat/
+          # every mingw64 DLL the exe needs (ldd lists indirect ones too)
+          ldd noddy.exe | awk '/\/mingw64\/bin\// {print $3}' | sort -u | xargs -I{} cp {} dist/
+          cp "$MINGW_PREFIX/share/qt5/plugins/platforms/qwindows.dll" dist/platforms/ || \
+            cp "$MINGW_PREFIX/lib/qt5/plugins/platforms/qwindows.dll" dist/platforms/
+          cp LICENSE lgpl-3.0.txt user.txt dist/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noddy-windows
+          path: dist
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential qtbase5-dev qt5-qmake pkg-config
+      - name: Build
+        run: make -j4
+      - name: Collect runtime files
+        run: |
+          mkdir -p dist/qt_compat
+          cp noddy dist/
+          cp -R qt_compat/icons dist/qt_compat/
+          cp LICENSE lgpl-3.0.txt user.txt dist/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noddy-linux
+          path: dist
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install qt@5 pkg-config
+      - name: Build and package
+        run: make -j4 dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noddy-macos
+          path: noddy.dmg
