@@ -205,6 +205,10 @@ removed; this `Makefile` is the only build path now.
 
 ## Project layout
 
+- `src/` -- the Noddy application source (`.c` and `.h` files)
+- `qt_compat/` -- the XVT-to-Qt compatibility layer, plus the runtime icons (`qt_compat/icons`, which must sit next to the built program)
+- `Makefile` -- build for all platforms (run `make` from the repository root)
+
 See [CLAUDE.md](CLAUDE.md) for a full description of the codebase's
 architecture (the event-history model, voxelisation, geophysics forward
 modelling, the 3D renderer, and how the Qt compatibility layer maps onto

@@ -46,8 +46,11 @@ CXX      := g++
 CC       := gcc
 
 # ---- Source and Object Files -----------------------------------------------
-# Automatically finds all .c and .cpp files in the root and qt_compat directories
-SRCS_C   := $(wildcard *.c) $(wildcard qt_compat/*.c)
+# Automatically finds all .c files in src/ and all .c/.cpp files in qt_compat/
+# (the XVT-to-Qt shim; it also holds the runtime icons). Objects are built
+# next to their sources.
+SRC_DIR  := src
+SRCS_C   := $(wildcard $(SRC_DIR)/*.c) $(wildcard qt_compat/*.c)
 SRCS_CXX := $(wildcard qt_compat/*.cpp)
 
 OBJS     := $(SRCS_C:.c=.o) $(SRCS_CXX:.cpp=.o)
@@ -111,7 +114,7 @@ endif
 QT_CFLAGS := $(shell pkg-config --cflags Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
 QT_LIBS   := $(shell pkg-config --libs Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
 
-CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_compat -I. $(QT_CFLAGS)
+CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_compat -I$(SRC_DIR) $(QT_CFLAGS)
 # -Wno-implicit-function-declaration: this ~30-year-old codebase has always
 # relied on plain-C's old implicit-int-return-type behaviour for a handful
 # of missing standard-library includes here and there (isdigit/isspace
@@ -128,7 +131,7 @@ CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_com
 # also just a warning under Linux's older default GCC, a hard error under
 # this newer MinGW one (e.g. EpsilTet.c's `EpsilonCode(...)  { ... }`, no
 # leading `int`).
-CFLAGS   := -std=gnu17 -fPIC -Wall -Wno-implicit-function-declaration -Wno-implicit-int -g -O2 -Iqt_compat
+CFLAGS   := -std=gnu17 -fPIC -Wall -Wno-implicit-function-declaration -Wno-implicit-int -g -O2 -Iqt_compat -I$(SRC_DIR)
 LDFLAGS  := $(QT_LIBS)
 
 ifeq ($(NODDY_PLATFORM),macOS)
@@ -149,11 +152,11 @@ ifeq ($(NODDY_PLATFORM),macOS)
     # quotes instead" only happens when quote-form lookup -- which always
     # checks the including file's own directory -- finds a match that
     # angle-bracket lookup, which skips that directory, does not). Adding
-    # the current directory to the include path lets `#include <malloc.h>`
+    # the source directory to the include path lets `#include <malloc.h>`
     # find that local header on macOS too, without touching any .c files.
     # Scoped to macOS only so Linux/Windows keep resolving <malloc.h> to
     # their own system header as before.
-    CFLAGS += -I.
+    CFLAGS += -I$(SRC_DIR)
 endif
 
 # -fPIC is meaningless (and warns) when targeting Windows PE via MinGW --
@@ -250,7 +253,7 @@ endif
 
 clean:
 	@echo "Cleaning up build artifacts..."
-	rm -f *.o
+	rm -f *.o $(SRC_DIR)/*.o
 	rm -f qt_compat/*.o
 	rm -f noddy noddy.exe
 	rm -rf noddy.app

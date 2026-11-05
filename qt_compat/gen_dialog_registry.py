@@ -56,7 +56,7 @@ def classify_type(name):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else 'nodInc.h'
+    path = sys.argv[1] if len(sys.argv) > 1 else 'src/nodInc.h'
     out_path = sys.argv[2] if len(sys.argv) > 2 else 'dialog_registry.cpp'
 
     # Pass 1: collect the AUTHORITATIVE set of real window/dialog names from
