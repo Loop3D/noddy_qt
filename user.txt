@@ -138,9 +138,9 @@ binary needs to become a proper macOS .app bundle with Qt's Frameworks
 and platform plugin (libqcocoa.dylib) embedded inside it -- Qt's own
 bundling tool handles this:
 
-  macdeployqt Noddy.app
+  macdeployqt noddy.app
 
-(This assumes the build is wrapped into a Noddy.app bundle structure
+(This assumes the build is wrapped into noddy.app bundle structure
 first -- Makefile currently produces a bare command-line-style
 binary, not an .app bundle; turning it into one, if full standalone
 distribution is needed, is a separate follow-up task not done yet.)
