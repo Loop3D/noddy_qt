@@ -269,6 +269,7 @@ ifeq ($(NODDY_PLATFORM),macOS)
 	@rm -rf $(DMG_STAGING) $(DMG_NAME)
 	@mkdir -p $(DMG_STAGING)
 	@cp -R $(BUNDLE) $(DMG_STAGING)/
+	@ln -s /Applications $(DMG_STAGING)/Applications
 	@hdiutil create -volname "$(DMG_VOLNAME)" -srcfolder $(DMG_STAGING) -format UDZO -fs HFS+ $(DMG_NAME)
 	@rm -rf $(DMG_STAGING)
 	@echo "Stamping custom icon onto $(DMG_NAME)..."
