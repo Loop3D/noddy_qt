@@ -48,6 +48,7 @@ jobs:
           cp "$MINGW_PREFIX/share/qt5/plugins/platforms/qwindows.dll" dist/platforms/ || \
             cp "$MINGW_PREFIX/lib/qt5/plugins/platforms/qwindows.dll" dist/platforms/
           cp LICENSE lgpl-3.0.txt user.txt dist/ 2>/dev/null || true
+          cp TOPOFILE.TOP PROPERTY.ROX UNCON2.DXF dist/
       - uses: actions/upload-artifact@v4
         with:
           name: noddy-windows
@@ -74,6 +75,7 @@ jobs:
           cp noddy dist/
           cp -R qt_compat/icons dist/qt_compat/
           cp LICENSE lgpl-3.0.txt user.txt dist/ 2>/dev/null || true
+          cp TOPOFILE.TOP PROPERTY.ROX UNCON2.DXF dist/
       - uses: actions/upload-artifact@v4
         with:
           name: noddy-linux
