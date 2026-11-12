@@ -43,6 +43,7 @@ typedef char CHAR;
 #endif
 #include "noddy.h"       /* resource constants for this program */
 #include "nodInc.h"
+#include <ctype.h>   /* tolower, used by displayHelp */
 #include <math.h>
 #include <time.h>
 #include "titles.h"
@@ -3214,63 +3215,43 @@ displayHelp (topic)
 char *topic;
 #endif
 {
-	int result;
-	char command[200], dir[100];
-	char *cmdPtr, *pathPtr;
-	FILE_SPEC helpFile;
+	/* [Qt port CHANGE] The original shelled out to the Help Viewer command
+	** from Project Options with a local Help/<topic>.htm file. The help
+	** pages now live in the online documentation (docs/ in the
+	** repository), where each page keeps its original name in lower case
+	** with a .html extension (e.g. "BaseEv.htm" -> "baseev.html"); the
+	** few topics that were renamed or merged are mapped below. */
+	static const char *renamed[][2] = {
+		{ "gpscalcop", "gpsclop" },   /* Geophysics Calculation Options */
+		{ "generic",   "strmod" },    /* no page for the generic event */
+		{ "toc",       "contents" },
+		{ NULL, NULL }
+	};
+	char page[64], url[256];
+	char *dot;
+	int i;
 
-	if (!(pathPtr = (char *) strstr(projectOptions.helpPath, "%h")))
+	if (!topic || !*topic)
+		topic = "contents";
+	strncpy (page, topic, sizeof(page) - 8);
+	page[sizeof(page) - 8] = '\0';
+	if ((dot = strrchr (page, '.')))
+		*dot = '\0';
+	for (i = 0; page[i]; i++)
+		page[i] = (char) tolower ((unsigned char) page[i]);
+	for (i = 0; renamed[i][0]; i++)
+		if (strcmp (page, renamed[i][0]) == 0)
+		{
+			strcpy (page, renamed[i][1]);
+			break;
+		}
+	sprintf (url, "%s%s.html", NODDY_DOCS_URL, page);
+
+	if (!xvt_open_url (url))
 	{
-		xvt_dm_post_error("Error, No %%h to specify html file in Help Path. Check Options.");
+		xvt_dm_post_error ("Could not open a web browser. This help page is at %s", url);
 		return (FALSE);
 	}
-
-	strcpy(command, projectOptions.helpPath);
-	if (!(cmdPtr = (char *) strstr(command, "%h")))
-	{
-		xvt_dm_post_error("Error, No %%h to specify html file in Command. Check Options.");
-		return (FALSE);
-	}
-		/* Build the correct path for the file */
-	xvt_fsys_convert_dir_to_str(&defaultDir, dir, 100);
-#if (XVTWS == WIN16WS) || (XVTWS == WIN32WS)
-	strcat (dir, "\\Help");
-#endif
-#if (XVTWS == MTFWS) || (XVTWS == XOLWS)
-	strcat (dir, "/Help");
-#endif
-#if (XVTWS == MACWS)
-	strcat (dir, ":Help");
-#endif
-	strcpy (helpFile.name, topic);
-	xvt_fsys_convert_str_to_dir(dir, &(helpFile.dir));
-   if (!findFile (&helpFile))
-	{
-		xvt_dm_post_error("Error, Cannot Find File (%s).", helpFile.name);
-		return (FALSE);
-	}
-	xvt_fsys_convert_dir_to_str(&(helpFile.dir), dir, 100);
-#if (XVTWS == WIN16WS) || (XVTWS == WIN32WS)
-	strcat (dir, "\\");
-#endif
-#if (XVTWS == MTFWS) || (XVTWS == XOLWS)
-	strcat (dir, "/");
-#endif
-#if (XVTWS == MACWS)
-	strcat (dir, ":");
-#endif
-	strcat (dir, helpFile.name);
-		/* Put the file we have found in the command */
-	strcpy(cmdPtr, dir);
-	strcat(command, pathPtr+2);
-
-   result = system (command);
-	if (result == -1)
-	{
-		xvt_dm_post_error("Error, Help command Failed (%s)", command);
-		return (FALSE);
-	}
-
 	return (TRUE);
 }
 

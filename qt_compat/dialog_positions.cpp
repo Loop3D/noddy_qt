@@ -471,7 +471,7 @@ static const DialogCtlPosition g_pos_183[] = {
      * high-water mark this button row was sized for -- same "buttons
      * covered by other widgets" symptom, matching a user screenshot. */
     { 4, 460,565, 525, 585, WC_PUSHBUTTON, "OK" },                             /* OPTIONS WINDOW PUSHBUTTON 107 */
-    { 6, 530,565, 590, 585, WC_PUSHBUTTON, "Help...", true },                 /* OPTIONS WINDOW PUSHBUTTON 109 */
+    { 6, 530,565, 590, 585, WC_PUSHBUTTON, "Help..." },                       /* OPTIONS WINDOW PUSHBUTTON 109 -- [Qt port change] enabled again, displayHelp opens the online docs */
     { 5, 595,565, 655, 585, WC_PUSHBUTTON, "Cancel" },                         /* OPTIONS WINDOW PUSHBUTTON 108 */
 };
 /* [Qt port change] todo.txt #53: the "Windows" sub-panel
@@ -760,7 +760,7 @@ static const DialogCtlPosition g_pos_174[] = {
     { 30, 200, 283, 290, 301 },
 
     { 12, 40, 330, 100, 350, WC_PUSHBUTTON, "OK" },
-    { 14, 120, 330, 180, 350, WC_PUSHBUTTON, "Help...", true },
+    { 14, 120, 330, 180, 350, WC_PUSHBUTTON, "Help..." },  /* [Qt port change] enabled again (online docs) */
     { 13, 200, 330, 260, 350, WC_PUSHBUTTON, "Cancel" },
 };
 

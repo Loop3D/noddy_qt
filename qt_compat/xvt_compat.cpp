@@ -2132,17 +2132,10 @@ static WINDOW createControlWidget(WINDOW parentWin, QWidget *parentWidget, QForm
     if (const char *tip = findTooltip(resId, ctlId))
         w->setToolTip(QString::fromLocal8Bit(tip));
 
-    /* Disable every "Help..." button app-wide (per user request: the real
-     * XVT displayHelp() shells out to a hardcoded Windows browser path with
-     * no Qt-port equivalent, so a live Help button either does nothing or
-     * errors -- better to show it disabled than a dead control). Matches
-     * on the resolved label text so it covers both dialog_positions.cpp's
-     * manually reconstructed "Help..." overrides and any dialog_registry.cpp
-     * auto-generated label ending in " HELP" (e.g. "EVENT HELP", "ROCK
-     * HELP") that happens to already resolve to a real pushbutton. */
-    if (type == WC_PUSHBUTTON && label.contains("help", Qt::CaseInsensitive)) {
-        w->setEnabled(false);
-    }
+    /* [Qt port change] "Help..." buttons are enabled again: displayHelp()
+     * (nodLib3.c) now opens the matching page of the online documentation
+     * via xvt_open_url(). (They were previously disabled because the
+     * original displayHelp shelled out to a Windows-only browser path.) */
 
     if (type == WC_GROUPBOX || type == WC_TEXT || type == WC_ICON) {
         /* These are purely decorative/container controls in real XVT --
