@@ -74,6 +74,8 @@
 #include <QAction>
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QDesktopServices>
+#include <QUrl>
 #include <QToolTip>
 #include <QHelpEvent>
 #include <QPlainTextEdit>
@@ -3969,6 +3971,15 @@ FL_STATUS xvt_dm_post_file_save(FILE_SPEC *fs, const char *prompt)
     fs->name[SZ_FNAME] = '\0';
     strncpy(fs->dir.path, fi.absolutePath().toLocal8Bit().constData(), sizeof(fs->dir.path) - 1);
     return FL_OK;
+}
+
+/* [Qt port ADDITION] open a URL in the default web browser (used by
+ * Help > Contents for the online documentation). */
+BOOLEAN xvt_open_url(const char *url)
+{
+    ensureQApp();
+    if (!url || !*url) return FALSE;
+    return QDesktopServices::openUrl(QUrl::fromUserInput(QString::fromUtf8(url))) ? TRUE : FALSE;
 }
 
 FL_STATUS xvt_dm_post_dir_select(DIRECTORY *dir, const char *prompt)

@@ -149,6 +149,7 @@ int  xvt_dm_post_ask(const char *b1, const char *b2, const char *b3, const char 
 FL_STATUS xvt_dm_post_file_open(FILE_SPEC *fs, const char *prompt); /* [DONE] */
 FL_STATUS xvt_dm_post_file_save(FILE_SPEC *fs, const char *prompt); /* [DONE] */
 FL_STATUS xvt_dm_post_dir_select(DIRECTORY *dir, const char *prompt); /* [Qt port ADDITION] pick (or create) a directory; labelled "Directory Name", no file type */
+BOOLEAN xvt_open_url(const char *url); /* [Qt port ADDITION] open a URL (or local file) in the user's default browser */
 BOOLEAN xvt_dm_post_string_prompt(const char *prompt, char *buf, int maxlen); /* [STUB] */
 BOOLEAN xvt_dm_post_page_setup(PRINT_RCD *printer_setup); /* [DONE] */
 
