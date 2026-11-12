@@ -79,6 +79,24 @@ jobs:
           name: noddy-linux
           path: dist
 
+  # Checks the Qt-free command-line build (make HEADLESS=1) still builds,
+  # needs no Qt libraries, and runs a batch job.
+  linux-headless:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build without Qt
+        run: make -j4 HEADLESS=1
+      - name: Check it does not link Qt
+        run: |
+          ldd noddy
+          if ldd noddy | grep -i qt; then echo "headless build links Qt"; exit 1; fi
+      - name: Smoke test (random history, block and anomalies)
+        run: |
+          mkdir smoke && cd smoke
+          ../noddy -random -o smoke
+          ls -l smoke.his smoke.g12 smoke.grv smoke.mag
+
   macos:
     runs-on: macos-latest
     steps:

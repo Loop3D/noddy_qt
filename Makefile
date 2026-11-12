@@ -39,19 +39,37 @@
 #
 # Usage (same on every platform, from the appropriate shell above):
 #   make                            # build ./noddy (or noddy.exe / noddy.app)
+#   make HEADLESS=1                 # command-line-only ./noddy, no Qt needed
 #   make clean
+#
+# HEADLESS=1 builds a batch-only binary for machines without Qt (e.g. HPC
+# clusters): it needs only gcc and make. The Qt shim is replaced by
+# qt_compat/headless/xvt_headless.c, which keeps the calculation-side XVT
+# helpers and turns all GUI calls into no-ops. Every batch option (-block,
+# -anom, -random, -dxfface, ...) works as usual; launching it with no batch
+# options prints the usage instead of opening a window. On macOS it builds a
+# plain ./noddy, not noddy.app. Switching between HEADLESS=1 and a normal
+# build relinks automatically (the object files are shared).
 # ============================================================================
 
 CXX      := g++
 CC       := gcc
 
+HEADLESS ?= 0
+
 # ---- Source and Object Files -----------------------------------------------
 # Automatically finds all .c files in src/ and all .c/.cpp files in qt_compat/
 # (the XVT-to-Qt shim; it also holds the runtime icons). Objects are built
-# next to their sources.
+# next to their sources. A headless build swaps the Qt shim for the single
+# C file in qt_compat/headless/ (not matched by the qt_compat/*.c wildcard).
 SRC_DIR  := src
+ifeq ($(HEADLESS),1)
+SRCS_C   := $(wildcard $(SRC_DIR)/*.c) qt_compat/headless/xvt_headless.c
+SRCS_CXX :=
+else
 SRCS_C   := $(wildcard $(SRC_DIR)/*.c) $(wildcard qt_compat/*.c)
 SRCS_CXX := $(wildcard qt_compat/*.cpp)
+endif
 
 OBJS     := $(SRCS_C:.c=.o) $(SRCS_CXX:.cpp=.o)
 
@@ -90,6 +108,9 @@ endif
 # ---- Executable name -------------------------------------------------------
 ifeq ($(NODDY_PLATFORM),Windows)
     TARGET := noddy.exe
+else ifeq ($(HEADLESS),1)
+    # no .app bundle for a command-line-only build, even on macOS
+    TARGET := noddy
 else ifeq ($(NODDY_PLATFORM),macOS)
     # On macOS, the final output binary must sit deep inside a .app bundle folder structure
     BUNDLE := noddy.app
@@ -119,8 +140,13 @@ ifeq ($(NODDY_PLATFORM),macOS)
     MACDEPLOYQT  := $(if $(QT_HOST_BINS),$(QT_HOST_BINS)/macdeployqt,macdeployqt)
 endif
 
+ifeq ($(HEADLESS),1)
+QT_CFLAGS :=
+QT_LIBS   :=
+else
 QT_CFLAGS := $(shell pkg-config --cflags Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
 QT_LIBS   := $(shell pkg-config --libs Qt5Widgets Qt5Gui Qt5Core Qt5PrintSupport)
+endif
 
 CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_compat -I$(SRC_DIR) $(QT_CFLAGS)
 # -Wno-implicit-function-declaration: this ~30-year-old codebase has always
@@ -141,6 +167,15 @@ CXXFLAGS := -std=c++17 -fPIC -Wall -Wextra -Wno-unused-parameter -g -O2 -Iqt_com
 # leading `int`).
 CFLAGS   := -std=gnu17 -fPIC -Wall -Wno-implicit-function-declaration -Wno-implicit-int -g -O2 -Iqt_compat -I$(SRC_DIR)
 LDFLAGS  := $(QT_LIBS)
+
+# A headless build is pure C: link with gcc plus the maths library (which
+# the Qt/C++ link otherwise brings in implicitly).
+ifeq ($(HEADLESS),1)
+    LINKER  := $(CC)
+    LDFLAGS += -lm
+else
+    LINKER  := $(CXX)
+endif
 
 ifeq ($(NODDY_PLATFORM),macOS)
     # Recent clang (Apple's included) promoted several classic K&R-era C
@@ -193,7 +228,7 @@ endif
 .PHONY: all clean dmg
 
 all: $(TARGET)
-ifeq ($(NODDY_PLATFORM),macOS)
+ifeq ($(NODDY_PLATFORM)$(HEADLESS),macOS0)
 	@echo "Creating macOS Bundle Structure and Info.plist..."
 	@mkdir -p $(BUNDLE)/Contents
 	@echo '<?xml version="1.0" encoding="UTF-8"?>' > $(BUNDLE)/Contents/Info.plist
@@ -220,9 +255,14 @@ ifeq ($(NODDY_PLATFORM),macOS)
 	@codesign --force --deep --sign - $(BUNDLE)
 endif
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) .build_mode_stamp
 	@mkdir -p $(dir $(TARGET))
-	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
+	$(LINKER) -o $@ $(OBJS) $(LDFLAGS)
+
+# Records whether the last link was HEADLESS or Qt, so switching modes
+# relinks ./noddy even though the shared src/*.o files are up to date.
+.build_mode_stamp: FORCE
+	@echo 'HEADLESS=$(HEADLESS)' | cmp -s - $@ || echo 'HEADLESS=$(HEADLESS)' > $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -287,7 +327,7 @@ endif
 clean:
 	@echo "Cleaning up build artifacts..."
 	rm -f *.o $(SRC_DIR)/*.o
-	rm -f qt_compat/*.o
-	rm -f noddy noddy.exe .version_stamp
+	rm -f qt_compat/*.o qt_compat/headless/*.o
+	rm -f noddy noddy.exe .version_stamp .build_mode_stamp
 	rm -rf noddy.app
 	rm -rf $(DMG_STAGING) $(DMG_STAGING).icns $(DMG_STAGING).rsrc

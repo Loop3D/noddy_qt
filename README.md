@@ -79,6 +79,32 @@ own batch/CLI modes -- `-block`, `-anom`, etc):
 QT_QPA_PLATFORM=offscreen ./noddy somefile.his -block
 ```
 
+### Command-line-only build without Qt (clusters, servers)
+
+If Qt5 isn't available (common on HPC clusters), build a batch-only binary
+that needs nothing but `gcc` and `make`:
+
+```
+make clean
+make HEADLESS=1
+./noddy somefile.his -o out -anomAndBlock
+```
+
+This replaces the Qt shim with `qt_compat/headless/xvt_headless.c`. The
+calculation code is unchanged, and every batch option (`-block`, `-anom`,
+`-anomAndBlock`, `-section`, `-dxfface`, `-random`, ...) works as usual.
+Its output files match the Qt build's byte for byte, apart from the
+date/time line in the `.grv`/`.mag` headers. There is no GUI: running it
+with no batch options prints the usage and exits. Messages that would have
+been pop-up dialogs are printed to stderr, and saving pictures is not
+available. The result is a plain `./noddy` on every platform, including
+macOS (no `.app` bundle). If you switch between `make` and `make
+HEADLESS=1`, the binary is relinked automatically.
+
+The Makefile compiles with `-std=gnu17`, which needs GCC 8 or newer. On
+an older cluster, load a newer compiler module first (for example `module
+load gcc`).
+
 
 ## Windows (MSYS2 / MinGW)
 
