@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geophysical modelling &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Geophysical modelling">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Geophysical modelling</h1>
+
+<p><a href="#calc_schemes">Overview Geophysics Calculations Within Noddy</a></p>
+<p><a href="#rec_schemes">Recommended Calculation Schemes</a></p>
+<p><a href="#consider">Considerations when modelling</a></p>
+<p>This program allows you to calculate the 2D anomaly patterns which develop from the consideration of a 3D volume of geology. Once the volume of rock to be modelled has been specified from within the Block Options Window, the actual calculations for gravity and magnetics are performed simultaneously by selecting Calculate Anomalies from the Geophysics menu, and the anomalies themselves will be written out to file. A window will open up which allows the user to provide the directory and prefix of the output files to be created. The directories will be those below the level of the home location of the actual Noddy program. Once the calculation is completed, these files will be loaded into the program as raster or contour images, depending on the settings of the Geophysics Display Options Window.</p>
+<p>Several schemes are currently available for calculating gravity and magnetic responses, which fall into two groups: the spatial domain and spectral domain schemes. To switch between these schemes select the appropriate option in the Geophysics Calculation Options Window, from the Edit Menu.</p>
+<p><a id="calc_schemes"></a>Geophysics Calculations within Noddy </p>
+<p>There are three calculation schemes available within Noddy, which we shall call the Spatial Convolution scheme, the Full Spatial scheme, and the Spectral scheme, and each scheme has its advantages and disadvantages for particular settings, and not all calculation types are available for each scheme.</p>
+<p>For all surveys the rock property of a cube is defined as the value at the centre of the cube, and for grid surveys (ie not arbitrary surveys or bore-hole surveys) the field strength is calculated at the X,Y location above the centre of each cube.</p>
+<p>The Total Magnetic Intensity value calculated for all schemes is actually the value projected onto the Earth’s field, following the convention of many modelling schemes.</p>
+<p>The gravity field calculated is the Z component only.</p>
+<p>Basic Calculation Schemes</p>
+<p>Spatial Convolution Scheme</p>
+<p>This scheme works by calculating the summed response of all the cubes within a cylinder centred on the sensor, with a radius defined by the <em>range</em> term. The calculation for each cube is based on the analytical solution for a dipping prism presented by Hjelt 1972 &amp; 1974. In order to calculate solutions near the edge of a block extra geology is calculated to produce a padding zone around the block equal in width to the range, so that there are no edge effects in this scheme. However this scheme will only provide exact solutions when the range is larger than the length of the model. For reasonably complex geology this limitation will not result in particularly inaccurate models, however for idealised geometries using a range that is too small will result in a kink in the profile, which is accentuated by 1VD calculations. The spatial convolution scheme is slower than the Spectral scheme for medium ranges (10-20 cube ranges), but generally much faster than the Full Spatial Calculation. As long as the range is greater than the spacing between high density/susceptibility features, the innaccuracies associated with truncating the calculation will probably not be evident. The draped survey and down-hole surveys have not been implemented for this scheme. </p>
+<p>Spectral Scheme</p>
+<p>This scheme works by transforming the rock property distributions into the Fourier domain, applying a transformed convolution, and then transforming this result back into the Spatial Domain. This calculation is performed for each horizontal slice through the geology, and the results are summed vertically. The Spectral scheme will produce a different result than the other two schemes in terms of absolute numbers for three reasons:</p>
+<p>a) The Fourier transform implies that the geology is infinitely repeating outside the calculation area. This produces edge effects when high susceptibility or density bodies are found near the edges of the survey area. This effect can be lessened by the choice of a suitable padding around the block, including overspecifying the area of interest, however it cannot be totally removed.</p>
+<p>b) The calculation loses the absolute base line of the gravity or magnetic field, so even when comparisons are made for well padded Spectral and large range Spatial models, an overall offset will be apparent between the two schemes. When trying to model real data this offset is not a problem as any regional will be removed before the modelling process.</p>
+<p>c) There is a high frequency component to the calculated field that is of the same wavelength as the cube size and will be especially apparent when there are steep gradients in the values of the rock properties. </p>
+<p>Occasionally for extremely regular geological models, such as NS trending sinusoidal folds, the spectral scheme will produce very surprising results, such as pruding markedly different anomaly amplitudes for identical fold structures.</p>
+<p>Full Spatial Scheme</p>
+<p>This is similar to the Spatial Convolution scheme except that all the cubes in the modelled are summed in order to calculate the response at any point. This calculation is effectively identical to the Mag3D program. It generally takes significantly longer to apply this calculation scheme than either of the other schemes. The only exception is when there is a relatively sparse geological model, in the extreme case where only one cube has non-zero values for both density and susceptibility, as any cubes which have both zero density and susceptibility are ignored. This is the only scheme that can accurately calculate draped surveys, down hole surveys and arbitrarily located airborne surveys.</p>
+<p>Availability of specific calculations for each scheme</p>
+<div class="table-wrap"><table>
+<tr><td><strong>Calculation</strong></td><td>Spatial Convolution</td><td>Full Spatial</td><td>Spectral</td></tr>
+<tr><td>Magnetics</td><td>YES</td><td>YES</td><td>YES</td></tr>
+<tr><td>Gravity</td><td>YES</td><td>YES</td><td>YES</td></tr>
+<tr><td>3 Component Magnetics</td><td>NO</td><td>YES</td><td>YES</td></tr>
+<tr><td>Remanence</td><td>YES</td><td>YES</td><td>YES</td></tr>
+<tr><td>Anisotropy</td><td>YES</td><td>YES</td><td>YES</td></tr>
+<tr><td>Draped Surveys</td><td>NO</td><td>YES</td><td>NO</td></tr>
+<tr><td>Exact XYZ airborne</td><td>NO</td><td>YES</td><td>NO</td></tr>
+<tr><td>Variable inclination</td><td>YES</td><td>NO</td><td>NO</td></tr>
+<tr><td>Exact XYZ downhole</td><td>NO</td><td>YES</td><td>NO</td></tr>
+</table></div>
+<p>Advanced Calculations</p>
+<p>Remanence Calculations</p>
+<p>Remanence calculations have been implemented for all three schemes, and do not alter the calculation time. </p>
+<p>Anisotropy of Susceptibility</p>
+<p>Anisotropy calculations have been implemented for all three schemes, and do not alter the calculation time. </p>
+<p>Barometric Surveys</p>
+<p>Barometric Surveys have been implemented for all three schemes, and do not alter the calculation time. The survey height is assumed to be the sum of the height of the top of the block plus the altitude of the plane specified in the Geophysics Surveys Options. All cubes above the land surface are given zero densities and susceptibilities. </p>
+<p>Draped Surveys</p>
+<p>Draped surveys have only been implemented for the Full Spatial calculation, and thus take a considerable time to calculate. The survey height is assumed to be the height of the land surface plus the altitude of the plane. Finer cube sizes are obviously better able to preserve subtle variations in topography. </p>
+<h2>Component Surveys</h2>
+<p>3 Component calculations have been implemented for both the spectral and full spatial schemes.</p>
+<p>Bore-hole calculations</p>
+<p>These calculations are provided only for the Spectral and Full Spatial schemes, and do not as yet address the problem of the local distortion to the field caused by the borehole itself. </p>
+<p>Variable Cube Size with Depth</p>
+<p>This calculation can be used in conjunction with all three schemes to reduce the calculation time by increasing the cube size by a fixed factor below some threshold depth. </p>
+<p>Arbitrarily Located Surveys</p>
+<p>These surveys have been implemented for all three schemes, and can either be generated from within Noddy, or based on imported XYZ locations. Only the Full Spatial calculation will give precise values for the localities provided, the other two schemes both take the value of the nearest value calculated over the center of a cube.</p>
+<p><a id="rec_schemes"></a>Recommended calculation scheme for specific cases </p>
+<div class="table-wrap"><table>
+<tr><td><strong>Calculation</strong></td><td>Preferred Scheme</td><td>Reason</td></tr>
+<tr><td>General Calculations</td><td>Spectral</td><td>Fastest scheme</td></tr>
+<tr><td>Calculations where absolute numbers are required</td><td>Spatial Convolution</td><td>With reasonable range size, produces accuate numbers</td></tr>
+<tr><td>Calculations which must be completely accurate</td><td>Full Spatial</td><td>Produces most accurate calculation</td></tr>
+<tr><td>Models with high density/susceptibility features near edge</td><td>Spatial Convolution or Spectral padded out with extra geology</td><td>Extra padding slows down spectral scheme, so speed may be similar</td></tr>
+<tr><td>Barometric Surveys</td><td>Spectral</td><td>Fastest scheme</td></tr>
+<tr><td>Draped Surveys</td><td>Full Spatial</td><td>Produces most accurate calculation (cannot be performed with Spatial Convolution)</td></tr>
+<tr><td>Borehole</td><td>Full Spatial</td><td>Produces most accurate calculation</td></tr>
+<tr><td>3 Component Surveys</td><td>Spectral</td><td>Fastest scheme</td></tr>
+<tr><td>Arbitrarily Located Surveys</td><td>Full Spatial</td><td>Will calculate precise field values at locations provided</td></tr>
+<tr><td>Surveys with varying inclination, declination or intensity</td><td>Spatial Convolution</td><td>Only scheme currently implemented</td></tr>
+</table></div>
+<p><a id="consider"></a><br>
+<br>
+Important Considerations when modelling</p>
+<p>There are a number of factors which need to be taken into account when calculating the response of a particular structure:</p>
+<p>1. Resolution of Structural Detail </p>
+<p>In order to accurately model a particular geological model, it is essential to make sure that the cube size if fine enough to resolve the individual units which make up the model. This generally means that if the lithological units (<em>of geophysical interest)</em>, are of a given thickness then the cube size needs to be at most the same as that thickness. Care needs to be taken since deformation can result in thinning of units (such as a fault cutting through a dyke obliquely). A second problem with using coarse cubed models is that the position of the anomaly can be displaced by up half the cube size, since the body is made up of cubes on a regular grid.</p>
+<p>The true test of the correct choice of cube size may be made by setting the Geological Cube Size to the same value as the Geophysical Cube Size. Then make a Block Diagram with the only lithological units you wish to check made visible (by right mouse clicking in the block diagram). If the units look continuous in the resulting visualisation then the geophysical calculations will have the necessary detail. In the two figures below a 200 m thick dyke is represented with 400 m (left) and 200 m (right) cubes, with a significant loss of resolution seen in the coarser model. </p>
+<figure class="fig"><img src="images/figures/img00225.png" alt="figure" width="250" loading="lazy"></figure><figure class="fig"><img src="images/figures/img00226.png" alt="figure" width="250" loading="lazy"></figure>
+<p>Reducing the cube size significantly increases the calculation time, it is probably wise to develop the model using a larger cube size, so that the positioning of the structures can be performed quite quickly, and only to use a finer cube size for later stage geophysical calculations. To help in this process two separate cube sizes are defined, the Geological and Geophysical Cube sizes (Block Options Window). Geological calculations generally take are generally much quicker than geophysical ones, so that a finer value can be defined for the Geological Cube Size than for the Geophysical Cube Size. </p>
+<p>2. Speed of Calculation </p>
+<p>The speed of all calculations is a dependent on three factors: </p>
+<p>a) Obviously the larger the volume or area of the calculation the longer the calculation will take. For a volume size, a reduction in the cube size of the calculation (for both geological and geophysical models) will quickly result in a blow out of the time needed. Again, performing low resolution calculations during the preliminary stages of the modelling process helps. Running Noddy in <a href="batch.html">command-line (batch) mode</a> also helps (to run Noddy in batch mode for the most common case (performing a geophysical anomaly calculation) simply type:</p>
+<p>noddy -h test.his -anom -o test.mag </p>
+<p>where <strong><code>test.his</code></strong> is the name of the previously set up history file, and <strong><code>test.mag</code></strong> is the output file name.</p>
+<h3>b) The type of calculation</h3>
+<p>Some calculations inherently take longer than others, for example a deformable remanence calculation will take longer than a non-deformable remanence calculation. </p>
+<h3>c) The choice of geophysical calculation scheme</h3>
+<ul>
+<li>The three different calculation schemes all take different times to perform the same calculation, typically the slowest is the full and the fastest is the spectral, with the spatial convolution in-between, however there are exceptions. Within each calculation scheme there are different options that speed up the calculation: </li>
+<li>Spectral Scheme. The Spectral scheme works more slowly with the Reflective Padding Option set, so unless there is a need for this scheme related to the boundary conditions of the model, it is better to use, for example the Ramp padding Options. </li>
+<li>Spatial Convolution Scheme. The larger the Spatial Range, the more accurate the calculation, however the Spatial Range term in the Spatial scheme controls the calculation time and it is proportional to the range squared, so smaller ranges can be used early in the modelling processes. </li></ul>
+<figure class="fig"><img src="images/figures/img00227.png" alt="figure" width="553" loading="lazy"></figure>
+<p>Full Spatial Scheme. The Full Spatial scheme only calculates the contributions of cubes whose density <strong>or</strong> susceptibility values are none zero, so if <strong>both</strong> are set to zero, and the model only contains one or two units with non-zero rock properties, the calculation time can be quite reasonable. </p>
+<p>3. Absolute Anomaly Intensities </p>
+<p>The absolute intensities of the an anomaly are not preserved by the Spectral calculations, although the shape is preserved, so that when comparing Noddy calculations with other modelling schemes an offset may need to be applied in for this scheme. Another reason for variation between Noddy and other schemes is that the bodies defined are only approximated by the cubes, so that the true volume of a 1000 m radius sphere modelled by 200 m cubes is only 95% of the Noddy model version, so that the anomaly calculated in Noddy will be approximately 5% larger than an analytical solution. Finally Noddy does not take into account self-demagentisation so again the Noddy anomaly will be slightly stronger. </p>
+<figure class="fig"><img src="images/figures/img00228.png" alt="4. Anomaly Shapes" width="575" loading="lazy"><figcaption>4. Anomaly Shapes</figcaption></figure>
+<p>The shape of anomalies calculated by Noddy will be correct with two conditions:</p>
+<ol>
+<li>For Spatial Convolution calculations, the anomaly due to a single body will only be correct up to the distance defined by the Range</li>
+<li>For Spectral Calculations, there is a spurious high frequency component that is particularly evident adjacent to high contrasts in rock properties.</li></ol>
+<p>5. Boundary Effects </p>
+<p>Since calculated anomaly for a model cannot take into account the geology of bodies outside the model bounds, so that highly responsive bodies which intersect the edges of a model can result in edge effects. These effects can be reduced for both Spatial calculations by using a large range term, which will calculate "extra" geology around the model bounds up to the Range distance. For the Spectral scheme care has to be taken with bodies near the edge of the model, as the different padding options have quite different results. In the image below, which shoes the arithmetic difference between a full spatial and a spectral magnetics calculation, notice the increased variation near the boundaries.</p>
+<figure class="fig"><img src="images/figures/img00229.png" alt="figure" width="371" loading="lazy"></figure>
+<h2>In this section</h2><div class="cards"><a class="card" href="gpsparam.html"><strong>Calculating anomalies</strong></a><a class="card" href="anommaps.html"><strong>Anomaly maps</strong></a><a class="card" href="boreresp.html"><strong>Borehole surveys</strong></a><a class="card" href="gensurv.html"><strong>Generated flight-line surveys</strong></a><a class="card" href="impsurv.html"><strong>Imported flight-line surveys</strong></a><a class="card" href="refdat.html"><strong>Reference data sets</strong></a><a class="card" href="gpsclop.html"><strong>Geophysics calculation options</strong></a><a class="card" href="noise.html"><strong>Gaussian petrophysical noise</strong></a><a class="card" href="survop.html"><strong>Geophysics survey options</strong></a></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

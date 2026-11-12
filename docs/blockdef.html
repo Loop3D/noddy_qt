@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block diagram display type &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Block diagram display type">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Block diagram display type</h1>
+
+<p>This window controls the display behaviour of block diagrams, and can accessed via the Volume/Surface Options Window, in which case it controls the default display behaviour of all block diagrams, or it can be used to control the behaviour of individual block diagram windows by clicking in the block diagram window with the right mouse button.</p>
+<p>Three types of display are available: </p>
+<ul>
+<li>Solid Block which show the outside surfaces of the block coloured according to rock type; </li>
+<li>Specific Layers, that allows layers de-selected in the Layers list to be made transparent, and various </li>
+<li>Rock Property Displays that displays voxels according to the magnitude of one of their rock properties. </li></ul>
+<figure class="screen"><img src="images/screens/dlg_display_type.png" alt="Display Type window" loading="lazy"><figcaption>Display Type window</figcaption></figure><p>The last two modes may used in combination to show, for example, the a block diagram showing only the density variation within a single layer (all other layers being transparent).</p>
+<p>Display Type window</p>
+<div class="table-wrap"><table>
+<tr><td><strong>Display Type</strong></td><td></td><td>This menu controls the parameter which will be used to define the colour and transparency of individual voxels in the model.</td></tr>
+<tr><td>Layers</td><td>All Layers</td><td>When selected, it makes all layers visible, otherwise only selected layers will be displayed</td></tr>
+<tr><td>LUT Editing</td><td>Stretch over Range</td><td>Stretches range of look up table to match range of rock property values found in model</td></tr>
+<tr><td></td><td>Clip within Range</td><td>Allows user to define range of look up table to specific values, which is useful when comparing different models</td></tr>
+<tr><td></td><td>Reset</td><td>Resets look up table to complete range</td></tr>
+<tr><td></td><td>Calc Real Values</td><td>Calculates maximum and minimum values for rock proporty in model (performed automatically after first display of new model)</td></tr>
+<tr><td></td><td>Max</td><td>Maximum (as % or real values) to which look up table is clipped, clipping may also be performed interactively with mouse by clicking in look up table</td></tr>
+<tr><td></td><td>Min</td><td>Minimum (as % or real values) to which look up table is clipped, clipping may also be performed interactively with mouse by clicking in look up table</td></tr>
+</table></div><div class="callout new"><span class="label">Show Topo</span>When a topography file is loaded (<a href="blockop.html">Block Options &gt; Use Topography</a>) and the display type is <em>Specific Layers</em>, tick <strong>Show Topo</strong> to leave out every voxel above the topographic surface, so the block shows the land surface.</div><figure class="screen"><img src="images/screens/geo_block_showtopo.png" alt="Block diagram with Show Topo: voxels above the topography are removed" loading="lazy"><figcaption>Block diagram with Show Topo: voxels above the topography are removed</figcaption></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

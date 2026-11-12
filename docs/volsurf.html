@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Volume / surface options &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Volume / surface options">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Volume / surface options</h1>
+
+<p>This window controls the appearence of 3D Triangulations
+and the default Block Diagram View. </p>
+<figure class="screen"><img src="images/screens/opt_volume_surface.png" alt="Volume/Surface Options Window" loading="lazy"><figcaption>Volume/Surface Options Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><td><strong>Surfaces Displayed</strong></td><td></td><td>For 3D triangulation visualisations, this allows
+the selective calculation for individual stratigraphic layers and discontinuities
+(such as faults) to be performed. To select multiple surfaces, use alt-mouse
+click.</td></tr>
+<tr><td></td><td><strong>All Surfaces</strong></td><td>To select all layers, click in the All Surfaces
+check box</td></tr>
+<tr><td><strong>Calculation Type</strong></td><td><strong>XYZ Colour</strong></td><td>An XYZ Colour plot colours surfaces according
+to their position in space.</td></tr>
+<tr><td></td><td><strong>Shading</strong></td><td>A Shading plot, uses a simulated Lambert shading
+on the surfaces.</td></tr>
+<tr><td></td><td><strong>Lines</strong></td><td>A Lines plot, colours the triangulation according
+to the layer colour, but leaves their interiors white.</td></tr>
+<tr><td></td><td><strong>DXF 3dFace</strong></td><td>A DXF 3d Face file saves the surfaces as a
+DXF file using 3Dface objects.</td></tr>
+<tr><td></td><td><strong>DXF Polyline Face</strong></td><td>A DXF Polyline Face file saves the surfaces
+as a DXF file using Polyline objects.</td></tr>
+<tr><td></td><td><strong>Vulcan</strong></td><td>A Vulcan file saves the surfaces as an ASCII
+file using that can be converted into native Vulcan triangulations via
+utility routines.</td></tr>
+<tr><td><strong>Default Block Diagram</strong></td><td></td><td>Controls the default view style for block diagrams,
+via the Block Diagram Options window</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

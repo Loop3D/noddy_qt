@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 10: Selecting the right calculation scheme &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 10: Selecting the right calculation scheme">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 10: Selecting the right calculation scheme</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 10: Selecting the appropriate geophysical calculation schemes</p>
+<p>In this exercise we will compare the strengths and weaknesses of the various geophysical calculation schemes.</p>
+<p>1) First of all create a base stratigraphy with single layer only, and with a magnetic susceptibility of zero and a density of zero. (This is important if we want to use the Full spatial calculation scheme, which skips calculations for null blocks). </p>
+<p>2) Now create a small (500 m radius) cylindrical plug in the south west corner of the model (at location 2000,2000,5000). This will be the first test model to compare some of the idiosyncrasies of the different calculation schemes. At a 200 cube size this model actually produces a vertical square section prism. </p>
+<p>3) Now create magnetic images with the following <strong>Geophysical Survey Options</strong> settings: </p>
+<p>Airborne Survey: 80m</p>
+<p>and the following <strong>Geophysical Calculation Options</strong> settings: </p>
+<p>Spatial Full Calculation</p>
+<p>and calculate the anomaly images by selecting <strong>Calculate Anomalies-&gt; Anomalies</strong> from the Geophysics menu (this is the slowest calculation scheme for this model so it may take several minutes to calculate. You should get a magnetic image that looks like this:</p>
+<figure class="fig"><img src="images/figures/img00190.png" alt="figure" width="396" loading="lazy"></figure>
+<p>4) Now change the <strong>Geophysical Calculation Options</strong> settings to: </p>
+<p>Spatial Convolution</p>
+<p>Note The Full Spatial Convolution scheme is not available in Version 6.0 of Noddy.</p>
+<p>and recalculate the magnetics image (use a new file name!), which should now look like this:</p>
+<figure class="fig"><img src="images/figures/img00191.png" alt="figure" width="396" loading="lazy"></figure>
+<p>5) Now change the <strong>Geophysical Calculation Options</strong> settings to:</p>
+<p>Spectral and Ramp (it should already be on this setting)</p>
+<p>and recalculate the magnetics image, which should now look like this:</p>
+<figure class="fig"><img src="images/figures/img00192.png" alt="figure" width="396" loading="lazy"></figure>
+<p>6) Now change the <strong>Geophysical Calculation Options</strong> settings to:</p>
+<p>Spectral and Reflection </p>
+<p>and recalculate the magnetics image, which should now look like this:</p>
+<figure class="fig"><img src="images/figures/img00193.png" alt="figure" width="396" loading="lazy"></figure>
+<p>7) In order to compare the results of the different schemes, load in the full spatial image as reference image (by selecting <strong>Load Reference Image-&gt; Magnetics</strong> from the File Menu). The calculate difference images with the other three calculation schemes by selecting <strong>Difference with Reference-&gt; Magnetics</strong> from the Geophysics menu, and selecting the <strong>.mag</strong> files associated with each scheme. The three difference images are shown below: </p>
+<figure class="fig"><img src="images/figures/img00194.png" alt="figure" width="256" loading="lazy"></figure><figure class="fig"><img src="images/figures/img00195.png" alt="figure" width="256" loading="lazy"></figure><p><br>
+<strong>Spatial Convolution                                                     Spectral Ramp</strong></p>
+<figure class="fig"><img src="images/figures/img00196.png" alt="figure" width="256" loading="lazy"></figure><p><strong><br>
+Spectral Reflection</strong></p>
+<ul>
+<p><li>Spatial Convolution: The difference image between the full spatial and the spatial convolution calculations shows the effect of the truncation of the calculations by the range term for the convolution scheme, within the range the calculations are essentially identical, beyond it there is a zone where the calculations become increasingly distinct until a distance beyond the range where the effects of the cylinder are not seen at all.</li></p>
+<li>Spectral Ramp: In this image two effects are seen, firstly the high frequency ringing associated with the cut off of high frequencies in the FFT calculation, and secondly the wrap around of the anomalies in the opposite corners of the model due to the assumption of a repeating model.</li>
+<li>Spectral Reflection: In this image two effects are seen, firstly the high frequency ringing associated with the cut off of high frequencies in the FFT calculation, and secondly the wrap around of the anomalies in the opposite corners of the model due to the assumption of a repeating model. With a reflection padding system, there are really 4 cylindrical plugs quite close together, and stronger edge effects are seen than those for the Spectral Ramp calculations. </li></ul>
+<p>8) In order to see a model where the Spectral reflection scheme is a better choice than the Ramp scheme, try removing the plug and replacing it with a vertical dyke with a dip direction of 130 and a position of 1000,0,5000.</p>
+<figure class="fig"><img src="images/figures/img00197.png" alt="figure" width="256" loading="lazy"></figure><figure class="fig"><img src="images/figures/img00198.png" alt="figure" width="256" loading="lazy"></figure><p><strong><br>
+Spectral Ramp                                             Spectral Reflection</strong></p>
+<p>9) Finally we will compare the details of the spatial convolution and spectral schemes for a more complex model. First select <strong>New History</strong> from the File Menu (and select User Defaults). Now put in a default <strong>Base Stratigraphy, Fold, Tilt, Fault</strong> history, set the survey type to <strong>80m Airborne</strong>, and calculate the model with a <strong>Spectral Ramp</strong> and then <strong>Spatial Convolution (range = 1800m)</strong> schemes. Finally load the Spatial magnetics image in as the Reference Data set, and calculate the difference image with the spectral magnetics image. The resulting image should look like this: </p>
+<figure class="fig"><img src="images/figures/img00199.png" alt="Full Spatial minus Spectral Ramp" width="256" loading="lazy"><figcaption>Full Spatial minus Spectral Ramp</figcaption></figure>
+<p>There are four differences between the spatial and spectral schemes for this more complex type of image:</p>
+<ul>
+<li>There is a high frequency signal apparent in the difference image adjacent to strong magnetic susceptibility contrasts (such as those caused by the fault). </li>
+<li>There are large differences in the images at the edges of the model due to the wrapping of the model in the Fourier domain calculations. </li>
+<li>There is an overall DC shift between the spectral calculations and the spatial calculations, as the Fourier domain calculation loses the absolute magnitude of the response during the calculation. </li>
+<li>The range term of the spatial convolution calculation limits the long range affect of specific areas, so there is a gentle undulation of the difference image superimposed on the previous three effects. </li></ul>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

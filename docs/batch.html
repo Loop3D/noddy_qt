@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command-line (batch) mode &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Command-line (batch) mode">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Command-line (batch) mode</h1>
+
+<p>Noddy can run without its user interface to process history files in scripts. If Noddy is started with a history
+file name (any argument containing <code>.his</code>) or with <code>-random</code>, it runs the requested calculation,
+writes the results and exits.</p>
+<pre><code>noddy &lt;history_file&gt; [options]
+noddy -random [options]</code></pre>
+<div class="table-wrap"><table>
+<tr><th>Option</th><th>Effect</th></tr>
+<tr><td><code>-h history_file</code></td><td>History file to read (alternatively give it as the first argument)</td></tr>
+<tr><td><code>-o output_file</code></td><td>Base name for output files (extensions are added)</td></tr>
+<tr><td><code>-b block_file</code></td><td>Block file to write or read (with <code>-anomAndBlock</code> and <code>-anomFromBlock</code>)</td></tr>
+<tr><td><code>-block</code></td><td>Write a block model of the geophysics area</td></tr>
+<tr><td><code>-dicer</code></td><td>As <code>-block</code>, but in Dicer format</td></tr>
+<tr><td><code>-linemap</code></td><td>Write a geological line map</td></tr>
+<tr><td><code>-section</code></td><td>Write a geological section</td></tr>
+<tr><td><code>-geoBlock</code></td><td>Write a geological block diagram</td></tr>
+<tr><td><code>-anom</code></td><td>Calculate gravity and magnetic anomaly files</td></tr>
+<tr><td><code>-anomAndBlock</code></td><td>As <code>-anom</code>, and also write a block file</td></tr>
+<tr><td><code>-anomFromBlock</code></td><td>Calculate anomalies from an existing block file</td></tr>
+<tr><td><code>-profile</code></td><td>Force a profile to be calculated</td></tr>
+<tr><td><code>-image</code></td><td>Force an image to be calculated</td></tr>
+<tr><td><code>-dxfface</code> <span class="badge">new</span></td><td>Export the 3D triangulation surfaces (discontinuities and stratigraphic break planes) to the output file as a DXF 3DFACE mesh</td></tr>
+<tr><td><code>-dxfline</code> <span class="badge">new</span></td><td>Export the 3D triangulation surfaces as a DXF POLYLINE (polyface) mesh</td></tr>
+<tr><td><code>-random</code> <span class="badge">new</span></td><td>Generate a random history instead of reading one; writes a time-stamped <code>.his</code> file, a block model and anomalies. See <a href="random.html">Random histories</a>.</td></tr>
+<tr><td><code>-help</code>, <code>-?</code></td><td>Show the usage message</td></tr>
+</table></div>
+<h2>Examples</h2>
+<pre><code>noddy model.his -o model -anom          # model.grv and model.mag
+noddy model.his -o model -block         # block model of the geophysics area
+noddy model.his -o model.dxf -dxfface   # 3D surfaces as DXF
+noddy -random -o synth                  # random history + block + anomalies</code></pre>
+<p>On a machine without a display (a server or CI job) add <code>QT_QPA_PLATFORM=offscreen</code> before the command on
+Linux and macOS.</p>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tilt &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tilt">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tilt</h1>
+
+<p>In order to define an Tilt event, place an Tilt icon <img class="ev-icon" src="images/icons/tilt.png" alt="tilt icon"> in the History window. You will then be provided with the Tilt definition window.</p>
+<figure class="screen"><img src="images/screens/ev_tilt_main.png" alt="Tilt Definition Window" loading="lazy"><figcaption>Tilt Definition Window</figcaption></figure>
+<p>Tilt allows arbitrary uniform rotations to be used. The rotation is defined by a rotation axis, and a rotation in degrees, anticlockwise, looking down the axis.</p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Position</td><td>X</td><td>X position of one point on rotation axis</td></tr>
+<tr><td class="group"></td><td>Y</td><td>Y position of one point on rotation axis</td></tr>
+<tr><td class="group"></td><td>Z</td><td>Z position of one point on rotation axis</td></tr>
+<tr class="group-start"><td class="group">Orientation</td><td>Plunge Dir</td><td>Plunge Direction of rotation axis</td></tr>
+<tr><td class="group"></td><td>Plunge</td><td>Plunge of rotation axis</td></tr>
+<tr class="group-start"><td class="group">Scale</td><td>Rotation</td><td>Rotation in degrees around axis, anticlockwise looking down axis</td></tr>
+</table></div>
+<figure class="fig"><img src="images/figures/img00184.png" alt="figure" width="542" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

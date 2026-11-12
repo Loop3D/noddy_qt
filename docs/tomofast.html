@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exporting Tomofast-x / TransD files &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Exporting Tomofast-x / TransD files">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Exporting Tomofast-x / TransD files</h1>
+
+<div class="callout new"><span class="label">New</span>These exports were added in the Qt version.</div>
+<p>Noddy models can be used as synthetic test cases for geophysical inversion. Two items in
+<span class="menu-path">Tools &gt; Export Block</span> write a complete, ready-to-run input folder for the
+<a href="https://github.com/TOMOFAST/Tomofast-x">Tomofast-x</a> inversion code.</p>
+
+<h2>Tomofast-x Inversion Files</h2>
+<p>Choose <span class="menu-path">Tools &gt; Export Block &gt; Tomofast-x Inversion Files&hellip;</span> and pick a folder.
+Only the folder is used; the file name typed in the dialog is ignored.</p>
+<figure class="screen"><img src="images/screens/dlg_export_tomofast.png" alt="Choosing the export folder" loading="lazy"><figcaption>Choosing the export folder</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>File</th><th>Contents</th></tr>
+<tr><td><code>model_grid.txt</code></td><td>Tomofast-x model grid: the core cells plus horizontal padding.</td></tr>
+<tr><td><code>model_density.txt</code></td><td>Density model (kg/m&sup3;), one value per grid cell.</td></tr>
+<tr><td><code>model_susceptibility.txt</code></td><td>Susceptibility model (SI), one value per grid cell.</td></tr>
+<tr><td><code>data_grav.csv</code>, <code>data_magn.csv</code></td><td>Observation points (the value column is 0).</td></tr>
+<tr><td><code>paramfile_grav.txt</code></td><td>Parameters for a gravity inversion.</td></tr>
+<tr><td><code>paramfile_magn.txt</code></td><td>Parameters for a magnetic inversion.</td></tr>
+<tr><td><code>paramfile_joint.txt</code></td><td>Parameters for a joint (cross-gradient) inversion.</td></tr>
+</table></div>
+<h3>How the mesh is built</h3>
+<ul>
+<li>The core cells are the Noddy block at the <em>Geophysics</em> cube size set in <a href="blockop.html">Block Options</a>.</li>
+<li>Horizontal padding cells grow by a factor of 1.15 per cell out to a distance equal to the model depth, and have zero
+density and susceptibility. There is no vertical padding.</li>
+<li>Z is elevation. Without topography the top of the mesh is the top of the Noddy block; with topography loaded each
+column of cells hangs from the topographic surface.</li>
+<li>X and Y include the false easting and northing from Block Options.</li>
+<li>Observation points are at the centres of the core cells, at the survey height (above the topography for draped surveys,
+otherwise above the top of the block).</li>
+<li>Remanence and anisotropy cannot be represented in Tomofast-x's scalar model and are ignored; the X susceptibility is used.</li>
+</ul>
+<p>The parameter files set <code>useSyntheticModelForDataValues = 1</code>, so Tomofast-x first calculates the &ldquo;observed&rdquo;
+data from the exported models and then inverts them. All paths in the parameter files are relative to the export folder,
+so the folder can be moved or zipped. Run Tomofast-x with that folder as the working directory (the Tomofast-x QGIS plugin
+does this for you).</p>
+
+<h2 id="transd">TransD Inversion Files</h2>
+<p><span class="menu-path">Tools &gt; Export Block &gt; TransD Inversion Files&hellip;</span> writes all the Tomofast-x files
+above into the chosen folder, plus:</p>
+<div class="table-wrap"><table>
+<tr><th>File</th><th>Contents</th></tr>
+<tr><td><code>local_weights.txt</code></td><td>A weight of 1.0 for every mesh cell, in the same layout as <code>model_density.txt</code>.</td></tr>
+<tr><td><code>paramfile_transd_grav.txt</code></td><td>TransD gravity run, using the sensitivity matrix in <code>OUTPUT_grav/SENSIT</code> and writing to <code>OUTPUT_grav_TRANSD</code>.</td></tr>
+<tr><td><code>paramfile_transd_magn.txt</code></td><td>TransD magnetic run, using <code>OUTPUT_magn/SENSIT</code> and writing to <code>OUTPUT_magn_TRANSD</code>.</td></tr>
+</table></div>
+<div class="callout warn"><span class="label">Note</span>Run the Tomofast-x inversions first: TransD reads the sensitivity matrices they produce.
+<code>data_vals_filename</code> in the TransD parameter files points at the exported observation-point file, whose values
+are 0, so replace it with your own data file before running.</div>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

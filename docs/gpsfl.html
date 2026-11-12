@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geophysics image file &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Geophysics image file">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Geophysics image file</h1>
+
+<p>2D Anomaly File (.grv .mag .mgx .mgy &amp; .mgz extensions). <br>
+Note that the .mgx, .mgy and .mgz files contain magnetic compnent information.</p>
+<p>This is an ASCII text file which has the following format:</p>
+<p>333<br>
+0 51 36 25<br>
+-50.000000 0.000000 50000.000000<br>
+0.000000 0.000000 -5000.000000<br>
+10000.000000 7000.000000 0.000000<br>
+200.000000 0.400000<br>
+-13.618133 -13.516687 -13.610759 -14.060675 -14.92670…<br>
+-13.141494 -12.778272 -12.561273 -12.468239 -12.45922…<br>
+-12.516578 -12.034901 -11.651465 -11.359298 -11.13998…<br>
+-11.820199 -11.296333 -10.849636 -10.479922 -10.16345…<br>
+-11.109306 -10.585823 -10.122409 -9.702573 -9.321083…<br>
+-10.419118 -9.911049 -9.447624 -9.043615 -8.691870…<br>
+-9.761061 -9.272736 -8.820832 -8.384072 -7.958362…<br>
+-9.139796 -8.670816 -8.225464 -7.830383 -7.484703…<br>
+-8.554543 -8.098565 -7.666274 -7.223413 -6.771319…<br>
+-8.000542 -7.558571 -7.122763 -6.733661 -6.389823…<br>
+-7.478977 -7.038060 -6.609742 -6.148697 -5.657023…<br>
+-6.976142 -6.550281 -6.095707 -5.705247 -5.334617…<br>
+-6.506536 -6.068808 -5.614416 -5.123198 -4.558163…<br>
+-6.061280 -5.605092 -5.136177 -4.693969 -4.301543… <br>
+-5.630241 -5.159318 -4.671993 -4.108725 -3.456985… <br>
+-5.220694 -4.729609 -4.205978 -3.704633 -3.243653…</p>
+<p>etc. </p>
+<p>. </p>
+<p>where the first six lines provide the following header information:</p>
+<ul>
+<li>1st line anomaly file code 333=2D mag file or 444=2D gravity file&lt;cr&gt; </li>
+<li>2nd linecalculation range &lt;tab&gt; # rows &lt;tab&gt; # cols &lt;tab&gt; # layers &lt;cr&gt; 3rd lineinclination &lt;tab&gt; declination &lt;tab&gt; intensity &lt;cr&gt; </li>
+<li>4th line lower south west corner: X &lt;tab&gt; Y &lt;tab&gt;Z </li>
+<li>5th line upper north east corner: X &lt;tab&gt; Y &lt;tab&gt;Z </li>
+<li>6th line cube size of discretisation &lt;tab&gt; hight of survey above land surface </li></ul>
+<p>Then the following #rows lines are a set of #cols to a line magnetic or gravity anomaly values. Note that these values are floating point, and scaling and clipping is performed before an image is displayed within the program. </p>
+<p>If you wish to import this image into another package simply skip the first 6 lines or 16 numbers and you have a simple ASCII array of data.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 4: Remanent dykes &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 4: Remanent dykes">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 4: Remanent dykes</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 4: Remanent Dykes </p>
+<p>This exercise demonstrates the effects
+of remanent magnetisation when the remanence is defined in a pre-folding
+and post-folding environment. </p>
+<p><strong>1</strong>) Select <strong>New History</strong>
+from the <strong>File</strong> menu (and then select <strong>User Defaults</strong>), then
+set up a Base Stratigraphy with one layer with a susceptibility of 0.</p>
+<p><strong>2) </strong>Put in a dyke with the following
+parameters, and view the magnetic field in the preview:</p>
+<ul>
+<li><strong>X 4000.00</strong> </li>
+<li><strong>Y 3000.00</strong> </li>
+<li><strong>Z 4000.00</strong> </li>
+<li><strong>Dip Direction 210.00</strong>
+</li>
+<li><strong>Dip 60.00</strong> </li>
+<li><strong>Pitch 90.00</strong> </li>
+<li><strong>Width 500.00</strong>
+</li>
+<li><strong>Magnetic Sus 1.0 e-03</strong><br>
+</li>
+</ul>
+<figure class="fig"><img src="images/figures/img00161.png" alt="figure" width="399" loading="lazy"></figure>
+<p><strong>3) </strong>Next put in a default fold
+except for an <strong>Amplitude</strong> of <strong>2000</strong> m and re-calculate the magnetic
+field.</p>
+<figure class="fig"><img src="images/figures/img00162.png" alt="figure" width="399" loading="lazy"></figure>
+<p><strong>4) </strong>Now change the magnetic properties
+of the dyke by turning on remanence for the dyke (first click on <strong>Edit
+Properties</strong> in the <strong>Form</strong> parameters area) with the following values
+and re-calculate the magnetic field:</p>
+<ul>
+<li><strong>Inclination 23.00</strong>
+</li>
+<li><strong>Declination 135.00</strong>
+</li>
+<li><strong>Strength 1.00e+02</strong><br>
+</li>
+</ul>
+<figure class="fig"><img src="images/figures/img00163.png" alt="figure" width="405" loading="lazy"></figure>
+<p><strong>5) </strong>Finally go to the <strong>Geophysics
+Survey Options</strong> window and click on <strong>Deformable Remanence </strong>(so
+that the remanent vectors will be folded) and re-calculate the magnetic
+field.</p>
+<figure class="fig"><img src="images/figures/img00164.png" alt="figure" width="405" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

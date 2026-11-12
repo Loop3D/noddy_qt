@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Troubleshooting">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Troubleshooting</h1>
+
+<p>Troubleshooting</p>
+<p>Sometimes difficulties arise in Noddy which you do not understand, or a display does not appear as you expect. These are not normal occurrences but if certain options are inadvertantly set, or a history file with inappropriate parameters are read, the following situations may arise:</p>
+<p>Situation 1: A block model has been requested (either from the Geology &gt; <a href="blockdef.html">Block Diagram Defaults Window</a> option or the <a href="preview.html">Previews</a> window) and nothing but a coloured background is displayed.</p>
+<p>This problem is most likely to be due to an incorrect setting in the Edit &gt; <a href="geoldisp.html">Geology Display Options</a>. In particular, examine the Declination, Azimuth and Scale settings. These should be about 200, 25 and 100 for a starting, visible model. Within this option, you may also wish to check the background colour.</p>
+<p>Refer to the <a href="geoldisp.html">Geology Display Options</a> for additional information.</p>
+<p>Situation 2: The geophysical computation (using the Geophysics &gt; <a href="anommaps.html">Calculate Anomalies</a>) has been requested but when finished, the image displays for magnetics or gravity are black. </p>
+<p>This situation can arise from two causes. Firstly, the geophysical response may be inapproriate or too small to be detectable. Secondly, the display settings may be incorrect and result in a dark image.</p>
+<p>To test the geophysical response, open an edit dialog for the last event in the displayed history. In the <a href="preview.html">Previews</a> window, open the Block list and select say, Magnetics. If a valid geophysical response displays after computation, then it should in the Geophysics &gt; <a href="anommaps.html">Calculate Anomalies</a> option. If no display is seen, click the right mouse button with the cursor in the image window. </p>
+<figure class="screen"><img src="images/screens/dlg_plot_options.png" alt="Image plot options" loading="lazy"><figcaption>Image plot options</figcaption></figure>
+<p>Ensure that the clipping level is not inappropriately set. Note that the Min Clip should be at 0 and Max Clip at 100% (unless otherwise set).</p>
+<p>Situation 3: A geophysical or geological computation appears to take excessive time to result in a display.</p>
+<p>Usually this situation is due to choosing too small a block or cube size in the Edit &gt; <a href="blockdef.html">blockdef</a> <a href="blockop.html">Block Options</a> . When too many cubes are required to be computed, the memory of the computer can be forced to swap memory and this can be inefficient. Given sufficient time, a result will be obtained, but if the time taken is too long and computation is still going on, you may need to close Noddy down to proceed. This circumstance stresses the importance of regularly saving History files. At least if a history is created, with the saved file you can re-load it and recommence computations with a larger cube size. You can reduce the cube size but refer to <em>Important Considerations when Modelling</em> for additional information.</p>
+<p>To stop Noddy during a long computation, end the task from the Task Manager (Windows, Ctrl+Shift+Esc), Force Quit (macOS) or <code>kill</code> (Linux).</p>
+<p>Situation 4:Geophysical response is segmented and unrealistic.</p>
+<p>Two causes bring this situation about. </p>
+<ol>
+<ol>
+<li>A large geophysical cube size (set using the Edit &gt; <a href="blockop.html">Block Options</a> menu item) will result in a blocky, segmented geophysical response. You can reduce the cube size but refer to <em>Important Considerations when Modelling</em> for additional information.</li>
+<li>The geophysical sensor (by definition) will measure responses at the surface of the block. If strongly magnetically susceptible or dense rock units exist close to the surface, their geophysical responses will be excessive. In reality, it is more often the case (at least for magnetics) that the sensor is located at a height above the block (flying height) and weathering beneath the surface will tend to deplete magnetically susceptible minerals. For this case, the height can be simulated with an offset available in the Edit &gt; <a href="survop.html">Geophysics Survey Options Window</a> for airborne surveys.</li></ol>
+</ol><p>If none of this helps, please report the problem; see <a href="support.html">Support &amp; bug reports</a>.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

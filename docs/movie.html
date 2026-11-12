@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kinematic animations &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Kinematic animations">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Kinematic animations</h1>
+
+<p>An animated sequence can be viewed by choosing Create Movie from the File menu, which displays a view of the geology or geophysics controlled by the current settings. The following visualisations are currently available as animations:</p>
+<ul>
+<li>Block Diagrams </li>
+<li>Maps (colour or line) </li>
+<li>Sections (colour or line) </li>
+<li>Well Logs </li>
+<li>3D Layer </li>
+<li>Geophysics (image or contour)</li></ul>
+<p>Each frame of the movie is saved to file as a PNG image. Multiple increments per deformation event are calculated by reducing the controlling parameters systematically, for example, dividing up a 30 degree rotation into 3 steps is achieved by calculating the deformation after 10 , 20 and 30 degree rotations, and playing them back in rapid succession. The more frames per event the smoother the animation will appear.</p>
+<p>Movie Creation</p>
+<p>Step 1: You must first have a history of events available for a movie to be created. Generate the sequence of events required to be animated.</p>
+<p>Step 2: Select the File &gt; Movie &gt; Create option. Open a file with an appropriate name. The filename .nmv will be appended.</p>
+<p>Step 3: Noddy will create a series of PNG files based on the Number of Frames per Event value set in the Edit &gt; Movie Option. The greater the number of frames stored, the smoother the movie, however, the more PNG files there are to be created/loaded and saved. Disk storage should be taken into consideration when creating movie animations.</p>
+<p>Movie Loading and Playback</p>
+<p>Step 1: To load a movie (.nmv) file, you must initially have a history available. If the File &gt; Movie option is not enabled, simply drag and drop a Base Stratigraphy icon into the History window. The File &gt; Movie option should then be available. Select an appropriate movie file.</p>
+<p>Step 2: The amount of time taken for a movie to load will depend on the number of animation elements and PNG files to be re-played. Wait until the movie has accessed all files, and then the first scene of the animation should be displayed.</p>
+<p>Step 3: The movie can be played with the following controls:</p>
+<ul>
+<li>Clicking in the window with the left mouse button moves the animation <em>forward</em> one frame</li>
+<li>Clicking in the window with the right mouse button moves the animation <em>back</em> one frame.</li></ul>
+<ul>
+<li>Shift and left mouse click in the window runs the entire animation at the frame rate specified in the Edit &gt; Movie Options window. </li></ul>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

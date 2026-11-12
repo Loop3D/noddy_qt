@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Program guide &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Program guide">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Program guide</h1>
+
+<h2 id="intro">Introduction</h2>
+<p>In order to characterise the complex three dimensional structures that often cause geophysical anomalies it is necessary to have some understanding of the structural history of an area. The basis for this program is the ability to construct a complex geological history as a succession of relatively simple structural, sedimentary and igneous events. Each geological history is defined as a sequence of kinematic events, and each event is defined by a set of orientation, position and scaling parameters. The structural modelling used in this program were first written by M Jessell as part of an MSc at Imperial College, London University, in 1981, as an interactive map creation package.</p>
+<p>The program consists of introducing geoelogical events to effect an infinite volume of rock. The displacement equations are defined explicitly or implicitly with respect to flat planes, so that the curvature of the earth is ignored. The displacement equations within this program are all <em>unary</em>, that is there is a one to one mapping of all points before and after each deformation event. These displacement equations need to be specified in both their <em>forward</em> (Lagrangian) forms and their <em>inverse</em> (Eulerian ) forms. Since it does not matter whether the geology is deformed by complex equations which include terms for the orientation of the deformation, or by a separate rotation term and a simple equation, the latter approach was adopted, since this makes the development of new deformation styles much more straight forward.</p>
+<p>In this model the meter is the unit of length, all planar features are defined by their dip and dip direction, all independent linear features are defined by their plunge and plunge direction, and all linear features on planes are defined by their pitch. The 000 direction is North, 090 is East &amp; etc.</p>
+<h2 id="flow">Noddy Program Flow</h2>
+<p>The general flow of the program Noddy consists of: </p>
+<p>i. The definition of a initial layer cake stratigraphy </p>
+<p>ii. The interactive development of a structural history </p>
+<p>iii. The use of 2D and 3D visualisation tools such as maps and block diagrams.</p>
+<p>iv. The calculation of 1D and 2D gravity and magnetic images.</p>
+<p>v. The editing of the existing structural history and re-calculation of the anomalies to improve the match between real and calculated structure and geophysical response.</p>
+<p>Since this program is completely interactive, the steps may be enacted in any order as the user sees fit, apart from the initial definition of a base stratigraphy at step 1. </p>
+<figure class="fig"><img src="images/figures/img00002.png" alt="figure" width="340" loading="lazy"></figure>
+<h2 id="started">Getting Started: Creating a structural and geophysical model using Noddy</h2>
+<p>When you start up Noddy you will be presented with three windows: </p>
+<ul>
+<li>Toolbar, which is a small window containing a set of icons for each deformation type </li>
+<li>History window into which these deformation events may be placed, edited and moved </li>
+<li>the status bar at the bottom of the screen providing status information. </li></ul>
+<p>The contents of the <strong>History </strong>window contains the currently defined history, and is thus blank on start up, unless you start from your own defaults (see <a href="install.html">Start-up files</a>). </p>
+<p>The complete set of icons and their meaning is shown below: </p>
+<figure class="screen"><img src="images/screens/toolbar.png" alt="The Toolbar" loading="lazy"><figcaption>The Toolbar</figcaption></figure><div class="table-wrap"><table><tr><th>Icon</th><th>Event</th><th>Icon</th><th>Event</th></tr><tr><td><img class="ev-icon" src="images/icons/pointer.png" alt="pointer"></td><td><a href="pguide.html#editing">Pointer (select and move events)</a></td><td><img class="ev-icon" src="images/icons/strat.png" alt="strat"></td><td><a href="baseev.html">Base stratigraphy</a></td></tr><tr><td><img class="ev-icon" src="images/icons/fold.png" alt="fold"></td><td><a href="folds.html">Fold</a></td><td><img class="ev-icon" src="images/icons/fault.png" alt="fault"></td><td><a href="faults.html">Fault</a></td></tr><tr><td><img class="ev-icon" src="images/icons/unconf.png" alt="unconf"></td><td><a href="unc.html">Unconformity</a></td><td><img class="ev-icon" src="images/icons/shear.png" alt="shear"></td><td><a href="sz.html">Shear zone</a></td></tr><tr><td><img class="ev-icon" src="images/icons/dyke.png" alt="dyke"></td><td><a href="dyke.html">Dyke</a></td><td><img class="ev-icon" src="images/icons/plug.png" alt="plug"></td><td><a href="plug.html">Plug</a></td></tr><tr><td><img class="ev-icon" src="images/icons/strain.png" alt="strain"></td><td><a href="strain.html">Strain</a></td><td><img class="ev-icon" src="images/icons/tilt.png" alt="tilt"></td><td><a href="tilt.html">Tilt</a></td></tr><tr><td><img class="ev-icon" src="images/icons/foliat.png" alt="foliat"></td><td><a href="foln.html">Foliation</a></td><td><img class="ev-icon" src="images/icons/lineat.png" alt="lineat"></td><td><a href="lin.html">Lineation</a></td></tr><tr><td><img class="ev-icon" src="images/icons/import.png" alt="import"></td><td><a href="import.html">Import block</a></td><td><img class="ev-icon" src="images/icons/stop.png" alt="stop"></td><td><a href="stop.html">Stop sign</a></td></tr></table></div><p>Hover the mouse over any Toolbar icon to see a tooltip with its name.</p>
+<h3>a) Defining the Base Stratigraphy</h3>
+<p>To define the Base Stratigraphy (which must be the first step in the construction of a history, unless a pre-existing history is read in from disk) click once on the Base Stratigraphy Icon: which will then become highlighted. If you then move the cursor over the History window, a dashed square will follow the cursor, and clicking in the History window will 'drop' that icon in the window. </p>
+<figure class="screen"><img src="images/screens/history_example.png" alt="Placing an icon in the History window" loading="lazy"><figcaption>Placing an icon in the History window</figcaption></figure>
+<p>As soon as the icon is dropped, a new window will open up which allows you to define a starting stratigraphy for your model.</p>
+<figure class="screen"><img src="images/screens/ev_strat_main.png" alt="Stratigraphy Summary window" loading="lazy"><figcaption>Stratigraphy Summary window</figcaption></figure>
+<p>This window displays a summary of the stratigraphic column on the left hand side, and allows you to edit this stratigraphy on the right hand side. For the moment, just click on the <strong>OK</strong> button in the lower right.</p>
+<h3>b) Defining a deformation event</h3>
+<p>Suppose you want to add a granite plug to this model, first select the plug icon <img class="ev-icon" src="images/icons/plug.png" alt="plug icon">, by clicking on it and then dropping it to the right of the base stratigraphy icon in the history window. This will then open up the plug definition window, which demonstrates the standard deformation event window capabilities:</p>
+<figure class="screen"><img src="images/screens/ev_plug_form.png" alt="Plug definition window" loading="lazy"><figcaption>Plug definition window</figcaption></figure>
+<p>c) Previewing an event. </p>
+<p>To get a preview of the effect of this event on the pre-existing geology (in this case the base stratigraphy), select <strong>Block</strong> from the Preview type menu. A Block diagram should now be drawn in the preview space.</p>
+<figure class="screen"><img src="images/screens/ev_plug_main.png" alt="Plug window with a Block preview" loading="lazy"><figcaption>Plug window with a Block preview</figcaption></figure>
+<p>d) Editing the position of an event. </p>
+<p>To alter the position of this (cylindrical) plug, select either the Position/Orientation menu item from the Parameter Type menu, or click on the Position Icon. A new set of parameters related to position and orientation will appear, and alter the X &amp; Y parameters which define the position of one point on the central axis of the cylinder. </p>
+<p>Notice how the preview of the block diagram changes to reflect the altered position. If this slows you down too much, change the Preview type menu back to Plane and make all the changes before reselecting Block. </p>
+<p>When satisfied with the position of the plug, click the <strong>OK </strong>button.</p>
+<p>f) Adding another deformation event. </p>
+<p>If we now want to add a fault, simply click on the Fault Icon <img class="ev-icon" src="images/icons/fault.png" alt="fault icon">from the Toolbar, and drop it to the right of the Plug Icon in the History window. A Fault definition window will open up, and we can select the Block Preview menu item again. We can now choose between <strong>Event</strong>, <strong>History</strong> or <strong>Full</strong> Block Previews, by selecting from the timing menu list which has appeared to the left of the Preview Type menu. <strong>Event</strong> timing shows only the effect of this one event on the Base Stratigraphy; <strong>History</strong> timing shows the history up to and including the event currently being edited, and <strong>Full </strong>timing shows the effect of all events. In this case Full and History blocks have the same effect as this is the youngest event, as we are currently editing the youngest event.</p>
+<figure class="screen"><img src="images/screens/prev_block_full.png" alt="Fault window with a Full Block preview" loading="lazy"><figcaption>Fault window with a Full Block preview</figcaption></figure>
+<p>g) Previewing potential field anomalies. </p>
+<p>Just as geological models may be previewed, the gravity and magnetic images may also be previewed by selecting, for example, Gravity from the Preview type menu, This will now calculate the gravity anomaly associated with the currently defined geology (depending on the choice of Event/History/Full in that menu).</p>
+<figure class="screen"><img src="images/screens/prev_gravity.png" alt="Fault window with a Gravity preview" loading="lazy"><figcaption>Fault window with a Gravity preview</figcaption></figure>
+<p>When satisfied with this model, click on the <strong>OK</strong> button to return to the history window.</p>
+<p>Having previewed the geological and geophysical models, we can now make higher resolution and more complex visualisations by selecting menu items from the Geology and Geophysics menus, and alter the display choices selecting the Options menus from the Edit Menu. </p>
+<h2 id="editing">Editing Deformation Events in the History window</h2>
+<p>Subsequent deformation event icons may be placed either to the right of, below, or between the existing icons. An icon placed below another icon indicates that it occurred after that icon, but before any icons to its right. Tie lines connect all the icons in the History window to make the age relationships easier to decipher, and any icon that is to be inserted between two other icons should be placed on top of these tie lines. </p>
+<p>The History window reads top to bottom then left to right with respect to sequence, so the Base Stratigraphy must always be the top-left-most icon. </p>
+<p>Once a deformation history has been developed, the icons within the History window may be edited in two ways. </p>
+<p>Editing Parameters</p>
+<p>The parameters associated with a particular event may be edited by double clicking on the icon associated with that event in the History window, which will bring up the event definition window. </p>
+<p>Editing Timing</p>
+<p>Undo There is a single level of undo available within the history window that allows any of the editing functions below to be reversed, and also will remove the placement of an icon into the window. </p>
+<p>Dragging The relative timing of events may be altered by dragging the icons around the window. Click on an icon, and while the mouse button is still down, move the cursor. While the mouse button is down, a dashed rectangle will follow the cursor, and when the mouse button is released, the event will be re-positioned. As long as the Base Stratigraphy is the first event, any timing combination of the existing icons may be tried. </p>
+<p>Dragging an icon above the title bar or off to the left of the History Window is a short cut for Clearing it! </p>
+<p>Selecting Icons may be selected by clicking once on the icon, or dragging a rectangle around a group of icons. Editing actions may be performed equally on one or more icons. Multiple icons may also be selected by clicking on each icon in turn while holding down the shift key. All the icons may be selected at the same time by choosing Select All from the Edit Menu. Icons that have been selected will be outlined in red.</p>
+<p>Cut Cutting deletes the selected event(s) but places it in a temporary clipboard. A short</p>
+<p>Copy Makes a copy of the selected event(s) and places it in the clipboard </p>
+<p>Clear Clearing deletes the selected event(s) without keeping a copy. Dragging an icon above the title bar of the History Window is a short cut for Clearing it.</p>
+<p>Paste Pastes to the History window the last event(s) copied to the clipboard by a Cut or Copy edit, so that the next click in the History window will drop the copied event(s).</p>
+<p>Duplicate Makes a copy of the selected event(s) and immediately pastes it into the window, so that the next click in the History window will drop the duplicated event(s).</p>
+<p>Tidy <strong>Window</strong> WindowTidy Window does not alter the actual history, it merely compacts the display within the History Window to remove any unfilled spaces between icons. </p><div class="callout "><span class="label">Help buttons</span>The <em>Help&hellip;</em> buttons in Noddy's windows are disabled in the current version. This site is the documentation.</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

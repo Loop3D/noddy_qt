@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Images and profiles &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Images and profiles">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Images and profiles</h1>
+
+<p>As soon as an anomaly map has been calculated, grey scale images of gravity and magnetic anomalies will be automatically displayed. Images may also be loaded in from previous calculations, using the <strong>Display Image</strong> menu items from the <strong>Geophysics</strong> menu. The spatial scaling of the image is dependent on the <strong>Geophysics Image Scaling Option</strong> from the <strong>Geophysics Display Options Window</strong>, and is performed as a bilinear interpolation. </p>
+<p>The image as displayed extends from the extreme survey locations, which will be 1/2 a cube width inset from the block model positions defined in the Block Options Window. </p>
+<figure class="screen"><img src="images/screens/gps_mag_contour.png" alt="Magnetic image, contour display" loading="lazy"><figcaption>Magnetic image, contour display</figcaption></figure>
+<p>This window allows a certain level of interactive response:</p>
+<p>Profiles: </p>
+<p>In order to display a profile of any section within this image, simply click down and drag the mouse while the cursor is over the image. This will produce a "rubber band" line showing the profile position. </p>
+<p>Once the mouse button is released, a profile line will be interpolated from the underlying file. These profiles are scaled to the currently selected image range. </p>
+<figure class="screen"><img src="images/screens/gps_profile.png" alt="Profile drawn across an image" loading="lazy"><figcaption>Profile drawn across an image</figcaption></figure>
+<p>If the shift key is held down during this operation the line defining the profile position will be left on the image together with the number of the profile. </p>
+<p>Image Display Options: If the right mouse button is clicked in this window, the <a href="gpsplop.html"><em>Display Plot Options </em></a><em>window appears, and the following changes can be made:</em></p>
+<ul>
+<li>the range and display type can be altered (grey scale, rainbow LUT or colour contour) </li>
+<li>the LookUpTable scaling can be switched between Absolute range limits and a Max-Min % Clip </li>
+<li>a located grid can be superimposed on the image </li>
+<li>the locations of the calculations can be superimposed on the image </li></ul>
+<p>In the image below a 1000m grid (black crosses) and the locations of the sensors (grey circles) are overlain over a rainbow look up table image clipped at 10% and 80% of the total range. </p>
+<figure class="screen"><img src="images/screens/gps_grav_pseudo.png" alt="Gravity image, pseudo-colour with grid" loading="lazy"><figcaption>Gravity image, pseudo-colour with grid</figcaption></figure><figure class="screen"><img src="images/screens/gps_grav_grey.png" alt="Gravity image, grey scale" loading="lazy"><figcaption>Gravity image, grey scale</figcaption></figure><figure class="screen"><img src="images/screens/gps_mag_grey.png" alt="Magnetic image, grey scale" loading="lazy"><figcaption>Magnetic image, grey scale</figcaption></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

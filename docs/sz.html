@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shear zone &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Shear zone">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Shear zone</h1>
+
+<p>In order to define an shear zone or kink event, place an shear zone icon <img class="ev-icon" src="images/icons/shear.png" alt="shear icon"> in the History window. You will then be provided with the Shear zone definition window. </p>
+<figure class="screen"><img src="images/screens/ev_shear_main.png" alt="Shear Zone Definition Window" loading="lazy"><figcaption>Shear Zone Definition Window</figcaption></figure>
+<p>Shear zones and kinks are parallel sided zones of simple shear which share the same overall geometries as faults. The cross-sectional profile of the shear zone can either be sharp (kink) or smooth (shear zone). </p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Form</td><td>Type:</td><td></td></tr>
+<tr><td class="group"></td><td>Shear Zone</td><td>Smoothly varying displacements across shear zone</td></tr>
+<tr><td class="group"></td><td>Kink</td><td>Kink like displacement profile</td></tr>
+<tr><td class="group"></td><td>Geometry:</td><td></td></tr>
+<tr><td class="group"></td><td>Translation</td><td>Simple planar translational shear zones</td></tr>
+<tr><td class="group"></td><td>Rotation</td><td>Simple planar rotational shear zones</td></tr>
+<tr><td class="group"></td><td>Elliptical</td><td>Elliptical shear zone Elliptical fault plane, these shear zones displace material within an ellipsoidal zone defined by the long axes of the ellipsoid, with slip vectors dying off away from the centre of the ellipsoid.</td></tr>
+<tr><td class="group"></td><td>Curved</td><td>Curved shear zone Curved fault plane, essentially an elliptical shear zone with a curved shear zone surface, which is defined by its profile, and the amount of decay of the curvature away from the plane of definition.</td></tr>
+<tr><td class="group"></td><td>Ring</td><td>Ring shear zoneRing fault, producing a cylindrical volume of slipped material. Dip and Dip Direction are actually the to Plunge and Plunge Direction of central axis of ring shear zone.</td></tr>
+<tr><td class="group"></td><td>Movement:</td><td></td></tr>
+<tr><td class="group"></td><td>Hanging Wall</td><td>Hanging wall Hanging wall only movement on shear zone (hanging wall is inside of ring shear zone).</td></tr>
+<tr><td class="group"></td><td>Foot Wall</td><td>Foot wall Foot wall only movement on shear zone (foot wall is outside of ring shear zone).</td></tr>
+<tr><td class="group"></td><td>Both</td><td>Both footwall and hanging Both footwall and hanging wall. The total slip vector is divided into 50% movement in each direction.</td></tr>
+<tr><td class="group"></td><td>Alterations:</td><td></td></tr>
+<tr><td class="group"></td><td>None</td><td>No alteration halo associated with this event</td></tr>
+<tr><td class="group"></td><td>Top</td><td>Alteration halo on hanging wall side of shear zone</td></tr>
+<tr><td class="group"></td><td>Bottom</td><td>Alteration halo on foot wall side of shear zone</td></tr>
+<tr><td class="group"></td><td>Both</td><td>Alteration halo on both sides of shear zone</td></tr>
+<tr><td class="group"></td><td>Edit</td><td>Brings up Alteration Profile window</td></tr>
+<tr><td class="group"></td><td>Show Profile</td><td>Shows Profile Definition window for Curved Shear zones</td></tr>
+<tr class="group-start"><td class="group">Surface Shape</td><td>Flat Plane</td><td>Shear zone plane defined only by Geometries options (see above)</td></tr>
+<tr><td class="group"></td><td>DXF Surface</td><td>Part of shear zone plane defined by DXF triangulated surface</td></tr>
+<tr><td class="group"></td><td>View</td><td>View grey scale image of DXF surface topography</td></tr>
+<tr><td class="group"></td><td>X Dim</td><td>Scaling factor for X direction of plane</td></tr>
+<tr><td class="group"></td><td>Y Dim</td><td>Scaling factor for Y direction of plane</td></tr>
+<tr><td class="group"></td><td>Z Dim</td><td>Scaling factor for Z direction of plane</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+<tr><td><strong>Position</strong></td><td>X</td><td>X position of one point on shear zone plane (centroid of elliptical and curved shear zones, centre of rotation of rotational shear zones, top right hand corner of DXF surface bounding rectangle)</td></tr>
+<tr><td></td><td>Y</td><td>Y position of one point on shear zone plane</td></tr>
+<tr><td></td><td>Z</td><td>Z position of one point on shear zone plane</td></tr>
+<tr><td>Orientation</td><td>Dip Dir</td><td>Dip Direction of Shear zone Plane</td></tr>
+<tr><td></td><td>Dip</td><td>Dip of Shear zone Plane</td></tr>
+<tr><td></td><td>Pitch</td><td>Pitch of slip vector on shear zone plane</td></tr>
+<tr><td></td><td>Trace From Image</td><td>Allows orientation of shear zone to be traced directly from an image file (BMP, PNG, &hellip;).</td></tr>
+<tr><td>Scale</td><td>Rotation</td><td>Rotation of shear zone block in degrees, around normal to shear zone passing through X,Y,Z, anticlockwise looking down rotation axis</td></tr>
+<tr><td></td><td>Slip</td><td>Displacement on shear zone parallel to slip vector</td></tr>
+<tr><td></td><td>Amplitude</td><td>Amplitude of curvature of shear zone, as defined on profile</td></tr>
+<tr><td></td><td>Width</td><td>Width of shear zone</td></tr>
+<tr><td></td><td>Radius</td><td>Radius of Ring Shear zone</td></tr>
+<tr><td></td><td>Cyl Index</td><td>Cylindricity index for decay of curvature of curved shear zones. Distance perpendicular to profile at which amplitude drops to 1/2 following a exponential drop-off</td></tr>
+<tr><td></td><td>Profile Pitch</td><td>Orientation of Curved Shear zone Profile (Independant of Slip Vector Pitch)</td></tr>
+<tr><td>Scale (Ellipsoid)</td><td>X Axis</td><td>Long axes of ellipsoid for elliptical shear zones (X=slip direction, XZ plane = shear zone) The magnitude of the chosen slip vector must always be less than the X value.</td></tr>
+<tr><td></td><td>Y Axis</td><td>Magnitude of ellipsoid normal to shear zone plane</td></tr>
+<tr><td></td><td>Z Axis</td><td>Magnitude of ellipsoid normal to slip vector</td></tr>
+</table></div>
+<p>Tracing Shear Zone Orientations From Maps </p>
+<p>When the Trace From Image Button is selected, the program will ask for an image (BMP, PNG, &hellip;) from which fault trends can be traced directly, and also calculates the position. The scaling is determined by the Fault Trace Control Window, which determines the coordinates of the NW and SE corners. The two points on the fault trace may be defined by clicking in the Image window, and may be edited by dragging them.</p>
+<figure class="fig"><img src="images/figures/img00027.png" alt="figure" width="573" loading="lazy"><figcaption><span class="legacy">Figure from the original manual; the equivalent window looks different in the current version.</span></figcaption></figure>
+<figure class="fig"><img src="images/figures/img00028.png" alt="figure" width="575" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

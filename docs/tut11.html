@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 11: Legends and grids &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 11: Legends and grids">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 11: Legends and grids</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 11-Legends &amp; Grids</p>
+<p>In this exercise we will load in an image in ER Mapper Format and view the legend &amp; grid facilities. </p>
+<p><strong>1) </strong>In order to display an image created in another file format, such as Geosoft or ER Mapper it is first of all a good idea to set the <strong>Geophysics Image Scaling Factor</strong> to 1, in the <strong>Geophysics Display Options</strong> window. This ensures that the image will be displayed at a resolution of one pixel per data point, and keeps down memory requirements. </p>
+<p>2) Now load in the Newcastle Magnetics test image (provided by ER Mapper) by selecting <strong>Display Image -&gt;ER Mapper</strong> from the Geophysics menu, and you should see this image: </p>
+<figure class="fig"><img src="images/figures/img00185.png" alt="figure" width="279" loading="lazy"></figure>
+<p>3) This image was stored as an 8 bit binary image so the absolute values have been lost, however IEEE4byte data can be loaded which preserves this information. These images are now normal geophysical images, so the look up table may be altered by right-clicking in the image, which brings up the Geophysics Plot Options window. In this window click on the Grid Overlay check box, and notice that the Auto box is checked as well. Now click on OK and a geographically correct grid is overlaid over the image: </p>
+<figure class="fig"><img src="images/figures/img00186.png" alt="figure" width="308" loading="lazy"></figure>
+<p>If the grid points overlap the reference coordinates, or are too closely or widely spaced, going back into the Geophysics Plot Options window and turning off Auto grids allows the starting position and the x &amp; y spacing of the grid to be manually defined.</p>
+<p>4) Now we can look at the legend associated with this image, by selecting Legend from the Windows menu, which will bring up a window looking something like this: </p>
+<figure class="fig"><img src="images/figures/img00187.png" alt="figure" width="289" loading="lazy"></figure>
+<p>This window displays a set of information relating to the front-most window within Noddy. In this case it includes information such as the file name, the dimensions of the grid, the cell size, a spatial scale bar (that re-sizes with the scale of the geophysics image window) and a look up table showing the extreme values for the image.</p>
+<p>5) Now create a simple test history (e.g. base stratigraphy-&gt;fold-&gt;tilt-&gt; shear zone) and create a map of the geology, and measure the bedding at a number of localities: </p>
+<figure class="fig"><img src="images/figures/img00188.png" alt="figure" width="396" loading="lazy"></figure>
+<p>6) Now look at the Legend window, which this time shows the stratigraphic column information (including rock properties) together with a stereographic projection of the orientation data. </p>
+<figure class="fig"><img src="images/figures/img00189.png" alt="figure" width="574" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

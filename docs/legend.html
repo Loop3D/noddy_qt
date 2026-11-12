@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legend window &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Legend window">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Legend window</h1>
+
+<p>This window, accessible from the Window menu, provides
+background information for all geological and geophysical visualisations,
+as well as providing a means of including a company logo within the title
+information. The nature of the information varies according to which window
+is selected, and includes a variety of information such as the file used
+to create the visualisation, the time and date of creation, the current
+stereonet, stratigraphic column, look up table and scale bar.</p>
+<p>The legend window updates automatically as each window
+is selected, and some information, such as the scale bar, are updated each
+time a change is made to the associated window (for example changing the
+size of a gravity image changes the length of the scale bar). </p>
+<p>A company logo may be placed in the top left hand corner
+by placing a BMP format image named <strong>complogo.bmp </strong>in the same directory
+as the <em>Noddy</em> exectuable.</p>
+<figure class="screen"><img src="images/screens/geo_legend.png" alt="Legend window (example shown here for map)" loading="lazy"><figcaption>Legend window (example shown here for map)</figcaption></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

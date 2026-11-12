@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Displacement equations &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Displacement equations">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Displacement equations</h1>
+
+<p>In order to simplify the formulation of the displacement equations used in this system we perform a transformation between the global (real world) reference frame and a local reference frame, which is used only for the displacement equations. This transformation consists of a translation followed by a rotation prior to the enactment of each displacement equation, followed by the inverse rotation and translation after it. In the following sections the displacement equations are given for the local reference frame, and only in the Lagrangian form. In most cases the Eulerian form of the equations may be easily derived from the Lagrangian form, however for curved and elliptical faults a Newton-Raphson iterative algorithm is used to calculate the Eulerian displacements.</p>
+<h3>Faults</h3>
+<p>Five different faults geometries are currently supported, ranging from simple planar faults with uniform translation or rotation of one block relative to the other; to arbitrarily curved surfaces defined by a profile, where the translation vector is a function of position relative to the surface, and dies off to zero outside the area of influence of the fault. In each case the equations show the example of hanging wall only slip.</p>
+<h3>Translation Faults</h3>
+<p>In the local reference frame, the fault plane is the YZ plane, with slip in Y direction.</p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image6.png" alt="figure" width="204" loading="lazy"></figure><p>where <em>s</em> is the slip vector.</p>
+<h3>Rotational Faults</h3>
+<p>In the local reference frame, the fault plane is the YZ plane, and the X axis is the rotation axis.</p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image7.png" alt="figure" width="644" loading="lazy"></figure>
+<h3>Ring Faults</h3>
+<p>In the local reference frame, the tangent to the fault plane and the slip vector are always parallel to the Y axis.</p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image8.png" alt="figure" width="260" loading="lazy"></figure><p>where <em>s</em> is the slip vector and <em>R</em> is the radius of the ring fault.</p>
+<h3>Elliptical Faults</h3>
+<p>The displacement equations for elliptical faults, where slip decays away from the centroid of the fault, are based on the empirical equations developed in Walsh and Watterson (1987). In the local reference frame, the fault plane is the YZ plane, with slip in Y direction.</p>
+<p>The kinematics are defined by: </p>
+<figure class="fig eq"><img src="images/figures/image9.png" alt="figure" width="249" loading="lazy"></figure><p>where <em>s</em> is the maximum slip, and <em>p</em> is a function of position within the ellipsoid of deformed rock defined by: </p>
+<figure class="fig eq"><img src="images/figures/image10.png" alt="figure" width="336" loading="lazy"></figure><p>where <em>Ex, Ey and Ez</em> are the principal axes of the ellipsoid</p>
+<h3>Curved Faults</h3>
+<p>The displacement equations for curved faults, are similar to those used for elliptical faults, where slip decays away from the centroid of the fault, but when combined with curved fault surfaces they require a term for the displacement of points perpendicular to the fault surface (parallel to local X), so that all points maintain a constant distance from the fault. </p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image11.png" alt="figure" width="220" loading="lazy"></figure><p>where <em>s</em> is the maximum slip, <em>d</em> is the difference between a point and the fault surface before and after deformation, and <em>p</em> is a function of position within the ellipsoid of deformed rock defined by: </p>
+<figure class="fig eq"><img src="images/figures/image12.png" alt="figure" width="385" loading="lazy"></figure><p>where <em>Ex, Ey and Ez</em> are the principal axes of the ellipsoid that encloses the faulted volume. </p>
+<h3>Unconformities</h3>
+<p>Unconformities do not imply any displacement, as they merely define a planar discontinuity.</p>
+<h3>Folds</h3>
+<p>The similar fold model currently supported is probably the weakest representation of its true counterpart, and does not allow upper crustal, flexural slip geometries.</p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image13.png" alt="figure" width="235" loading="lazy"></figure><p>where <em>ƒ()</em> is either a simple sinusoid function or a Fourier series, which allows arbitrary fold profiles to be generated, <em>w</em> is the fold wavelength, <em>a</em> is the fold amplitude, and <em>c</em> is a parameter that controls fold cylindricity. </p>
+<h3>Shear Zones</h3>
+<p>Shear zone kinematics are the same as those for faults, except that the slip is distributed continuously within a parallel sided shear zone, rather being concentrated on a discrete fault plane. </p>
+<h3>Dykes</h3>
+<p>Dyke are infinite parallel sided bodies which can either be stope-like, with the country rock replaced by dyke material, or dilatational, which implies the creation of a void space to be filled by the dyke material.</p>
+<h3>Dilatational Dyke</h3>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image14.png" alt="figure" width="243" loading="lazy"></figure><p>where <em>w</em> is the dyke width.</p>
+<h3>Plugs</h3>
+<p>Plugs can only be stope-like, with a replacement model for plug emplacement. Simple geometric forms can be defined (cylinders, paraboloids, cones and ellipsoids) or complex voxel geometries can be imported. In the future, the displacement equations described by Guglielmo (1993) could become the basis for a forced emplacement model.</p>
+<p>II.8 Homogenous Strains</p>
+<p>A strain tensor can be defined to homogenously deform the geology.</p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image15.png" alt="figure" width="238" loading="lazy"></figure><h3>Tilts</h3>
+<p>A uniform tilt can be defined to rotate the geology.</p>
+<p>The kinematics are defined by:</p>
+<figure class="fig eq"><img src="images/figures/image16.png" alt="figure" width="593" loading="lazy"></figure><p>where <em>j,k,l</em> is the unit vector defining the axis of rotation, and <em>q</em> is the angle of rotation. </p>
+<p>Penetrative Foliations and Lineations. </p>
+<p>These deformation events are not explicitly associated with a volume change or strain, however they can be combined with homogeneous strains if needed. Some of the deformation events implicitly produce cleavages and lineations, for example folds produce an implicit axial plane cleavage and a fold axis lineation, whose orientation can be displayed symbolically on map views.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 9: Using real geophysical data &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 9: Using real geophysical data">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 9: Using real geophysical data</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 9: Constraining events locations
+to known data.</p>
+<p>In this example we will demonstrate
+how to use an existing magnetic dataset to constrain the position and geometry
+of the Noddy events. 
+</p>
+<p>1) First we need to be able to read
+in the pre-existing magnetic data. In order to do this we convert a raw
+ASCII grid file into a Noddy .mag file for further use. Select <strong>Tools-&gt;Import
+Image-&gt;ASCII</strong> You will then be presented with a window that allows
+you to provide additional detail about the image. For the moment the only
+data that need to be changed are the cell size (<strong>50</strong> m) the Number
+of Rows (<strong>285</strong>) and the Number of Columns (<strong>160</strong>). Then click
+on OK and in the file browser choose the file called <strong>data.asc </strong>and
+save the newly converted file as <strong>data.mag</strong>.</p>
+<p>2) Next we need to identify this newly
+created data as a reference image for the modelling. First change the Geophysics
+Scale to 2 in the Project Options window (this keeps the image to a reasonable
+size. Then select <strong>File-&gt;Load Reference Images-&gt;Magnetics </strong>and
+load in the image<strong> data.mag</strong>. This will then be displayed in a window
+as a normal geophysics image that may be viewed as a raster or colour contour
+image, have profiles drawn etc.</p>
+<p>3) Now load in a history file called
+<strong>model.his </strong>I have created that will be used to try to model the folded
+fault block located at 5000,5000. This history provides the stratigraphy
+and the late folding event which are both obvious in the geology map below,
+but leaves the early faulting up to you. First of all create a block diagram
+to have a look at the model as it stands. </p>
+<figure class="fig"><img src="images/figures/img00180.png" alt="figure" width="310" loading="lazy"></figure>
+<p>4) To create the fault select a fault
+icon from the Toolbar and place it between the Base Stratigraphy and the
+Fold icons in the History window. The fault definition window will open
+up and first of all we now to decide what type of fault we need to explain
+the fault block geometry seen in the magnetics. Try putting in a Translational
+normal fault dipping 60 to 180, and position it at 5000,5000,5000. </p>
+<p>In the preview window you should now
+see this fault plane. In order to see the effect of this fault on the Base
+Stratigraphy alone (ie without the later folding) select <strong>Block</strong> from
+the menu at the lower right of the Preview area. This shows the south (hanging
+wall) block sliding off into oblivion. In order to see the combined effect
+of the faulting and folding, select <strong>Full</strong> from the left menu in the
+Preview area. </p>
+<p>We can now also preview the magnetic
+anomaly image for this geology, by selecting <strong>Magnetics</strong> from the
+right menu in the Preview area. This creates a full magnetics calculation
+for a cube size 5/3 times cube size defined in the Block View Options window,
+and provides the range of TMI values present in the area.</p>
+<p>5) This fault accounts for some of
+the fault block behaviour, but does not explain the narrowing of the block
+to the West. This suggests that perhaps we need a fault which has a slip
+vector that decays to the West. We can achieve this by selecting <strong>Elliptical
+Fault</strong> from the <strong>Form:Geometry</strong> menu in the fault definition window.
+Since elliptical faults have a narrow extent, it is not at first obvious
+where the fault is in the <strong>Full:Block</strong> preview. To make the fault
+more obvious, increase the <strong>Ellipsoid Axis</strong> dimensions (click on the
+icon to bring up the relevant parameters) until it appears in the preview.
+(If the refresh rate of the preview is too slow, disable it by clicking
+on the On button in the lower right hand corner of the preview are, and
+turn it on when you next want to see the block). These axes define the
+ellipsoidal volume within which there will be slipped rock, with X parallel
+to the slip direction in the fault plane, Z perpendicular to the slip direction
+in the fault plane, and Y normal to the fault plane.</p>
+<figure class="fig"><img src="images/figures/img00182.png" alt="figure" width="173" loading="lazy"></figure>
+<p>The X,Y,Z <em>position</em> now defines
+the centre of the ellipsoid (which the fault passes through). </p>
+<p>6) Once the Elliptical fault is quite
+large, you should be able to see the fault block in the Preview window
+again. As a check that the magnetics are starting to look reasonable, and
+also to see the relationship between the magnetics and the geology, select
+<strong>Magnetic + Map</strong> from the right menu in the preview area. Now exit
+from the Fault definition window and calculate a full magnetics image.
+</p>
+<p>7) We can produce a composite image
+to check on the exact placement and orientation of the fault. To do this
+select <strong>Geophysics-&gt;Difference With Reference-&gt;Magnetics</strong> and
+reload in the newly created .mag file. The resulting image is the reference
+image subtracted from the model image. Both the model and actual fault
+positions show up quite clearly in this image, so repositioning and re-orienting
+the fault becomes quite simple. This difference image is also available
+in the Preview window, but is much smaller and harder to deal with. Once
+the fault is positioned and oriented correctly, you can start to worry
+about the Ellipsoid Axis dimensions so that the shape of the fault block
+matches the observed data.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

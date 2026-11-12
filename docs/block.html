@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block diagrams &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Block diagrams">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Block diagrams</h1>
+
+<p>Block diagrams can be viewed as soon as the base stratigraphy has been defined, and are selected by choosing Block Diagram from the Geology menu. </p>
+<figure class="screen"><img src="images/screens/geo_block.png" alt="Block diagram" loading="lazy"><figcaption>Block diagram</figcaption></figure>
+<p>The scale and initial orientation of the block diagram can be defined in the Geology Display Options Window. </p>
+<p>The block view is an interactive view and the following actions change the displayed information:</p>
+<p>a) Dragging the mouse in the window with the mouse button held down <strong>rotates</strong> the block in the window. The four side faces and the top face may be viewed from any angle. </p>
+<p>b) Holding the shift key down while dragging the mouse in the window <strong>rescales</strong> the block in the window. </p>
+<p>c) Resizing the window itself <strong>rescales</strong> the block the next time it is rotated.</p>
+<p>d) Double clicking on a block face brings up a separate <strong>map</strong> or <strong>section view</strong>.</p>
+<p>e) Clicking with the right mouse button brings up a <strong>3D Voxel view </strong>selector window (see below), </p>
+<p>Chair Diagrams (block models with rectangular cut outs) are defined by the normal block parameters and the location of the lower-North-East corner of the cut out block (see Edit &gt; Block Options).</p>
+<figure class="screen"><img src="images/screens/geo_block_showtopo.png" alt="3D Voxel views" loading="lazy"><figcaption>3D Voxel views</figcaption></figure>
+<p>Clicking in a block diagram with the right mouse button brings up a 3D Voxel view selector window, which allows you to display individual layers, and layers coloured according to geophysical rock properties.</p>
+<figure class="screen"><img src="images/screens/dlg_display_type.png" alt="Display Type window" loading="lazy"><figcaption>Display Type window</figcaption></figure><p><em>.</em> </p>
+<p>Block Default Options window</p>
+<p>In the figure below the density variations in a single layer (resulting from replacement adjacent to a cylindical plug) can be viewed in 3D.</p>
+<figure class="screen"><img src="images/screens/geo_block_density.png" alt="Block diagram coloured by density" loading="lazy"><figcaption>Block diagram coloured by density</figcaption></figure><div class="callout new"><span class="label">Tip</span>Right-click a block diagram to open the <a href="blockdef.html">Display Type</a> window, which can colour voxels by rock property or cut the block at the topography (<em>Show Topo</em>).</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

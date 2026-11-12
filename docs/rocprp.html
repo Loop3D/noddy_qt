@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editing the rock database &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Editing the rock database">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Editing the rock database</h1>
+
+<p>In order to build up a set of pre-defined rock properties, a rock property database can be built. Noddy comes with a default set of properties, which were copied from Telford et al, and which represent 'average' values of susceptibility and density for a number of different rock types. Since susceptibility values in particular show enourmous regional variations, it is more likely that you will create your own database entries. </p>
+<p>In order to edit the default database, a file called 'PROPERTY.ROX', select Edit Rock Database from the Tools Menu. This file is a global file that will be loaded each time Noddy is started up, however history files written out from Noddy will not be updated if the database if modified.</p>
+<p>Once a rock properties database has been defined, clicking in the menu tag of the name of the rock in the Rock Property definition winodow allows the user to choose from a predefined list of rock types, and all of the rock property values (except Height) will be automatically filled in.</p>
+<figure class="screen"><img src="images/screens/dlg_rockdb.png" alt="Edit Rock Database window" loading="lazy"><figcaption>Edit Rock Database window</figcaption></figure><p><strong>Warning: if SI units are specified in the Project Options window, the values entered must be in SI units, as they will be converted to cgs units within the database.</strong></p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr><td class="group"></td><td>New Rock</td><td>Add new rock name to database (opens up rock property definition window)</td></tr>
+<tr><td class="group"></td><td>Delete Rock</td><td>Delete selected rock from list</td></tr>
+<tr><td class="group"></td><td>Edit Rock...</td><td>Edit properies of existing rock</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

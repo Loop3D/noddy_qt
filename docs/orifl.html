@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orientation data file &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Orientation data file">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Orientation data file</h1>
+
+<p>This is an ASCII text file (tab delimited) which
+contains the orientation data for the current outcrop map. This created
+using Save Orientations option from the File menu. The data provides information
+on orientation, feature type, and age of feature:</p>
+<div class="table-wrap"><table>
+<tr><th>Dip/Plunge</th><th>DipDn/PlDn</th><th>Type</th><th>Feature</th><th>Age1</th><th>Age2</th></tr>
+<tr><td>47</td><td>53</td><td>Plane</td><td>Bedding</td><td></td><td></td></tr>
+<tr><td>78</td><td>66</td><td>Plane</td><td>Foliation</td><td>1 Fold</td><td></td></tr>
+<tr><td>45</td><td>134</td><td>Plane</td><td>Foliation</td><td>3 Fault</td><td></td></tr>
+<tr><td>44</td><td>134</td><td>Line</td><td>Lineation</td><td>3 Fault</td><td></td></tr>
+<tr><td>17</td><td>340</td><td>Line</td><td>Lineation</td><td>1 Fold</td><td></td></tr>
+<tr><td>17</td><td>340</td><td>Line</td><td>Bedding-Cl</td><td>1 Fold</td><td></td></tr>
+<tr><td>44</td><td>144</td><td>Line</td><td>Cl-Cl</td><td>1 Fold</td><td>3 Fault</td></tr>
+</table></div>
+<p>Orientation files may be opened up directly by spreadsheets
+such as Lotus 1-2-3, Excel, etc for later processing.</p><div class="callout new"><span class="label">X, Y, Z columns</span>Each row now also ends with three columns <code>X</code>, <code>Y</code> and <code>Z</code> giving the location of the measurement in model coordinates. The header line is:<br><code>Dip/Plunge&nbsp; DipDn/PlDn&nbsp; Type&nbsp; Feature&nbsp; Age1&nbsp; Age2&nbsp; X&nbsp; Y&nbsp; Z</code><br>To sample bedding over the whole model surface instead of individual clicks, see <a href="surforient.html">Saving surface orientations</a>.</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event previews &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Event previews">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Event previews</h1>
+
+<p>In each structural definition window and some other options windows there is a preview window which helps you to choose the correct parameters for each deformation event. Two distinct preview menus are provided which in combination allow many different previews of the geological or geophysical results of changing specific parameters.</p>
+<p>All types of previews update automatically whenever a parameter is altered in the event definition window, or you click in the preview window, and some examples of the various preview combinations are shown below. </p>
+<div class="chain"><img src="images/icons/strat.png" alt="strat"><span class="arrow">&rarr;</span><img src="images/icons/fold.png" alt="fold"><span class="arrow">&rarr;</span><img src="images/icons/fault.png" alt="fault"><span class="arrow">&rarr;</span><img src="images/icons/dyke.png" alt="dyke"><span class="arrow">&rarr;</span><img src="images/icons/plug.png" alt="plug"></div>
+<p>Plane Previews show the current orientation and position of the planar and or linear features described for the particular event. Within the rectangular volume planar features are defined by a yellow outline, and linear features are defined by a set of parallel rulings within the plane. The arrow points to North. The preview is sensitive to orientation settings such as dip, dip direction and pitch, as well as positional information in X,Y,Z form, but for some events is not much use at all, except that at least it is quick.</p>
+<p>If large or negative values are used for X,Y &amp; Z the volume may be blank, as the plane is outside the field of view. </p>
+<figure class="screen"><img src="images/screens/prev_plane_pane.png" alt="Plane Preview" loading="lazy"><figcaption>Plane Preview</figcaption></figure>
+<p>Block Previews</p>
+<p>Block Preview provide a block diagram view of the effect of the current event on the geology. Three types of Block Preview can be selected the pull-down menu that appears to the left of the Preview Type menu in the preview window. The three choices are: <strong>Event</strong>, which simply shows the effect of this event on the Base Stratigraphy; <strong>History, </strong>which shows the cumulative effect of events up to and including the event currently being edited; and <strong>Full</strong>, which shows the effect of all the events defined in the History Window. </p>
+<p>In the examples a </p><div class="chain"><img src="images/icons/strat.png" alt="strat"><span class="arrow">&rarr;</span><img src="images/icons/fold.png" alt="fold"><span class="arrow">&rarr;</span><img src="images/icons/fault.png" alt="fault"><span class="arrow">&rarr;</span><img src="images/icons/dyke.png" alt="dyke"><span class="arrow">&rarr;</span><img src="images/icons/plug.png" alt="plug"></div><p>history was defined and we are currently editing the fault event. Thus <strong>Block/Event</strong> shows the effect of faulting only, Block/History shows the effect of the fold and the fault, and <strong>Block/Full</strong> shows the entire history.</p>
+<p>The block diagram origin and scale are determined by the current <strong>Block View</strong> settings, and the resolution is 60% of the current <strong>Geology</strong> <strong>Block Size </strong>settings. <em>This block diagram is not rotatable.</em> </p>
+<p>It is quite possible for the block diagram to be unaffected by the event, depending on the choice of parameters. </p>
+<figure class="screen"><img src="images/screens/prev_block_event_pane.png" alt="Block / Event" loading="lazy"><figcaption>Block / Event</figcaption></figure><figure class="screen"><img src="images/screens/prev_block_history_pane.png" alt="Block / History" loading="lazy"><figcaption>Block / History</figcaption></figure><figure class="screen"><img src="images/screens/prev_block_full_pane.png" alt="Block / Full" loading="lazy"><figcaption>Block / Full</figcaption></figure>
+<p>Block/Event Preview Block/History Preview Block/Full Preview </p>
+<p>Gravity/Magnetics Previews</p>
+<p>Gravity/Magnetics Previews show a preview of the geophysical fields resulting from the currently defined geology. As with <strong>Block Previews</strong>, three types of preview (<strong>Event</strong>, <strong>History</strong> &amp; <strong>Full</strong>) may be selected the pull-down menu that appears to the left of the <strong>Preview Type</strong> menu in the preview window. </p>
+<p>In addition a line map of the geology may be overlain on the geophysical image by selecting <strong>Gravity + Map</strong> or <strong>Magnetics + Map</strong>.</p>
+<p>The calculation origin and scale are determined by the current <strong>Block View</strong> settings, and the resolution is 60% of the current <strong>Geophysics Block Size </strong>settings. </p>
+<p>If very complex geology or fine cube sizes are chosen, previews will be grindingly slow, so it is often better to switch off the Preview, change alot of parameters, and then switch back to Block or other computationally intensive previews. </p>
+<figure class="screen"><img src="images/screens/prev_gravity_pane.png" alt="Gravity / Full" loading="lazy"><figcaption>Gravity / Full</figcaption></figure><figure class="screen"><img src="images/screens/prev_gravity_map_pane.png" alt="Gravity + Map / Full" loading="lazy"><figcaption>Gravity + Map / Full</figcaption></figure>
+<p>Gravity/Full Preview <em>Magnetic+Map/History Preview</em> </p>
+<p>Difference Previews</p>
+<p>Difference Previews show the arithmetic difference between the currently modelled gravity or magnetics and a previously defined reference dataset. As with other previews, three types of preview (<strong>Event</strong>, <strong>History</strong> &amp; <strong>Full</strong>) may be selected the pull-down menu that appears to the left of the <strong>Preview Type</strong> menu in the preview window.</p>
+<p>If no gravity or magnetics reference image has been loaded, this option will obviously not be able to function </p>
+<p>In order to convert another image format to Noddy geophysics .mag or .grv formats, first dump the other image out in ASCII tab-delimited or space delimited format, then import using <strong>Import Image-&gt;ASCII</strong> from the <strong>Tools</strong> menu. </p>
+<figure class="screen"><img src="images/screens/prev_magnetic_pane.png" alt="Gravity Difference Image Preview" loading="lazy"><figcaption>Gravity Difference Image Preview</figcaption></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

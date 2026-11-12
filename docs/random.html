@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random histories &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Random histories">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Random histories</h1>
+
+<div class="callout new"><span class="label">New</span>Random histories were added in the Qt version. The generator comes from the
+<em>Noddyverse</em> project, which used it to build a large library of synthetic models for machine learning.</div>
+<p><span class="menu-path">File &gt; Random History</span> replaces the current history with a randomly generated one. If a
+history is already loaded Noddy asks for confirmation first.</p>
+<figure class="screen"><img src="images/screens/dlg_random_confirm.png" alt="Confirmation before the current history is replaced" loading="lazy"><figcaption>Confirmation before the current history is replaced</figcaption></figure>
+<p>Each random history has five events. It always starts with a Stratigraphy and a Tilt. Each of the other three events is
+a fold, fault or shear zone (20&nbsp;% chance each) or an unconformity, dyke, plug or tilt (10&nbsp;% each), with randomly
+chosen parameters and rock properties. The events are laid out in the History window and can be edited like any other event.</p>
+<figure class="screen"><img src="images/screens/history_random.png" alt="A randomly generated history" loading="lazy"><figcaption>A randomly generated history</figcaption></figure><figure class="screen"><img src="images/screens/geo_block_random.png" alt="Block diagram of the random history" loading="lazy"><figcaption>Block diagram of the random history</figcaption></figure>
+<h2>Random histories from the command line</h2>
+<p>The <code>-random</code> option generates a random history without opening the user interface. It writes the history to a
+time-stamped <code>.his</code> file and also calculates the block model and the gravity and magnetic anomalies:</p>
+<pre><code>noddy -random
+noddy -random -o mymodel</code></pre>
+<p>Without <code>-o</code> the output files are called <code>random_&lt;seconds&gt;_&lt;microseconds&gt;</code> plus the usual
+extensions. See <a href="batch.html">Command-line (batch) mode</a>.</p>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

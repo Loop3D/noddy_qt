@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parameter groups &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Parameter groups">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Parameter groups</h1>
+
+<p>All structural modelling is kinematic and is based on the application of displacement equations or replacement zones based on seven basic classes of parameters, namely <strong>Form</strong>, <strong>Surface Shape</strong>, <strong>Position</strong>, <strong>Orientation</strong>, <strong>Scale</strong>, <strong>Ellipsoidal Scale</strong> &amp; <strong>Stratigraphy</strong>.</p>
+<p>Parameter Group Icons</p>
+<p>The deformation event definition windows are standardised so that the same basic window is used to define all event types, and parameters belonging to each class are grouped together. Each group may be selected by clicking on the appropriate icon on the right hand side of the window, or selecting the group from the menu above the groups of parameters. The parameter group icons (different combinations of which are present for different events) are:</p>
+<p><img class="ev-icon" src="images/icons/form.png" alt="form icon">           <img class="ev-icon" src="images/icons/surface.png" alt="surface icon">             <img class="ev-icon" src="images/icons/position.png" alt="position icon">           <img class="ev-icon" src="images/icons/orient.png" alt="orient icon">            <img class="ev-icon" src="images/icons/scale.png" alt="scale icon">            <img class="ev-icon" src="images/icons/ellscale.png" alt="ellscale icon">           <img class="ev-icon" src="images/icons/strat.png" alt="strat icon"></p>
+<p>             Form          Surface Shape        Position       Orientation           Scale             Ellip Scale     Stratigraphy</p>
+<p>Form</p>
+<p>The form parameter is generally prescribed by the program from a few set shapes, with the notable exception of folds, which can have any profile.</p>
+<p>Surface Shape</p>
+<p>For unconformities, faults and shear zones the defining surface can be read in as a DXF triangulated surface, and can be loaded, seen in plan view and rescaled using parameters from this group. </p>
+<p>Position </p>
+<p>The coordinate convention used in this program assumes X (EW) is positive towards the East, Y (NS) is positive towards the North and Z is positive up.</p>
+<p>The default block is defined by a rectangular volume with opposite corners at 0,0,0 and 10000,7000,5000 metres X,Y,Z (W,N,Z) respectively, so that the top surface of the block is the 'map area'. Thus events which are localised and defined to occur outside this block will only be seen if the origin or scale of the block are altered or subsequent deformation brings them into view. An overiding XY offset may be defined to match the model to real world coordinate systems.</p>
+<p>Orientation</p>
+<p>Planar features are defined by their dip and dip direction, and independent linear features are defined by their plunge and plunge direction. Linear features associated with planes, such as slip vectors on faults, are defined by their pitch. </p>
+<figure class="fig"><img src="images/figures/img00054.png" alt="Scale" width="319" loading="lazy"><figcaption>Scale</figcaption></figure>
+<p>The spatial dimension of all features is defined in metres. </p>
+<p>Ellipsoid Scale</p>
+<p>Ellipsoidal plugs and ellpitical and curved faults require the dimensions of the ellipsoid to be defined.</p>
+<p>Stratigraphy This allows the definition of a stratigraphy, for the base stratigraphy and unconformities.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

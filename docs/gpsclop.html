@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geophysics calculation options &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Geophysics calculation options">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Geophysics calculation options</h1>
+
+<p>The Geophysics Calculation Options Window which can be selected from the Edit menu, allows the user to specify various parameters which alter the calculation scheme used for geophysical anomalies. </p>
+<figure class="screen"><img src="images/screens/opt_geophysics_calculation.png" alt="Geophysics Calculation Options Window" loading="lazy"><figcaption>Geophysics Calculation Options Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Calculation Type</td><td>Spatial Convolution</td><td>Calculations are performed in the spatial domain, and will take longer, produce clipped profiles for simple geologies but can have less obvious edge effects</td></tr>
+<tr><td class="group"></td><td>Spectral</td><td>Calculations are performed in the spectral domain, and will take less time, produce better profiles for simple geologies but can have more obvious edge effects</td></tr>
+<tr><td class="group"></td><td>Full Spatial</td><td>Calculations are performed in the spatial domain, and take into account every cube in the model, which makes the calculation very slow, but is the only really accurate means of calculating draped surveys</td></tr>
+<tr class="group-start"><td class="group">Spatial Calculations</td><td>Calculation Range (m)</td><td>In order to limit the extent of the <em>spatial domain</em> calculations a Calculation Range Calculation Range needs to be defined, which serves as a horizontal cut-off distance beyond which the behaviour of the geology is ignored. This number is rounded off to whole numbers of cubes. The larger this value, the more accurate the far field calculation will be.</td></tr>
+<tr class="group-start"><td class="group">Variable Cube Size</td><td>Cutoff Level</td><td>Cutoff height above which cube size as defined by Cube Size parameter takes effect. Select All for constant cube size with depth.</td></tr>
+<tr><td class="group"></td><td>Size Ratio</td><td>Ratio of cube size increase below cutoff level</td></tr>
+<tr class="group-start"><td class="group">Modelled Data</td><td>XYZ</td><td>Saves X, Y &amp; Z components of magentic field separately (as .mgx, .mgy and .mgz suffix files)</td></tr>
+<tr class="group-start"><td class="group">Spectral Padding</td><td>Type</td><td>Defines padding scheme used to fill out rock properties in area around calculated geology (See below for details)</td></tr>
+<tr><td class="group"></td><td>Value</td><td>Fence &amp; Set Value padding options require specific values (as %) to be entered</td></tr>
+</table></div>
+<p>Wrapping types for spectral geophysics calculations </p>
+<figure class="fig"><img src="images/figures/img00098.png" alt="figure" width="573" loading="lazy"></figure><div class="callout new"><span class="label">Gaussian noise</span>The <strong>Gaussian Noise</strong> group adds random variation to the density and susceptibility of every voxel. See <a href="noise.html">Gaussian petrophysical noise</a>.</div><div class="callout "><span class="label">Defaults</span>New histories now use the <em>Spectral</em> calculation scheme with <em>Reflection</em> padding.</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

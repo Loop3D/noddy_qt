@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project options &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Project options">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Project options</h1>
+
+<p>This window, which may be accessed via the Project Options item in the Edit menu, provides some overall controls for the program. </p>
+<figure class="screen"><img src="images/screens/opt_project.png" alt="Project Options Window" loading="lazy"><figcaption>Project Options Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Help Viewer</td><td>Command</td><td>Path of Web browser used to view help files (followed by %h)</td></tr>
+<tr class="group-start"><td class="group">Printing</td><td>Scale</td><td>Multiplying factor to scale up printing to allow exact scaling of images, or when printer drivers don't behave</td></tr>
+</table></div><div class="callout "><span class="label">Note</span>The <em>Help Viewer</em> command is not used by the current version: in-program help has been replaced by this online documentation.</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

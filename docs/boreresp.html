@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Borehole surveys &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Borehole surveys">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Borehole surveys</h1>
+
+<p>There is also a pair of options for calculating down hole
+surveys from internally generated or imported borehole specifications:
+</p>
+<p><strong>Borehole-&gt;Generate-</strong> This calculates a down hole
+survey using the borehole specifications in the <strong>Geology Options Window.
+</strong></p>
+<p><strong>Borehole-&gt;Import-</strong> This calculates a down hole
+survey using the borehole specifications imported from an ASCII three column
+XYZ data file. You will have the opportunity to specify which columns
+refer to X, Y and Z. The area of the window below the Parameter Mapping
+section shows the first few lines of the file to aid in selecting the proper
+X,Y,Z columns. </p>
+<p><em>Any input row starting with a number will be considred
+to be data, and any other row will be considered to be a comment.</em>
+</p>
+<figure class="fig"><img src="images/figures/img00093.png" alt="figure" width="453" loading="lazy"><figcaption><span class="legacy">Figure from the original manual; the equivalent window looks different in the current version.</span></figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Parameter Mapping</td><td><strong>X Column</strong></td><td>Column containing X position data</td></tr>
+<tr><td class="group"></td><td><strong>Y Column</strong></td><td>Column containing Y position data</td></tr>
+<tr><td class="group"></td><td><strong>Z Column</strong></td><td>Column containing Z position data</td></tr>
+<tr><td class="group"></td><td><strong>X Offset</strong></td><td>Offset applied to input X position</td></tr>
+<tr><td class="group"></td><td><strong>Y Offset</strong></td><td>Offset applied to input Y position</td></tr>
+<tr><td class="group"></td><td><strong>Z Offset</strong></td><td>Offset applied to input Z position</td></tr>
+</table></div><div class="callout "><span class="label">Output</span>For generated boreholes Noddy asks for an output file name and writes a tab-delimited table of X, Y, Z, magnetics and gravity at each sample down the hole.</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

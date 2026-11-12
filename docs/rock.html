@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rock properties &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Rock properties">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Rock properties</h1>
+
+<p>This window can be accessed from the <strong>Stratigraphy Definition Window</strong> or when defining an event that generates new lithologies (dykes, plugs, unconformities). Within this window you can define the name, alteration properties, geophysical properties and thickness of a given lithology. </p>
+<p>Stratigraphic Thicknesses </p>
+<p>For stratigraphically defined units (ie the base stratigraphy and unconformities, and not dykes or plugs), the thickness of the unit is defined as follows: </p>
+<p>a) The top-most unit extends infinitely upwards in the positive Z direction, and the base of this unit is defined by the <strong>Height</strong> parameter. </p>
+<p>b) Middle units are defined by their <strong>Width</strong> (thickness).</p>
+<p>c) The lowest unit extends down (in the negative Z direction) from the base of the unit above it to infinity. </p>
+<figure class="screen"><img src="images/screens/dlg_rock_props.png" alt="Rock Properties Window" loading="lazy"><figcaption>Rock Properties Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Geology</td><td>Name</td><td>User Selectable name, also a menu for pre-defined rock properties from the Rock Property Database (See section 2.8.4)</td></tr>
+<tr><td class="group"></td><td>Width</td><td>Thickness of stratigraphically defined lithologies (Except topmost or lowermost unit in a sequence)</td></tr>
+<tr><td class="group"></td><td>Height</td><td>Level of base of topmost unit in a stratigraphically defined lithology</td></tr>
+<tr><td class="group"></td><td>Alter</td><td>Alows this unit’s geophysical properties to be affected by alteration haloes, if not checked the original rock propoerty values will be retained during alteration events.</td></tr>
+<tr class="group-start"><td class="group">Susceptibility</td><td>Anisotropy</td><td>Defines susceptibility to be anisotropic</td></tr>
+<tr><td class="group"></td><td>Magnetic Susceptibility X</td><td>Magnitude of Anisotropy in user defined units in the X direction (or for all 3 directions if Anisotropy is not checked)</td></tr>
+<tr><td class="group"></td><td>Magnetic Susceptibility Y</td><td>Magnitude of Anisotropy in user defined units in the Y direction (only if Anisotropy is checked)</td></tr>
+<tr><td class="group"></td><td>Magnetic Susceptibility Z</td><td>Magnitude of Anisotropy in user defined units in the Z direction (only if Anisotropy is checked)</td></tr>
+<tr><td class="group"></td><td>Dip</td><td>Dip of XY plane of Anisotropy</td></tr>
+<tr><td class="group"></td><td>Dip Direction</td><td>Dip Direction of XY plane of Anisotropy</td></tr>
+<tr><td class="group"></td><td>Pitch</td><td>Pitch of X direction in XY plane of Anisotropy</td></tr>
+<tr class="group-start"><td class="group">Density</td><td>Density</td><td>Density of lithology</td></tr>
+<tr class="group-start"><td class="group">Remanence</td><td>Remanence</td><td>Defines a remanent component of magnetisation</td></tr>
+<tr><td class="group"></td><td>Declination</td><td>Declination of remanent vector</td></tr>
+<tr><td class="group"></td><td>Inclination</td><td>Inclination of remanent vector</td></tr>
+<tr><td class="group"></td><td>Intensity</td><td>Intensity of remanent vector</td></tr>
+<tr class="group-start"><td class="group">Define Colour</td><td></td><td>Allows colour of unit to be altered</td></tr>
+<tr><td class="group"></td><td></td><td></td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

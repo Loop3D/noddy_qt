@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Movie options &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Movie options">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Movie options</h1>
+
+<p>Movie Creation</p>
+<p>Step 1: You must first have a history of events available for a movie to be created. Generate the sequence of events required to be animated.</p>
+<p>Step 2: Select the File &gt; Movie &gt; Create option. Open a file with an appropriate name. The filename .nmv will be appended.</p>
+<p>Step 3: Noddy will create a series of PNG files based on the Number of Frames per Event value set in the Edit &gt; Movie Option. The greater the number of frames stored, the smoother the movie, however, the more PNG files there are to be created/loaded and saved. Disk storage should be taken into consideration when creating movie animations.</p>
+<p>Movie Loading and Playback</p>
+<p>Step 1: To load a movie (.nmv) file, you must initially have a history available. If the File &gt; Movie option is not enabled, simply drag and drop a Base Stratigraphy icon into the History window. The File &gt; Movie option should then be available. Select an appropriate movie file.</p>
+<p>Step 2: The amount of time taken for a movie to load will depend on the number of animation elements and PNG files to be re-played. Wait until the movie has accessed all files, and then the first scene of the animation should be displayed.</p>
+<p>Step 3: The movie can be played with the following controls:</p>
+<ul>
+<li>Clicking in the window with the left mouse button moves the animation <em>forward</em> one frame </li>
+<li>Clicking in the window with the right mouse button moves the animation <em>back</em> one frame.</li>
+<li>Shift and left mouse click in the window runs the entire animation at the frame rate specified in the Edit &gt; Movie Options window. </li></ul>
+<p>These animations can be read back in from disk by selecting Load Movie from the File menu.</p>
+<figure class="screen"><img src="images/screens/opt_movie.png" alt="Movie Options Window" loading="lazy"><figcaption>Movie Options Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Options</td><td>Movie Type:</td><td>Type of geological or geophysical visualisation to use for animation</td></tr>
+<tr><td class="group"></td><td>Number of Frames per Event</td><td>The number of intermediate frames for each deformation event</td></tr>
+<tr><td class="group"></td><td>Speed of on Screen Replay</td><td>The relative speed of on screen replay of the movie</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

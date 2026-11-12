@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu reference &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Menu reference">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Menu reference</h1>
+<p>Every menu in Noddy is listed below. Some items are only available when they make sense &mdash; for example the topography items need a topography file, and <em>Plot Orientations</em> needs orientations measured on a map.</p>
+<h2 id="file">File</h2>
+<p>Reading and writing files, pictures and printing.</p>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td><a href="pguide.html">New History</a></td><td>Clear all events and start again, from the factory defaults or from your own defaults file.</td></tr>
+<tr><td><a href="hisfl.html">Read History&hellip;</a></td><td>Read a history (<code>.his</code>) file. If a history is loaded you can merge the two or overwrite the current one.</td></tr>
+<tr><td><a href="random.html">Random History</a></td><td>Replace the current history with a randomly generated one. <span class="badge">new</span></td></tr>
+<tr><td><a href="hisfl.html">Save History</a></td><td>Save the current history to its file.</td></tr>
+<tr><td><a href="hisfl.html">Save History As&hellip;</a></td><td>Save the current history under a new name.</td></tr>
+<tr><td><a href="install.html">Save as Defaults</a></td><td>Save the current history as <code>defaults.his</code>, used by <em>New History &gt; User Defaults</em>.</td></tr>
+<tr><td><a href="refdat.html">Load Reference Images &gt; Geological&hellip; / Gravity&hellip; / Magnetics&hellip;</a></td><td>Load a picture, <code>.grv</code> or <code>.mag</code> file as a reference for comparison and difference images.</td></tr>
+<tr><td><a href="movie.html">Movie &gt; Create&hellip; / Load&hellip;</a></td><td>Record the evolution of the model frame by frame, or replay a saved movie (<code>.nmv</code>).</td></tr>
+<tr><td><a href="prandsv.html">Read Picture&hellip;</a></td><td>Open an image file (BMP, PNG, &hellip;) in a window, e.g. a scanned map for comparison.</td></tr>
+<tr><td><a href="prandsv.html">Save Picture&hellip;</a></td><td>Save the front window as a PNG file.</td></tr>
+<tr><td><a href="orifl.html">Save Orientations&hellip;</a></td><td>Save the orientation symbols plotted on the current map, with their X, Y, Z.</td></tr>
+<tr><td><a href="surforient.html">Save Surface Orientations&hellip;</a></td><td>Save bedding dip, dip direction and lithology on a grid over the model surface (CSV). <span class="badge">new</span></td></tr>
+<tr><td><a href="gpsprffl.html">Save Profile&hellip;</a></td><td>Save a profile drawn across a geophysics image.</td></tr>
+<tr><td><a href="prandsv.html">Page Setup&hellip; / Print Page</a></td><td>Choose a printer and print the front window.</td></tr>
+<tr><td><a href="whatsnew.html">About Noddy&hellip;</a></td><td>Version, history-file format version and licence.</td></tr>
+<tr><td>Exit</td><td>Quit Noddy.</td></tr>
+</table></div>
+<h2 id="edit">Edit</h2>
+<p>Editing the history and setting options.</p>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td><a href="pguide.html#editing">Undo</a></td><td>Undo the last change in the History window (one level).</td></tr>
+<tr><td><a href="pguide.html#editing">Cut / Copy / Paste / Clear / Duplicate</a></td><td>Move, copy or delete the selected events.</td></tr>
+<tr><td><a href="pguide.html#editing">Select All</a></td><td>Select every event in the History window.</td></tr>
+<tr><td><a href="pguide.html#editing">Tidy Window</a></td><td>Close up gaps between icons in the History window (the history itself is not changed).</td></tr>
+<tr><td><a href="projop.html">Project Options&hellip;</a></td><td>Calculation location, length unit and print scaling.</td></tr>
+<tr><td><a href="blockop.html">Block Options&hellip;</a></td><td>Model volume, cube sizes, false origin and topography.</td></tr>
+<tr><td><a href="movieop.html">Movie Options&hellip;</a></td><td>Movie type, frames per event and replay speed.</td></tr>
+<tr><td><a href="geoldisp.html">Geology Display Options&hellip;</a></td><td>View direction and scale, chair diagrams, background colour.</td></tr>
+<tr><td><a href="boresect.html">Geology Section/Borehole Options&hellip;</a></td><td>Position and orientation of sections and boreholes.</td></tr>
+<tr><td><a href="volsurf.html">Geology Volume/Surface Options&hellip;</a></td><td>Default block display and 3D triangulation surfaces.</td></tr>
+<tr><td><a href="gpsclop.html">Geophysics Calculation Options&hellip;</a></td><td>What to calculate, calculation scheme, padding and Gaussian noise.</td></tr>
+<tr><td><a href="survop.html">Geophysics Survey Options&hellip;</a></td><td>Earth's field, survey altitude, remanence and anisotropy.</td></tr>
+<tr><td><a href="gpsdispop.html">Geophysics Display Options&hellip;</a></td><td>Image scaling and default gravity/magnetic display.</td></tr>
+<tr><td><a href="winpos.html">Window Options&hellip;</a></td><td>Default position and size of each type of window.</td></tr>
+</table></div>
+<h2 id="geology">Geology</h2>
+<p>Geological visualisations.</p>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td><a href="block.html">Block Diagram</a></td><td>3D block diagram of the model.</td></tr>
+<tr><td><a href="maps.html">Map &gt; Solid Colours&hellip; / Lines&hellip;</a></td><td>Plan view of the geology at the top of the block or on the topography.</td></tr>
+<tr><td><a href="topomap.html">Topo Map</a></td><td>Contours of the loaded topography (available once topography is loaded).</td></tr>
+<tr><td><a href="section.html">Section &gt; Solid Colours&hellip; / Lines&hellip;</a></td><td>Vertical section through the model.</td></tr>
+<tr><td><a href="strat.html">Stratigraphic Column</a></td><td>All stratigraphic sequences and their rock properties.</td></tr>
+<tr><td><a href="bore.html">Borehole &gt; Generate &gt; 3D / Schematic</a></td><td>Geology along the borehole defined in the Section/Borehole Options.</td></tr>
+<tr><td><a href="bore.html">Borehole &gt; Import &gt; 3D&hellip; / Schematic&hellip;</a></td><td>Geology along a borehole read from a file.</td></tr>
+<tr><td><a href="3dtopo.html">3D Topo</a></td><td>Geology draped over the 3D topography (available once topography is loaded).</td></tr>
+<tr><td><a href="3dtri.html">3D Triangulation</a></td><td>Triangulated 3D surfaces of layers and discontinuities.</td></tr>
+<tr><td><a href="stereo.html">Plot Orientations</a></td><td>Plot the orientations measured on a map on a stereonet.</td></tr>
+</table></div>
+<h2 id="geophysics">Geophysics</h2>
+<p>Calculating and displaying gravity and magnetics.</p>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td><a href="anommaps.html">Calculate Anomalies &gt; Anomalies&hellip;</a></td><td>Calculate gravity and magnetic anomalies of the current model.</td></tr>
+<tr><td><a href="anommaps.html">Calculate Anomalies &gt; Block and Anomalies&hellip;</a></td><td>As above, and also save the block model.</td></tr>
+<tr><td><a href="anommaps.html">Calculate Anomalies &gt; Anomalies from Block&hellip;</a></td><td>Calculate anomalies from a saved block model.</td></tr>
+<tr><td><a href="boreresp.html">Calculate Anomalies &gt; Borehole &gt; Generated / Imported&hellip;</a></td><td>Down-hole gravity and magnetics along a borehole.</td></tr>
+<tr><td><a href="gensurv.html">Calculate Anomalies &gt; XYZ Point Data &gt; Import From File&hellip; / Generate&hellip;</a></td><td>Anomalies at arbitrary survey points.</td></tr>
+<tr><td><a href="diffim.html">Difference with Reference &gt; Gravity&hellip; / Magnetics&hellip;</a></td><td>Subtract a calculated image from the loaded reference image.</td></tr>
+<tr><td><a href="gpsim.html">Display Image &gt; Gravity&hellip; / Magnetics&hellip; / Magnetics X, Y, Z&hellip;</a></td><td>Display a saved <code>.grv</code> or <code>.mag</code> image.</td></tr>
+<tr><td><a href="gpsim.html">Display Profile &gt; Gravity&hellip; / Magnetics&hellip;</a></td><td>Display a saved profile.</td></tr>
+</table></div>
+<h2 id="tools">Tools</h2>
+<p>Import and export.</p>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td><a href="impvulc.html">Import Block &gt; Dicer&hellip; / Vulcan&hellip; / Old Noddy Block&hellip;</a></td><td>Convert other voxel formats to Noddy block models.</td></tr>
+<tr><td><a href="impimage.html">Import Image &gt; ASCII&hellip; / Column&hellip;</a></td><td>Convert gridded or column data to Noddy <code>.grv</code>/<code>.mag</code> images.</td></tr>
+<tr><td><a href="expg00.html">Export Block &gt; Noddy Block Model&hellip;</a></td><td>Save the block model in Noddy format.</td></tr>
+<tr><td><a href="expraw.html">Export Block &gt; Raw Voxel Model&hellip;</a></td><td>Save the voxels as a raw array.</td></tr>
+<tr><td><a href="exptab.html">Export Block &gt; Tabulated Columns&hellip;</a></td><td>Save the voxels as text columns.</td></tr>
+<tr><td><a href="dxffl.html">Export Block &gt; DXF - 3D Faces / DXF - Polylines</a></td><td>Export the 3D triangulation as DXF.</td></tr>
+<tr><td><a href="vulfl.html">Export Block &gt; Vulcan</a></td><td>Export the 3D triangulation in Vulcan format.</td></tr>
+<tr><td><a href="tomofast.html">Export Block &gt; Tomofast-x Inversion Files&hellip;</a></td><td>Input files for Tomofast-x gravity, magnetic and joint inversion. <span class="badge">new</span></td></tr>
+<tr><td><a href="tomofast.html#transd">Export Block &gt; TransD Inversion Files&hellip;</a></td><td>Tomofast-x files plus TransD parameter files. <span class="badge">new</span></td></tr>
+<tr><td><a href="expgrpim.html">Export Image &gt; ERMapper &gt; Gravity&hellip; / Magnetics&hellip; / Line Map&hellip;</a></td><td>Export images and line maps to ER Mapper.</td></tr>
+<tr><td><a href="expgsof.html">Export Image &gt; Geosoft &gt; Gravity&hellip; / Magnetics&hellip;</a></td><td>Export images as Geosoft grids.</td></tr>
+<tr><td><a href="rocprp.html">Edit Rock Database&hellip;</a></td><td>Edit the global rock property database.</td></tr>
+</table></div>
+<h2 id="windows">Windows</h2>
+<p>Arranging windows.</p>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td>Cascade / Tile</td><td>Arrange the open windows.</td></tr>
+<tr><td><a href="winpos.html">Default Size</a></td><td>Return the front window to its default size.</td></tr>
+<tr><td>Remove All</td><td>Close all visualisation windows.</td></tr>
+<tr><td><a href="legend.html">Legend</a></td><td>Show the legend for the front window.</td></tr>
+<tr><td>(window list)</td><td>Bring any open window to the front.</td></tr>
+</table></div>
+<h2 id="help">Help</h2>
+<div class="table-wrap"><table><tr><th style="width:38%">Item</th><th>What it does</th></tr>
+<tr><td><a href="support.html">Contents</a></td><td>Not connected to this online documentation in the current version; open this site in a web browser instead.</td></tr>
+</table></div>
+<h2 id="map-menus">Extra menus for map windows</h2><p>When a Map or Topo Map window is in front, four more menus appear. They control the orientation symbols you click onto the map; see <a href="maps.html">Maps</a>.</p><div class="table-wrap"><table><tr><th style="width:38%">Menu</th><th>Items</th></tr><tr><td>Symbol</td><td>Bedding, Foliation, Lineation, Bd - Cl (bedding/cleavage intersection), Cl - Cl (cleavage/cleavage intersection)</td></tr><tr><td>Event 1</td><td>The event whose foliation or lineation is measured</td></tr><tr><td>Event 2</td><td>The second event, for Cl - Cl intersections</td></tr><tr><td>Define</td><td>Position of Event 1: click on the map to move that event</td></tr></table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

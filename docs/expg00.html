@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exporting Noddy block models &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Exporting Noddy block models">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Exporting Noddy block models</h1>
+
+<p>This creates a Noddy format block model which consists
+of a header file with a .g00 suffix together with as variable number of
+voxel model files (numbered .g01 to .g12, see below), depending on the
+Geophysics Survey and Calculation settings. This format may be loaded back
+into Noddy via the Import event. </p>
+<p><em>The cube size is determined by the Geophysics cube
+size.</em> 
+</p>
+<div class="table-wrap"><table>
+<tr><th>File suffix</th><th>File Type</th></tr>
+<tr><td><strong>.g00</strong></td><td>header file for Noddy Block Format</td></tr>
+<tr><td><strong>.g01</strong></td><td>density values for each voxel</td></tr>
+<tr><td><strong>.g02</strong></td><td>susceptibility values for each voxel</td></tr>
+<tr><td><strong>.g03</strong></td><td>remanence declination for each voxel</td></tr>
+<tr><td><strong>.g04</strong></td><td>remanence inclination for each voxel</td></tr>
+<tr><td><strong>.g05</strong></td><td>remanence strength for each voxel</td></tr>
+<tr><td><strong>.g06</strong></td><td>magnetic anisotropy dip for each voxel</td></tr>
+<tr><td><strong>.g07</strong></td><td>magnetic anisotropy dip direction for each
+voxel</td></tr>
+<tr><td><strong>.g08</strong></td><td>magnetic anisotropy pitch for each voxel</td></tr>
+<tr><td><strong>.g09</strong></td><td>magnetic anisotropy strength of x-axis for
+each voxel</td></tr>
+<tr><td><strong>.g10</strong></td><td>magnetic anisotropy strength of y-axis for
+each voxel</td></tr>
+<tr><td><strong>.g11</strong></td><td>magnetic anisotropy strength of z-axis for
+each voxel</td></tr>
+<tr><td><strong>.g12</strong></td><td>look up table index of rock type (LUT in header
+file)</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
