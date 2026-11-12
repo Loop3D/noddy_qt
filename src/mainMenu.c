@@ -2202,6 +2202,13 @@ EVENT *xdEvent;
 		/* TAG END TASK_MENUBAR_77_18 EVNT:Select */
 		}
 		break;
+	/* [Qt port ADDITION] Help > Contents: open the online user guide. */
+	case TASK_MENUBAR_HELP_CONTENTS: /* Menu "Contents" */
+		{
+		if (!xvt_open_url (NODDY_DOCS_URL))
+			xvt_dm_post_error ("Could not open a web browser. The Noddy documentation is at %s", NODDY_DOCS_URL);
+		}
+		break;
 	default:
 		{
 		/* TAG BEGIN SPCL:Default */

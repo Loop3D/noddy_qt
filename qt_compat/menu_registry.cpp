@@ -163,7 +163,7 @@ extern const MenuNodeEntry g_menuTree[] = {
     { "6.3", "6", "Default Size", 1084, true },
     { "6.4", "6", "Remove All", 1080, true },
     { "7", nullptr, "Help", 0, false },
-    { "7.1", "7", "Contents", 1154, true },
+    { "7.1", "7", "Contents", TASK_MENUBAR_HELP_CONTENTS, true }, /* [Qt port change] opens the online docs (mainMenu.c) */
     { "6.99", "6", "Legend", TASK_MENUBAR_77_18, true },
 };
 extern const int g_menuTreeCount = (int)(sizeof(g_menuTree)/sizeof(g_menuTree[0]));

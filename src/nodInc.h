@@ -557,6 +557,15 @@ extern long XVT_CALLCONV1
 #ifndef TASK_MENUBAR_EXPORT_TRANSD
 #define TASK_MENUBAR_EXPORT_TRANSD 1203
 #endif
+/* [Qt port ADDITION] Help > Contents. Tag 1154 was already used for this
+** item in menu_registry.cpp but had no handler (it fell through to the
+** window-list default case); it now opens the online documentation. */
+#ifndef TASK_MENUBAR_HELP_CONTENTS
+#define TASK_MENUBAR_HELP_CONTENTS 1154
+#endif
+#ifndef NODDY_DOCS_URL
+#define NODDY_DOCS_URL "https://loop3d.github.io/noddy_qt/"  /* built from docs/ */
+#endif
 #ifndef TASK_MENUBAR_5
 #define TASK_MENUBAR_5 1005
 #endif

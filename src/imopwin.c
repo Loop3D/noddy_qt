@@ -449,7 +449,9 @@ EVENT *xdEvent;
 		case IMAGE_OPTION_WINDOW_PU_C5: /* "Help..." */
 			{
 			/* TAG BEGIN IMAGE_OPTION_WINDOW_PU_C5 EVNT:Control */
-			displayEventHelp ((OBJECT *) xvt_vobj_get_data (xdWindow));
+			/* [Qt port fix] this window's data is the image window, not an
+			** event OBJECT, so displayEventHelp() read garbage here. */
+			displayHelp ("gpsplop.htm");
 			/* TAG END IMAGE_OPTION_WINDOW_PU_C5 EVNT:Control */
 			}
 			break;
