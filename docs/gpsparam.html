@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculating anomalies &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Calculating anomalies">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Calculating anomalies</h1>
+
+<p>Calculating Geophysical Anomalies with Noddy </p>
+<p>There are a number of factors which need to be taken into account when calculating the response of a particular structure:</p>
+<p>1. Resolution of Structural Detail </p>
+<p>In order to accurately model a particular geological model, it is essential to make sure that the cube size if fine enough to resolve the individual units which make up the model. This generally means that if the lithological units (<em>of geophysical interest)</em>, are of a given thickness then the cube size needs to be at most the same as that thickness. Care needs to be taken since deformation can result in thinning of units (such as a fault cutting through a dyke obliquely). A second problem with using coarse cubed models is that the position of the anomaly can be displaced by up half the cube size, since the body is made up of cubes on a regular grid.</p>
+<p>The true test of the correct choice of cube size may be made by setting the Geological Cube Size to the same value as the Geophysical Cube Size. Then make a Block Diagram with the only lithological units you wish to check made visible (by right mouse clicking in the block diagram). If the units look continuous in the resulting visualisation then the geophysical calculations will have the necessary detail. In the two figures below a 200 m thick dyke is represented with 400 m (left) and 200 m (right) cubes, with a significant loss of resolution seen in the coarser model. </p>
+<figure class="fig"><img src="images/figures/img00225.png" alt="figure" width="250" loading="lazy"></figure><figure class="fig"><img src="images/figures/img00226.png" alt="figure" width="250" loading="lazy"></figure>
+<p>Reducing the cube size significantly increases the calculation time, it is probably wise to develop the model using a larger cube size, so that the positioning of the structures can be performed quite quickly, and only to use a finer cube size for later stage geophysical calculations. To help in this process two separate cube sizes are defined, the Geological and Geophysical Cube sizes (Block Options Window). Geological calculations generally take are generally much quicker than geophysical ones, so that a finer value can be defined for the Geological Cube Size than for the Geophysical Cube Size. </p>
+<p>2. Speed of Calculation </p>
+<p>The speed of all calculations is a dependent on three factors: </p>
+<p>a) Obviously the larger the volume or area of the calculation the longer the calculation will take. For a volume size, a reduction in the cube size of the calculation (for both geological and geophysical models) will quickly result in a blow out of the time needed. Again, performing low resolution calculations during the preliminary stages of the modelling process helps. Running Noddy in <a href="batch.html">command-line (batch) mode</a> also helps (to run Noddy in batch mode for the most common case (performing a geophysical anomaly calculation) simply type:</p>
+<p>noddy -h test.his -anom -o test.mag </p>
+<p>where <strong><code>test.his</code></strong> is the name of the previously set up history file, and <strong><code>test.mag</code></strong> is the output file name.</p>
+<h3>b) The type of calculation</h3>
+<p>Some calculations inherently take longer than others, for example a deformable remanence calculation will take longer than a non-deformable remanence calculation. </p>
+<h3>c) The choice of geophysical calculation scheme</h3>
+<ul>
+<li>The three different calculation schemes all take different times to perform the same calculation, typically the slowest is the full and the fastest is the spectral, with the spatial convolution in-between, however there are exceptions. Within each calculation scheme there are different options that speed up the calculation: </li>
+<li>Spectral Scheme. The Spectral scheme works more slowly with the Reflective Padding Option set, so unless there is a need for this scheme related to the boundary conditions of the model, it is better to use, for example the Ramp padding Options. </li>
+<li>Spatial Convolution Scheme. The larger the Range, the more accurate the calculation, however the Range term in the Spatial scheme controls the calculation time according to t is proportional to the range squared, so smaller ranges can be used early in the modelling processes. </li></ul>
+<figure class="fig"><img src="images/figures/img00227.png" alt="figure" width="553" loading="lazy"></figure>
+<p>Full Spatial Scheme. The Full Spatial scheme only calculates the contributions of cubes whose density <strong>or</strong> susceptibility values are none zero, so if <strong>both</strong> are set to zero, and the model only contains one or two units with non-zero rock properties, the calculation time can be quite reasonable. </p>
+<p>3. Absolute Anomaly Intensities </p>
+<p>The absolute intensities of the an anomaly are not preserved by the Spectral calculations, although the shape is preserved, so that when comparing Noddy calculations with other modelling schemes an offset may need to be applied in for this scheme. Another reason for variation between Noddy and other schemes is that the bodies defined are only approximated by the cubes, so that the true volume of a 1000 m radius sphere modelled by 200 m cubes is only 95% of the Noddy model version, so that the anomaly calculated in Noddy will be approximately 5% larger than an analytical solution. Finally Noddy does not take into account self-demagentisation so again the Noddy anomaly will be slightly stronger. </p>
+<figure class="fig"><img src="images/figures/img00228.png" alt="4. Anomaly Shapes" width="575" loading="lazy"><figcaption>4. Anomaly Shapes</figcaption></figure>
+<p>The shape of anomalies calculated by Noddy will be correct with two provisos, for Spatial Convolution calculations, the anomaly due to a single body will only be correct up to the distance defined by the Range, and for Spectral Calculations, there is a spurious high frequency component that is particularly evident adjacent to high contrasts in rock properties.</p>
+<p>5. Boundary Effects </p>
+<p>Since calculated anomaly for a model cannot take into account the geology of bodies outside the model bounds, so that highly responsive bodies which intersect the edges of a model can result in edge effects. These effects can be reduced for both Spatial calculations by using a large range term, which will calculate "extra" geology around the model bounds up to the Range distance. For the Spectral scheme care has to be taken with bodies near the edge of the model, as the different padding options have quite different results. In the image below, which shoes the arithmetic difference between a full spatial and a spectral magnetics calculation, notice the increased variation near the boundaries.</p>
+<figure class="fig"><img src="images/figures/img00229.png" alt="figure" width="371" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

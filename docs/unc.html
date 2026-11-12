@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unconformity &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Unconformity">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Unconformity</h1>
+
+<p>In order to define an unconformity event place an Unconformity icon <img class="ev-icon" src="images/icons/unconf.png" alt="unconf icon"> in the History window. </p>
+<p>You will then be provided with the Unconformity definition window. </p>
+<figure class="screen"><img src="images/screens/ev_unc_main.png" alt="Unconformity definition window" loading="lazy"><figcaption>Unconformity definition window</figcaption></figure>
+<p>Unconformities are planar and are infinite in extent. The X,Y,Z coordinates define one point on the plane of the unconformities (or the top right hand corner of the bounding rectangle of a DXF surface, if defined), and the other parameters are normal structural definitions. A new stratigraphy above the unconformity will also have to be defined.</p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Form</td><td>Alterations:</td><td></td></tr>
+<tr><td class="group"></td><td>None</td><td>No alteration halo associated with this event</td></tr>
+<tr><td class="group"></td><td>Top</td><td>Alteration halo on hanging wall side of fault</td></tr>
+<tr><td class="group"></td><td>Bottom</td><td>Alteration halo on foot wall side of fault</td></tr>
+<tr><td class="group"></td><td>Both</td><td>Alteration halo on both sides of fault</td></tr>
+<tr><td class="group"></td><td>Edit</td><td>Brings up Alteration Profile window</td></tr>
+<tr class="group-start"><td class="group">Surface Shape</td><td>Flat Plane</td><td>Flat planar unconformity</td></tr>
+<tr><td class="group"></td><td>DXF Surface</td><td>Part of unconformity plane defined by DXF triangulated surface</td></tr>
+<tr><td class="group"></td><td>View</td><td>View grey scale image of DXF surface topography</td></tr>
+<tr><td class="group"></td><td>X Dim</td><td>Scaling factor for X direction of plane</td></tr>
+<tr><td class="group"></td><td>Y Dim</td><td>Scaling factor for Y direction of plane</td></tr>
+<tr><td class="group"></td><td>Z Dim</td><td>Scaling factor for Z direction of plane</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+<tr><td><strong>Position</strong></td><td>X</td><td>X position of one point on unconformity plane (top right hand corner of DXF surface bounding rectangle)</td></tr>
+<tr><td></td><td>Y</td><td>Y position of one point on unconformity plane(top right hand corner of DXF surface bounding rectangle)</td></tr>
+<tr><td></td><td>Z</td><td>Z position of one point on unconformity plane</td></tr>
+<tr><td>Orientation</td><td>Dip Dir</td><td>Dip Direction of unconformity Plane</td></tr>
+<tr><td></td><td>Dip</td><td>Dip of unconformity Plane</td></tr>
+</table></div>
+<figure class="fig"><img src="images/figures/img00024.png" alt="figure" width="483" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

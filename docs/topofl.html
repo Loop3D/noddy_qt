@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Topography file &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Topography file">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Topography file</h1>
+
+<p>This is an import ASCII text file with a short header followed by an array of floating point or integer spots heights. Each number should be separated by a space, tab or carriage return. An example header looks like this:</p>
+<p>9876<br>
+51 71<br>
+0.0 0.0<br>
+10000.0 7000.0<br>
+254 254 253 253 252 252 249 247 243 239<br>
+253 253 252 251 249 248 246 243 239 235<br>
+252 252 250 249 247 246 243 240 237 233<br>
+252 250 248 247 245 243 241 238 235 231<br>
+249 248 246 244 242 240 237 235 231 228<br>
+246 244 242 241 238 236 234 231 228 225<br>
+242 241 238 236 235 233 230 227 225 222<br>
+238 236 234 232 231 229 226 224 222 218<br>
+233 231 230 228 226 225 222 220 217 215<br>
+229 227 225 224 222 221 218 216 214 211<br>
+224 223 221 219 218 217 214 212 210 206<br>
+219 218 216 214 213 212 210 208 205 202<br>
+214 213 211 209 208 207 205 203 201 198<br>
+207 206 204 203 203 202 201 198 196 193<br>
+201 200 198 197 197 196 194 192 190 187</p>
+<p>Where:</p>
+<ul>
+<li>The first line is a file ID flag and is always the same </li>
+<li>The second line gives the rows and columns in the data </li>
+<li>The third line gives the XY position of the SW corner of the topographic data </li>
+<li>The fourth line gives the XY position of the NE corner of the topographic data</li>
+<li>The array assumes that the first spots height is the lower left (i.e. SW) height in the map. Data order is Row1 Column 1; Row1 Column 2; Row1 Column 3; etc</li></ul>
+<p>Topography files are read in by selecting the Topography button from the Geology Options Window.</p>
+<p>These may be re-scaled and offset on input into the program using the Topography option from the Geology Options Window. </p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

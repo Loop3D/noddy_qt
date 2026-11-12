@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 2: Irregular unconformities &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 2: Irregular unconformities">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 2: Irregular unconformities</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 2: Irregular basins over basement structures </p>
+<p>This exercise demonstrates how we can import pre-existing geological interpretations from geometric modelling packages such as Microstation, Vulcan, GOCAD, Micromine etc. In this particular example we will import a triangulated unconformity surface from Vulcan (in DXF format). </p>
+<p>a) In order to set up a pre-unconformity geology, select <strong>Read History</strong> from the <strong>File</strong> menu, and select the file <strong>q2.his</strong> (click on <strong>Overwrite</strong> when the time comes) which creates a default stratigraphy <img class="ev-icon" src="images/icons/strat.png" alt="strat icon">with a default Tilt event <img class="ev-icon" src="images/icons/tilt.png" alt="tilt icon">. This produces a block diagram which looks something like this:</p>
+<figure class="fig"><img src="images/figures/img00140.png" alt="figure" width="356" loading="lazy"></figure>
+<p>b) Now we need to import an unconformity, so add an unconformity event <img class="ev-icon" src="images/icons/unconf.png" alt="unconf icon"> to the history window. The unconformity event definition window contains many types of parameters, first of all concentrate on the <strong>Surface Shape</strong> group box:</p>
+<figure class="screen"><img src="images/screens/ev_fault_dxf.png" alt="Surface Shape set to DXF Surface (shown for a fault; the Unconformity window has the same group)" loading="lazy"><figcaption>Surface Shape set to DXF Surface (shown for a fault; the Unconformity window has the same group)</figcaption></figure>
+<p>•In order to change from a flat unconformity surface to one defined by triangulation, select <strong>DXF Surface</strong> (instead of <strong>Flat Plane</strong>) from the Menu list button. Now select the file <strong>uncon2.dxf</strong> . At this point the actual X, Y &amp; Z dimensions of the bounding box (see below) for the surface will be automatically filled into the X,Y and Z dimensions area. </p>
+<figure class="fig"><img src="images/figures/img00143.png" alt="figure" width="546" loading="lazy"></figure>
+<p>•The triangulated surface is normalised to a flat best fit plane that fits the curved surface (ie the 1st order trend surface). </p>
+<figure class="fig"><img src="images/figures/img00144.png" alt="figure" width="547" loading="lazy"></figure>
+<p>A view of the topography of the surface projected onto the best fit plane can be obtained by clicking on the <strong>View</strong> button. High points are bright, and low points are dark. Note that the topography of this surface has been defined to be a minimum around the edge of the defined area, because the triangulated surface has to merge with a flat plane outside the defined area.</p>
+<figure class="screen"><img src="images/screens/geo_dxf_surface_view.png" alt="Imported DXF surface (UNCON2.DXF)" loading="lazy"><figcaption>Imported DXF surface (UNCON2.DXF)</figcaption></figure>
+<p>•On the assumption that we actually want a generally horizontal unconformity surface, switch to the Orientation group box<img class="ev-icon" src="images/icons/orient.png" alt="orient icon">, and set the <strong>Dip </strong>to <strong>0&amp;deg;</strong> and <strong>Dip Direction</strong> to <strong>0&amp;deg;</strong>. </p>
+<p>•The origin of DXF surfaces in Noddy is defined to be the lower North-East corner of the bounding box, so in order for the unconformity to occur within the default block volume, set the <strong>X Position</strong> parameter in the Position group box to <strong>9000</strong>, the <strong>Y Position </strong>parameter at <strong>9000</strong> and the <strong>Z Position</strong> to <strong>2500</strong>. </p>
+<p>•Click on the Stratigraphy Group Box Icon <img class="ev-icon" src="images/icons/strat.png" alt="strat icon">, delete all the layers but one, and edit the <strong>Density</strong> and <strong>Susceptibility</strong> of this layer to <strong>2.7</strong> and <strong>1.35e-03</strong> respectively. Finally exit from the <strong>Unconformity</strong> definition window.</p>
+<p>c) From the Geology menu select Block Diagram, and you will be presented with a full resolution block diagram. You should now see tilted strata appearing through a window defined by the unconformity: </p>
+<figure class="fig"><img src="images/figures/img00148.png" alt="figure" width="345" loading="lazy"></figure>
+<p>•This block diagram is rotatable by dragging the cursor in the window, and scalable by dragging the cursor with the shift key held down. </p>
+<p>•To produce a block diagram that shows the geology immediately below the unconformity surface, click in the diagram with the right mouse button, which brings up a window that allows you to make any of the rock types transparent: </p>
+<figure class="screen"><img src="images/screens/dlg_display_type.png" alt="Display Type window" loading="lazy"><figcaption>Display Type window</figcaption></figure>
+<p>•First of all switch the <strong>Display Type</strong> menu to <strong>Specific Layers</strong>, and then select all of the layers except the lowest layer on the list , and then click on OK. Click on <strong>OK</strong> and you will then have a block diagram with the rocks above the unconformity made transparent. </p>
+<figure class="fig"><img src="images/figures/img00150.png" alt="figure" width="550" loading="lazy"></figure>
+<p>d) You are now ready to calculate the resulting gravity and magnetics images by selecting <strong>Calculate Anomalies-&gt;Anomalies</strong> from the <strong>Geophysics</strong> menu, this will ask you for a file name for the results of this calculation. Once the calculation is complete both the gravity and magnetics images will be displayed.</p>
+<p>e) The outcrop pattern of the unconformity is clear in parts of the magnetics image, but is unclear in other areas, and is very hard to pick at all in the gravity image. A first vertical derivative of the magnetics image would enhance the unconformity contact. Noddy no longer calculates vertical derivatives, so export the image with <span class="menu-path">Tools &gt; Export Image &gt; Geosoft</span> or <span class="menu-path">ERMapper</span> and calculate the derivative in another package.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

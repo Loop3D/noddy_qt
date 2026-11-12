@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importing potential-field images &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Importing potential-field images">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Importing potential-field images</h1>
+
+<p>This menu allows you to convert tab or space delimited ASCII text files into Noddy format .grv or .mag geophysics files. These files must represent evenly spaced rectangular gravity or TMI sample points. This is useful if:</p>
+<ol>
+<li>You want to use Noddy for contouring or other display of raw geophysical data, or </li>
+<li>You want to create a reference dataset.</li></ol>
+<figure class="screen"><img src="images/screens/dlg_import_ascii.png" alt="ASCII image import options" loading="lazy"><figcaption>ASCII image import options</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Image Dimensions</td><td>Num of Rows</td><td>Number of rows (Y direction) of data points in image</td></tr>
+<tr><td class="group"></td><td>Num of Columns</td><td>Number of columns (X direction) of data points in image</td></tr>
+<tr class="group-start"><td class="group">Image Type</td><td></td><td>Select data type of image (gravity or magnetics)</td></tr>
+<tr class="group-start"><td class="group">Registration</td><td>Cell Size</td><td>Dimensions of cells in metres</td></tr>
+<tr><td class="group"></td><td>Easting</td><td>Eastings of South West corner of Image</td></tr>
+<tr><td class="group"></td><td>Northing</td><td>Northings of South West corner of Image</td></tr>
+<tr class="group-start"><td class="group">Field</td><td>Inclination</td><td>Inclination of Earth's magnetic field in area of survey</td></tr>
+<tr><td class="group"></td><td>Declination</td><td>Declination of Earth's magnetic field in area of survey</td></tr>
+<tr><td class="group"></td><td>Intensity</td><td>Intensity of Earth's magnetic field in area of survey</td></tr>
+<tr><td class="group"></td><td>Altitude</td><td>Altitude of survey</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

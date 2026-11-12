@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maps &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Maps">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Maps</h1>
+
+<p>Maps can be viewed as soon as the base stratigraphy has been defined, and are selected by choosing Maps from the Geology menu. There are two submenu options: </p>
+<ul>
+<li>Solid Colours creating solid fill maps. These displays are more attractive.</li>
+<li>Lines which produce line maps. These displays are easier to view orientation data and discontinuities such as faults.</li></ul>
+<p>Maps show a plan view of the currently defined geology, with the line colours referring to the lower unit at the contact. The area will always be the same as the top surface of the geology displayed in the Block Diagram. </p>
+<figure class="screen"><img src="images/screens/geo_map_orient.png" alt="Line map with bedding symbols" loading="lazy"><figcaption>Line map with bedding symbols</figcaption></figure><figure class="screen"><img src="images/screens/geo_map_solid.png" alt="Map, solid colours" loading="lazy"><figcaption>Map, solid colours</figcaption></figure>
+<p>If a digital terrain model of the geology has been loaded (by ticking <em>Use Topography</em> in the Block Options window) the geology displayed will be the intersection geology for that land surface and the contours of the topography will also be shown. The shape of the digital terrain model is fixed, so changing the XY scale of the map also changes the XY scale of the digital terrain model.</p>
+<p>Plotting orientation and rock type information</p>
+<p>Once a Map or Topo Map has been drawn and until any history parameters or geology plot options are altered you can interrogate the map for structural orientation information by clicking the mouse at any point on the map. Orientations may only be measured up until the history is next edited, once you edit the history, you change the structure, and will therefore have to recalculate the Map or Topo Map in order to redefine the structure. </p>
+<p>Plotting orientation symbols on maps </p>
+<p>In order to plot a mapping symbol on a Line Map, choose the symbol type and event from the Symbol, Event 1 and Event 2 menus, and then click anywhere within the area of the line map with the mouse. The Symbol menu allows you to choose from: </p>
+<ul>
+<li>Bedding which plots a symbol showing the dip and dip direction of the bedding at the position selected by mouse. This also gives dyke wall orientations. </li>
+<li>Foliation which plots a symbol showing the dip and dip direction of the foliation chosen from the EVENT 1 menu, at the position selected by mouse. This option also calculates fault and unconformity surface orientation. </li>
+<li>Lineation which plots a symbol showing the plunge and plunge direction of the lineation chosen from the EVENT 1 menu, at the position selected by mouse. </li>
+<li>Bedding-Cleavage intersection lineation which plots a symbol showing the plunge and plunge direction of the intersection lineation defined by the foliation from the EVENT 1 menu and the local bedding orientation, at the position selected by mouse. </li>
+<li>Cleavage-Cleavage intersection lineation which plots a symbol showing the plunge and plunge direction of the intersection lineation defined by the foliation from the EVENT 1 menu and the foliation from the EVENT 2 menu, at the position selected by mouse. </li></ul>
+<p>Some deformation events, such as folds and faults, have "inherent" planar/linear features (e.g. folds automatically generate penetrative fold axial planes and fold axis lineations). </p>
+<p>In order to specify which foliation (or lineation) you wish to measure, select an event from the EVENT 1 menu. For Cl-Cl intersection lineations <em>only </em>also select a second foliation from the EVENT 2 menu. All of this orientation data can be saved as a text file for input to a plotting program by choosing Save Orientations from the File menu. </p>
+<p>The orientation of layering of a dyke can be measured using the Bedding option.</p>
+<p>The orientation of a fault can be measured using the Foliation option. </p>
+<p>Interactively defining event XYZ positions </p>
+<p>While a map is the front window, the XYZ coordinates of the deformation defined by EVENT 1 can be redefined by selecting <em>Position of Event 1</em> from the Define menu, and clicking in the map window. The new XYZ position of that event will be defined by the XY position of the mouse click and the Z level of the map. </p>
+<div class="callout new"><span class="label">Orientation coordinates</span><span class="menu-path">File &gt; Save Orientations&hellip;</span> now also writes the X, Y, Z of each measurement, and <span class="menu-path">File &gt; Save Surface Orientations&hellip;</span> samples bedding over the whole map automatically (<a href="surforient.html">more</a>).</div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

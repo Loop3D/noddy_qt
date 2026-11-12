@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geological visualisations &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Geological visualisations">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Geological visualisations</h1>
+
+<p>There are currently eight distinct visualisation techniques
+available in order to display the geology of an area (block diagrams; voxel
+views of specific lithologies, surface maps of the geology and or topography
+vertical sections; boreholes; 3D drapes of the geology over a topography
+and 3D views of a single layer within the stratigraphy). </p>
+<p>The geology may be viewed for any volume or area of rock
+at any scale. The default block is a rectangular volume with diagonally
+opposite corners defined by 0,0,0 and 10000, 7000,5000 metres X,Y,Z respectively.
+</p>
+<p><em>By default
+each new representation of a given type, such as a block diagram, will
+overwrite the contents of the previous window, so as not to produce too
+many windows, however a new window for each drawing may be made if the
+</em>New Window for each Stage <em>option in the
+<strong>Geology Display Options </strong>window is selected.</em> 
+</p>
+<h2>In this section</h2><div class="cards"><a class="card" href="block.html"><strong>Block diagrams</strong></a><a class="card" href="maps.html"><strong>Maps</strong></a><a class="card" href="topomap.html"><strong>Topographic maps</strong></a><a class="card" href="section.html"><strong>Sections</strong></a><a class="card" href="bore.html"><strong>Boreholes</strong></a><a class="card" href="3dtopo.html"><strong>3D topography</strong></a><a class="card" href="3dtri.html"><strong>3D triangulation</strong></a><a class="card" href="stereo.html"><strong>Stereographic projections</strong></a><a class="card" href="movie.html"><strong>Kinematic animations</strong></a><a class="card" href="strat.html"><strong>Stratigraphic columns</strong></a><a class="card" href="legend.html"><strong>Legend window</strong></a></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

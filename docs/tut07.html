@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 7: Importing flight-line specifications &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 7: Importing flight-line specifications">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 7: Importing flight-line specifications</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Excercise 7: Importing flight line positional information and generating synthetic surveys </p>
+<p>In this exercise we will see how to calculate geophysical profiles at pre-defined positions. The profile positions are taken from a ModelVision export file, and allow us to compare the results from ModelVision and Noddy for the same model. </p>
+<p>a) Open up the <strong>mvtest.his</strong> file, which contains a NS vertical dyke in a empty background. Look at a block diagram to see the dyke, and then go to the menu <strong>Geophysics-&gt;XYZ Point Data-&gt;Import from File, </strong>and select the file <strong>mv_line.geo</strong> (a Geosoft format file from ModelVision, which originally had a .dat suffix).</p>
+<p>b) This will bring up a window which allows the user to select which columns to use for X, Y &amp; Z data, and to add an offset to these values. If there is no column of Z data, as in the example file provided, simply select <strong>None</strong> from the <strong>Z Column</strong> list. Unless draped surveys are specified, the Z value will be calculated from the <strong>Calculation Altitude</strong> height from the top of the block as defined in the <strong>Geophysics Options</strong> window. A small window showing the first 5 lines of the file is provided as a check. </p>
+<p>All of the specified X,Y,Z locations must be within the area specified for calculation in the <strong>Geophysics Options</strong> window, otherwise an error message will appear. Any lines of text that do not start with a valid number will be assumed to be a comment.</p>
+<figure class="fig"><img src="images/figures/image28.png" alt="figure" width="434" loading="lazy"><figcaption><span class="legacy">Figure from the original manual; the equivalent window looks different in the current version.</span></figcaption></figure>
+<p>c) Once the desired columns and offsets have been applied, click on OK and a new window will appear that allows you to save the newly created data. This file may then be viewed with a text editor or spreadsheet package, and will contain the new gravity and magnetic data at the desired locations. </p>
+<p>d) As a separate exercise, we can also generate a synthetic survey over this area using the <strong>Geophysics-&gt;XYZ Point Data-&gt;Generate </strong>menu option. You will be presented with a window that allows you to alter the survey specifications: </p>
+<figure class="screen"><img src="images/screens/dlg_xyz_generate.png" alt="XYZ Generation window" loading="lazy"><figcaption>XYZ Generation window</figcaption></figure>
+<p>The Position, Orientation and Area Dimensions parameters are defined according to the figure below: </p>
+<figure class="fig"><img src="images/figures/img00094.png" alt="figure" width="575" loading="lazy"></figure>
+<p>e) You can create either a rock property table for each X,Y on the top of the block (if you select <strong>Geological </strong>as the<strong> Type of File</strong>) or the total field values at those positions (if you select <strong>Geophsyical</strong>). </p>
+<p>The geology file you create can have any extents, and will look something like this:</p>
+<p>Noddy Geological Point Description </p>
+<p>VERSION=5.01 LINES=420 ANICALC=1 REMCAL=1 </p>
+<div class="table-wrap"><table>
+<tr><td>X</td><td>Y</td><td>Z</td><td>DENSITY</td><td>SUSX</td><td>SUSY</td><td>SUSZ</td><td>DECL</td><td>AZI</td><td>STR</td><td>DIP</td><td>DDIR</td><td>PITCH</td><td>NAME</td></tr>
+<tr><td>0.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+<tr><td>50.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+<tr><td>100.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+<tr><td>150.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+<tr><td>200.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+<tr><td>250.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+<tr><td>300.0</td><td>0.0</td><td>5000.0</td><td>5.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>30.0</td><td>30.0</td><td>0.0</td><td>90.0</td><td>90.0</td><td>0.0</td><td>Gabbro</td></tr>
+</table></div>
+<p>The geophysics file must contain X,Y locations within the area selected from the Geophysics Options window, and will look something like this:</p>
+<p>Noddy Geophysical Point Data </p>
+<p>VERSION=5.0 LINE=402 </p>
+<div class="table-wrap"><table>
+<tr><td>X</td><td>Y</td><td>Z</td><td>GRAV</td><td>MAG</td></tr>
+<tr><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-77.483611</td></tr>
+<tr><td>50.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-77.483611</td></tr>
+<tr><td>100.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-65.381012</td></tr>
+<tr><td>150.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-65.381012</td></tr>
+<tr><td>200.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-65.381012</td></tr>
+<tr><td>250.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-65.381012</td></tr>
+<tr><td>300.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-78.514437</td></tr>
+<tr><td>350.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-78.514437</td></tr>
+<tr><td>400.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-78.514437</td></tr>
+<tr><td>450.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-78.514437</td></tr>
+<tr><td>500.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.658351</td></tr>
+<tr><td>550.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.658351</td></tr>
+<tr><td>600.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.658351</td></tr>
+<tr><td>650.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.658351</td></tr>
+<tr><td>700.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.225422</td></tr>
+<tr><td>750.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.225422</td></tr>
+<tr><td>800.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.225422</td></tr>
+<tr><td>850.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.225422</td></tr>
+<tr><td>900.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.282955</td></tr>
+<tr><td>950.000000</td><td>0.000000</td><td>0.000000</td><td>0.000000</td><td>-80.282955</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

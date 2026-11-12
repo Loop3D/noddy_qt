@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Installing Noddy &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Installing Noddy">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Installing Noddy</h1>
+
+<h2>Download a compiled version</h2>
+<p>Compiled versions for all three platforms are built automatically from the GitHub repository and published on the
+<a href="https://github.com/Loop3D/noddy_qt/releases/latest">latest release</a> page
+(older versions are on the <a href="https://github.com/Loop3D/noddy_qt/releases">Releases page</a>).</p>
+<div class="table-wrap"><table>
+<tr><th>Platform</th><th>File</th><th>How to install</th></tr>
+<tr><td>Windows</td><td><code>noddy-windows.zip</code></td><td>Unzip anywhere and run <code>noddy.exe</code>. All Qt libraries are included.</td></tr>
+<tr><td>macOS</td><td><code>noddy-macos.dmg</code></td><td>Open the disk image and drag Noddy to Applications.</td></tr>
+<tr><td>Linux</td><td><code>noddy-linux.tar.gz</code></td><td>Unpack and run <code>./noddy</code>. Requires the Qt&nbsp;5 libraries (on Ubuntu/Debian: <code>sudo apt-get install qtbase5-dev</code>).</td></tr>
+</table></div>
+<p>The release packages also contain three sample files used in this guide: <code>TOPOFILE.TOP</code> (a topography grid),
+<code>PROPERTY.ROX</code> (the rock property database) and <code>UNCON2.DXF</code> (a triangulated surface).</p>
+
+<h2>Build from source</h2>
+<p>Noddy is a C program with a small C++ layer for the Qt user interface. With a C/C++ compiler and the Qt&nbsp;5
+development packages installed, run</p>
+<pre><code>make</code></pre>
+<p>in the repository root. The same command works on Linux, macOS and Windows (MSYS2 MinGW64). See the repository
+<a href="https://github.com/Loop3D/noddy_qt#readme">README</a> for the packages needed on each platform.</p>
+
+<h2>Running without a display</h2>
+<p>For batch work on a server, set Qt's offscreen platform:</p>
+<pre><code>QT_QPA_PLATFORM=offscreen ./noddy model.his -anom</code></pre>
+<p>See <a href="batch.html">Command-line (batch) mode</a>.</p>
+
+<h2>Start-up files</h2>
+<p>When you choose <span class="menu-path">File &gt; New History</span> you can start from the factory defaults or from
+your own defaults. <span class="menu-path">File &gt; Save as Defaults</span> writes the current history to
+<code>defaults.his</code> in Noddy's start-up folder, and <em>User Defaults</em> loads it.</p>
+<figure class="screen"><img src="images/screens/dlg_new_history.png" alt="Starting a new history" loading="lazy"><figcaption>Starting a new history</figcaption></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

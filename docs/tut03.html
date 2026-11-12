@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 3: Alteration zones &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 3: Alteration zones">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 3: Alteration zones</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 3: Using alteration zones </p>
+<p>In this exercise we shall see how two different types of alteration zones may be used in Noddy to simulate contact aureoles around plugs and demagnetisation effects next to faults. The alteration zones in Noddy are defined in terms of 1 dimensional profiles as a function of distance from the causative surface and use the same general profile definition tool as faults and folds. </p>
+<p>a) Let us start by reading in <strong>q3.</strong>his which defines a <strong>Base Stratigraphy-&gt;Fold-&gt;Tilt</strong> (ie<strong> </p><div class="chain"><img src="images/icons/strat.png" alt="strat"><span class="arrow">&rarr;</span><img src="images/icons/fold.png" alt="fold"><span class="arrow">&rarr;</span><img src="images/icons/tilt.png" alt="tilt"></div><p>) </strong>history to provide some background for the later events, which should produce a block that looks like this (except with only three layers!):</p>
+<figure class="fig"><img src="images/figures/image24.png" alt="figure" width="401" loading="lazy"></figure>
+<p>b) Now we would like to emplace a vertical cylindrical plug in the middle of the block, so drop a plug icon <img class="ev-icon" src="images/icons/plug.png" alt="plug icon"> in the history window. Set the position of the plug somewhere in the middle of the block, and select a rock type of <strong>Porphyry</strong> from the Rock Property Database list, which will give the plug a susceptibility of 1.7x10<sup>-4</sup>. (The rock property database may be edited by selecting <strong>Edit Rock Database</strong>... from the <strong>Tools</strong> menu).</p>
+<p>c) Look at the magnetic preview, just to see what the result looks like without alteration zones: </p>
+<figure class="fig"><img src="images/figures/img00154.png" alt="figure" width="275" loading="lazy"></figure>
+<p>d) Now we need to define the metamorphic aureole around this plug, first of all click off the <strong>On</strong> button in the preview window, and change the alteration type to <strong>Both</strong>, and then click on the <strong>Edit</strong> button. You will now be presented with an alteration profile definition window, that allows you to change the alteration profiles for each geophysical rock property individually. For this example just worry about the bulk magnetic susceptibility (when there is no anisotropy this is the <strong>X Axis (Sus) </strong>value). So select this parameter from the <strong>Current Graph:</strong> list.</p>
+<p>Next we need to define the scaling parameters for this profile, so click on the Options button and set the <strong>Alteration Distance </strong>to<strong> 2000</strong>, the <strong>Min Scale Factor </strong>to<strong> -1 </strong>and the<strong> Max Scale Factor</strong> to<strong> +1</strong>, ie the width of the metamorphic aureole is 2000 m, and the y axis on the profile plot will vary between 10<sup>-1</sup> to 10<sup>+1</sup> (as a log scale). Now click on OK to return to the profile definition window, and set the <strong>Profile Type</strong> to <strong>Curve (Alt)</strong>, which means all susceptibility values within 2000 m will be the product of the original value and the alteration values defined by the profile settings. Now draw a profile, such as the one shown below ranging between 2.0 on the left (at the plug country rock boundary) and 1.0 on the right (2000m away from the plug):</p>
+<figure class="screen"><img src="images/screens/dlg_alteration.png" alt="Alteration profile window" loading="lazy"><figcaption>Alteration profile window</figcaption></figure>
+<p>and preview the geophysical response again (by clicking on the <strong>On</strong> button), which should now look something like this:</p>
+<figure class="fig"><img src="images/figures/img00156.png" alt="figure" width="260" loading="lazy"></figure>
+<p>f) This mag image is easier to understand if you make a block diagram, and then right click in the image, select <strong>Sus X</strong> from the <strong>Display Type</strong>, and then select only the <strong>Basalt</strong> layer from the <strong>Layers</strong> list, then click on <strong>OK</strong>, which produces a block like this:</p>
+<figure class="fig"><img src="images/figures/image25.png" alt="figure" width="425" loading="lazy"></figure>
+<p>g) Now add a fault event, and for the fault, set the <strong>Alteration Type</strong> to <strong>Both</strong>, and <strong>Edit</strong> the profile, setting for <strong>X Axis (Sus)</strong> (in the <strong>Options</strong> window) the <strong>Alteration Distance</strong> to <strong>1000</strong> and the <strong>Min Scale Factor </strong>to<strong> -1 </strong>and the<strong> Max Scale Factor </strong>to<strong> 1. </strong>In the profile window, set the Profile Type to Curved (Alt) and draw a profile like this, ie make the fault demagnetise the rocks close to it:</p>
+<figure class="screen"><img src="images/screens/dlg_alteration.png" alt="Alteration profile window" loading="lazy"><figcaption>Alteration profile window</figcaption></figure>
+<p>•The resulting geophysical image should now look something like this:</p>
+<figure class="fig"><img src="images/figures/img00159.png" alt="figure" width="288" loading="lazy"></figure>
+<p>•The block diagram now looks like this:</p>
+<figure class="fig"><img src="images/figures/image26.png" alt="figure" width="500" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

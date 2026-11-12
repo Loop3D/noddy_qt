@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Welcome">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Noddy</h1>
+
+<div class="hero">
+<div>
+<p class="lead">Noddy builds a 3D geological model from a sequence of simple kinematic events &mdash; folds, faults, unconformities,
+dykes, plugs and more &mdash; and forward-models the gravity and magnetic response of that model.</p>
+<p>This is the user guide for the current, open-source Qt version of Noddy maintained at
+<a href="https://github.com/Loop3D/noddy_qt">github.com/Loop3D/noddy_qt</a>. It runs on Windows, macOS and Linux.</p>
+<p><a href="install.html"><strong>Install Noddy &rarr;</strong></a> &nbsp;&nbsp; <a href="pguide.html"><strong>Start with the program guide &rarr;</strong></a></p>
+</div>
+<figure class="screen"><img src="images/screens/geo_block.png" alt="Block diagram of a folded, faulted and intruded model" loading="lazy"><figcaption>Block diagram of a folded, faulted and intruded model</figcaption></figure>
+</div>
+
+<div class="callout new"><span class="label">New in this version:</span>
+random history generation, Tomofast-x and TransD inversion export, Gaussian petrophysical noise, topography cut-away in
+block diagrams, surface orientation export and XYZ coordinates for measured orientations. See <a href="whatsnew.html">What's new</a>.</div>
+
+<h2>Find your way around</h2>
+<div class="cards">
+<a class="card" href="pguide.html"><strong>Program guide</strong><span>Toolbar, History window and building your first model</span></a>
+<a class="card" href="strmod.html"><strong>Geological modelling</strong><span>Every event type and its parameters</span></a>
+<a class="card" href="strvis.html"><strong>Geological visualisations</strong><span>Block diagrams, maps, sections, boreholes, 3D views</span></a>
+<a class="card" href="gpsmod.html"><strong>Geophysical modelling</strong><span>Gravity and magnetic forward modelling and surveys</span></a>
+<a class="card" href="gpsvis.html"><strong>Geophysical visualisations</strong><span>Images, profiles, difference images</span></a>
+<a class="card" href="tools.html"><strong>Tools</strong><span>Import and export of blocks, images and inversion files</span></a>
+<a class="card" href="filefm.html"><strong>File formats</strong><span>History, topography, block and geophysics files</span></a>
+<a class="card" href="batch.html"><strong>Command-line mode</strong><span>Run Noddy without the GUI for batch processing</span></a>
+<a class="card" href="tut01.html"><strong>Tutorials</strong><span>Eleven worked exercises</span></a>
+<a class="card" href="menus.html"><strong>Menu reference</strong><span>Every menu item in one place</span></a>
+</div>
+
+<h2>The Noddy window</h2>
+<p>When Noddy starts you see the <strong>Toolbar</strong>, containing one icon per event type, and the empty
+<strong>History</strong> window. Events are dropped from the Toolbar into the History window in the order they happened; each
+event opens a window where its parameters are set and previewed.</p>
+<figure class="screen"><img src="images/screens/toolbar.png" alt="The Toolbar" loading="lazy"><figcaption>The Toolbar</figcaption></figure><figure class="screen"><img src="images/screens/history_example.png" alt="A History of five events: Strat, Fold, Fault, Dyke and Plug" loading="lazy"><figcaption>A History of five events: Strat, Fold, Fault, Dyke and Plug</figcaption></figure>
+<p>Noddy was first written by Mark Jessell at Imperial College (1981&ndash;82), developed at Monash University
+(released 1994), and is now maintained at The University of Western Australia. See <a href="intro.html">Introduction &amp; credits</a>.</p>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

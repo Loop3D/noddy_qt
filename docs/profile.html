@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile windows &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Profile windows">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Profile windows</h1>
+
+<p>When defining a geological event by profile (faults, shear zones, folds, alteration haloes) a standardised profile window appears:</p>
+<figure class="screen"><img src="images/screens/dlg_profile.png" alt="Profile window" loading="lazy"><figcaption>Profile window</figcaption></figure>
+<p>Three point based drawing modes are allowed in this window:</p>
+<p>Lines</p>
+<p>Each point on the profile is joined by a straight line. </p>
+<p>Curves</p>
+<p>The profile is defined by a Bezier Curve that does not have to pass through each point (except the end points) </p>
+<p>Square</p>
+<p>A square waveform is defined by the points (This is mostly used for replacement zones)</p>
+<p>Add points </p>
+<p>Individual points may be added to the profile by clicking in the window </p>
+<p>Delete Points </p>
+<p>Individual points may be deleted from the profile by selecting them with the mouse and then clicking on the Delete Point button </p>
+<p>Moving Points </p>
+<p>Individual points may be moved by dragging them around the window with the mouse.</p>
+<p>For alteration zones, the scaling of the window may be altered by clicking on the Options button, and different properties can be individually varied by selecting from the <strong>Current Graph</strong> menu list. </p>
+<p>For deformation event profiles, scaling is accomplished using the normal scaling parameters, such as fold Amplitude. </p>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

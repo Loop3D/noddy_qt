@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fold &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Fold">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Fold</h1>
+
+<p>In order to define a folding event place a Fold icon <img class="ev-icon" src="images/icons/fold.png" alt="fold icon"> in the History window. You will then be provided with the Fold definition window.</p>
+<figure class="screen"><img src="images/screens/ev_fold_main.png" alt="Fold definition window" loading="lazy"><figcaption>Fold definition window</figcaption></figure>
+<p>All folds simply distort the existing geology by variable translation parallel to the fold axial plane. This distortion therefore cannot create a plunging fold.. The 'single-event' kinematic design of Noddy means that if a plunging fold is required, a separate event is necessary to introduce the plunge - usually a Tilt. </p>
+<p>Fold events simultaneously generate an axial plane cleavage and a fold axis lineation. </p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Form</td><td>Fold Type</td><td>Select from Sinisoidal or User Defined fold profiles</td></tr>
+<tr><td class="group"></td><td>Single Fold</td><td>Only allow one fold train to develop</td></tr>
+<tr><td class="group"></td><td>Show Profile</td><td>Show and edit current fold profile</td></tr>
+<tr><td class="group"></td><td>Trace From Image<strong>...</strong></td><td>Trace fold profile over an image file (BMP, PNG, &hellip;)</td></tr>
+<tr class="group-start"><td class="group">Position</td><td>X</td><td>Origin position in X direction of fold train</td></tr>
+<tr><td class="group"></td><td>Y</td><td>Origin position in Y direction of fold train</td></tr>
+<tr><td class="group"></td><td>Z</td><td>Origin position in Z direction of fold train</td></tr>
+<tr class="group-start"><td class="group">Orientation</td><td>Dip Dir</td><td>Dip Direction of Fold Axial Plane</td></tr>
+<tr><td class="group"></td><td>Dip</td><td>Dip of Fold Axial Plane</td></tr>
+<tr><td class="group"></td><td>Pitch</td><td>Pitch of Fold Axis in Axial Plane</td></tr>
+<tr class="group-start"><td class="group">Scale</td><td>Wave</td><td>Wavelength of One Anticline/Syncline pair, or if User Defined, of one wave train as drawn</td></tr>
+<tr><td class="group"></td><td>Amp</td><td>Height of maximum fold displacement perpendicular to fold axis</td></tr>
+<tr><td class="group"></td><td>Cyl</td><td>Distance at which fold amplitude dies off 50% along fold axis (produces doubly plunging folds)</td></tr>
+</table></div>
+<p>Tracing Fold Profiles Directly From Maps </p>
+<p>When the Trace From Image Button is selected, the program will ask for an image (BMP, PNG, &hellip;) from which fold profiles can be traced directly, and also calculates the fold wavelength, amplitude and position. The scaling of the profile is determined by the Fold Trace Control Window, which determines the coordinates of the NW and SE corners. Points on the fold profile may be defined by clicking in the Image window, and may be edited by dragging them. To remove a point, select Delete Points and click on the unwanted point. </p>
+<p>At present the fold profile tool only works for upright fold profiles, where the X values of the profile increase from left to right, so that the map may need to be rotated before the tool can be used.</p>
+<figure class="fig"><img src="images/figures/img00017.png" alt="figure" width="574" loading="lazy"><figcaption><span class="legacy">Figure from the original manual; the equivalent window looks different in the current version.</span></figcaption></figure>
+<figure class="fig"><img src="images/figures/img00018.png" alt="figure" width="576" loading="lazy"></figure>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

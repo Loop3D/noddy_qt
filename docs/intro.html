@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction &amp; credits &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Introduction &amp; credits">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Introduction & credits</h1>
+
+<p>The aim of Noddy is to allow integrated forward modelling of geological structures together with the gravity and
+magnetic anomalies they produce. The complex structure of a poly-deformed area is built up as a sequence of simple 3D
+kinematic events, so a geoscientist with a reasonable understanding of the geology of an area can refine that understanding
+by interactively changing the geometry and the physical properties of the rocks. A systematic set of models was published
+as Volume 5 of the <em>Journal of the Virtual Explorer</em>; the more recent <em>Noddyverse</em> collection contains
+a million random models generated with the same code (see <a href="random.html">Random histories</a>).</p>
+<h2>History of the program</h2>
+<p>The structural modelling in Noddy was first written by Mark Jessell as part of an MSc at Imperial College, University of
+London, in 1981&ndash;82, as an interactive map-creation package. It was developed into a full geological and geophysical
+modelling package at Monash University, released in 1994, with funding from the Australian Research Council, the
+Australian Geodynamics CRC and AMIRA project P418. The Windows version was additionally developed by Encom Technology
+Pty Ltd, who no longer support it. Version 6.0 was released in April 1998 and version 7 followed.</p>
+<p>The current version, maintained at The University of Western Australia, replaces the original XVT user interface with
+Qt&nbsp;5 so that Noddy runs on current Windows, macOS and Linux systems, and adds a number of new features
+(see <a href="whatsnew.html">What's new</a>).</p>
+<h2>Credits</h2>
+<p>AMIRA P418 sponsors: Aberfoyle Limited, AGSO, BHP Minerals, Billiton Ltd, North Limited, MIM Exploration Pty Ltd,
+Newcrest Mining Limited, Pasminco Exploration, RGC Exploration Pty Ltd, RTZ Limited, Mines and Energy South Australia,
+Sumitomo Metal Mining Oceania Pty Ltd and Western Mining Corporation Ltd.</p>
+<div class="table-wrap"><table>
+<tr><th>Role</th><th>People</th></tr>
+<tr><td>Design and testing (Monash University)</td><td>M. Jessell, C. Ames, P. Manser, G. Jung, J. Cull, S. Rodregues, P. Gow, A. Geiro, E. Christopher, M. Craig, R. Valenta</td></tr>
+<tr><td>Design and testing (Encom Technology)</td><td>D. Pratt, E. Tyne, P. Gidley, S. Mann, Zhiqun Shi, A. White</td></tr>
+</table></div>
+<h2>Licence</h2>
+<p>Noddy is open-source software released under the MIT licence; see the <code>LICENSE</code> file in the
+<a href="https://github.com/Loop3D/noddy_qt">GitHub repository</a>. The Qt libraries distributed with the compiled versions
+are used under the LGPL&nbsp;v3.</p>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

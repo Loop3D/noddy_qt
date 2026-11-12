@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Block options &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Block options">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Block options</h1>
+
+<figure class="screen"><img src="images/screens/opt_block.png" alt="Block Options" loading="lazy"><figcaption>Block Options</figcaption></figure><p>This window provides access to options which control the resolution, position and shape of geological and geophysical calculations.</p>
+<p>Block View Options Window</p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">View Selection</td><td>Current</td><td>Menu of named sets of distinct block parameters</td></tr>
+<tr><td class="group"></td><td>New...</td><td>Add new view to list</td></tr>
+<tr><td class="group"></td><td>Delete</td><td>Delete currently selected view from list</td></tr>
+<tr class="group-start"><td class="group">Origin</td><td>X</td><td>X position of upper south west corner of block</td></tr>
+<tr><td class="group"></td><td>Y</td><td>Y position of upper south west corner of block</td></tr>
+<tr><td class="group"></td><td>Z</td><td>Z position of upper south west corner of block</td></tr>
+<tr class="group-start"><td class="group">Dimensions</td><td>X</td><td>X Dimension of Block in metres</td></tr>
+<tr><td class="group"></td><td>Y</td><td>Y Dimension of Block in metres</td></tr>
+<tr><td class="group"></td><td>Z</td><td>Z Dimension of Block in metres</td></tr>
+<tr class="group-start"><td class="group">Cube Size</td><td>Geology</td><td>Cube size for all geological visualisations</td></tr>
+<tr><td class="group"></td><td>Geophysics</td><td>Cube size for all geophysical calculations</td></tr>
+<tr class="group-start"><td class="group">False Origin</td><td>Easting</td><td>This value will be added to ERMapper and Geosoft format Easting (X) coordinates to provide allow real world coordinates to be used</td></tr>
+<tr><td class="group"></td><td>Northing</td><td>This value will be added to ERMapper and Geosoft format Northing (Y) coordinates to provide allow real world coordinates to be used</td></tr>
+<tr class="group-start"><td class="group">Use Topography</td><td></td><td>This check box causes a topography grid file to be loaded</td></tr>
+</table></div>
+<p>Topography Scaling Window</p>
+<p>If the Use Topography button is checked, the Topography Scaling window will appear. This window allows the user to scale the topography file as it is loaded. This window may be accessed Use Topography check box in the Geology Options window.</p>
+<figure class="screen"><img src="images/screens/dlg_topo_options.png" alt="Topography Scaling Window" loading="lazy"><figcaption>Topography Scaling Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Options</td><td>Scale Factor</td><td>Gain for topography values</td></tr>
+<tr><td class="group"></td><td>Offset Amount</td><td>Offset for topography values</td></tr>
+<tr><td class="group"></td><td>Low Contour Value</td><td>Lowest contour level for maps showing topographic contours</td></tr>
+<tr><td class="group"></td><td>Contour Interval</td><td>Contour interval for maps showing topographic contours</td></tr>
+</table></div><h2>In this section</h2><div class="cards"><a class="card" href="geoldisp.html"><strong>Geology display options</strong></a><a class="card" href="boresect.html"><strong>Section / borehole options</strong></a><a class="card" href="movieop.html"><strong>Movie options</strong></a><a class="card" href="volsurf.html"><strong>Volume / surface options</strong></a><a class="card" href="blockdef.html"><strong>Block diagram display type</strong></a><a class="card" href="winpos.html"><strong>Window options</strong></a><a class="card" href="projop.html"><strong>Project options</strong></a></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

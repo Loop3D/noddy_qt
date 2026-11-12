@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial 5: Importing and exporting data &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Tutorial 5: Importing and exporting data">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Tutorial 5: Importing and exporting data</h1>
+<div class="callout "><span class="label">About the figures</span>Windows are shown as they look in the current version of Noddy. Result figures from the original tutorial are kept where they could not be reproduced, and may look slightly different from what you see. Data files referred to in some exercises (images, flight lines) came with the original Noddy distribution and are not part of the current download.</div>
+<p>Exercise 5: Importing and exporting data within Noddy </p>
+<p>This exercise shows some of the current import/export capabilities for transferring geological information to and from Noddy. </p>
+<p>a) First of all we will read in a simple history (<strong>q5.his</strong>) that shows a refolded-fold followed by a normal fault (ie </p><div class="chain"><img src="images/icons/strat.png" alt="strat"><span class="arrow">&rarr;</span><img src="images/icons/fold.png" alt="fold"><span class="arrow">&rarr;</span><img src="images/icons/fold.png" alt="fold"><span class="arrow">&rarr;</span><img src="images/icons/fault.png" alt="fault"></div><p>). First of all look at a block diagram of the geology:</p>
+<figure class="fig"><img src="images/figures/image27.png" alt="figure" width="477" loading="lazy"></figure>
+<p>•Now make a map of the top surface of the block by selecting <strong>Geology-&gt;Map-&gt;Lines</strong>, and click on the map to show the local orientation of bedding, this should help to explain the outcrop patterns.</p>
+<figure class="fig"><img src="images/figures/img00167.png" alt="figure" width="436" loading="lazy"></figure>
+<p>b) Now select the <strong>Volume/Surface Options</strong> window, and turn off <strong>Surface Selection:All Surfaces</strong>, and select only the <strong>2-Low</strong> and <strong>Fault Plane</strong> surfaces. Now exit from this window.</p>
+<p>c) Select <strong>3D Triangulation</strong> from the <strong>Geology</strong> menu and you should get a view of two intersecting triangulated surfaces:</p>
+<figure class="fig"><img src="images/figures/img00168.png" alt="figure" width="549" loading="lazy"></figure>
+<p>•You can now go back to the <strong>Volume/Surface Options</strong> window and change the <strong>Surface Selection:Output Type</strong> to <strong>File (DXF 3D Faces)</strong>, and select <strong>3D Triangulation</strong> again from the <strong>Geology</strong> menu. This time the triangulation of the two surfaces will be saved out to file as in 3D DXF format (using 3D faces rather than polylines in this case to describe the triangular facets).</p>
+<p>d) You can also export this geology as a voxel model in a number of different formats: as a <strong>Noddy Block Model </strong>format file; as a <strong>Raw Voxel </strong>model (tab delimited ASCII); or as a <strong>Tabulated Column</strong> format model which specifies the location of each voxel. </p>
+<p>e) Only the Noddy format files can be directly read back in for further calculation of geophysical anomalies or deformation, although Vulcan "regularised block model" format models can be converted into Noddy format models via the <strong>Tools-&gt;Import Block-&gt;Vulcan</strong> menu option.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

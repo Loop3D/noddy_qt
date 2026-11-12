@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exporting raw voxel models &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Exporting raw voxel models">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Exporting raw voxel models</h1>
+
+<p>This is an export file format (created from the Export Block Model &gt; Dicer Block Model menu item from the File menu) that contains an tab delimeted ASCII voxel model of the either the rock type index or any one geophysical rock property, in whichever voxel order is specified by the File Format window which appears. This model may then be easily converted to BOB, VoxelGeo, Dicer or other voxel rendering package formats.</p>
+<p>Note : The Dicer export option is not available in Version 6.0.</p>
+<p>The cube size is determined by the Geophysics cube size. </p>
+<figure class="screen"><img src="images/screens/dlg_export_raw.png" alt="File Format Window" loading="lazy"><figcaption>File Format Window</figcaption></figure>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Property</td><td></td><td>Selection of which property to export</td></tr>
+<tr class="group-start"><td class="group">Order</td><td>X,Y,Z Dimension</td><td>Loop order for writing out voxels (1st means outermost loop)</td></tr>
+<tr><td class="group"></td><td>Single Value per Line</td><td>File is written with one voxel per line (instead of whole row of voxels)</td></tr>
+<tr class="group-start"><td class="group">Direction</td><td>X,Y,Z Direction</td><td>Direction of writing out voxels East to West vs West to East etc for each index</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

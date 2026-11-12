@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What&#x27;s new in the Qt version &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: What&#x27;s new in the Qt version">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>What's new in the Qt version</h1>
+
+<p>The original Noddy user interface was built with XVT, a commercial cross-platform toolkit. The current version replaces
+XVT with <strong>Qt&nbsp;5</strong>, so Noddy runs natively on current Windows, macOS and Linux systems and can be built
+from source by anyone. The modelling and geophysics code is the same; the changes below are the user-visible differences.</p>
+
+<h2>New features</h2>
+<div class="table-wrap"><table>
+<tr><th>Feature</th><th>Where</th><th>Details</th></tr>
+<tr><td>Random histories</td><td><span class="menu-path">File &gt; Random History</span>, or <code>-random</code> on the command line</td><td>Generates a random five-event geological history. <a href="random.html">More&hellip;</a></td></tr>
+<tr><td>Tomofast-x inversion export</td><td><span class="menu-path">Tools &gt; Export Block &gt; Tomofast-x Inversion Files&hellip;</span></td><td>Writes the mesh, density and susceptibility models, observation points and parameter files for gravity, magnetic and joint inversion. <a href="tomofast.html">More&hellip;</a></td></tr>
+<tr><td>TransD inversion export</td><td><span class="menu-path">Tools &gt; Export Block &gt; TransD Inversion Files&hellip;</span></td><td>Everything the Tomofast-x export writes, plus TransD weights and parameter files. <a href="tomofast.html#transd">More&hellip;</a></td></tr>
+<tr><td>Gaussian petrophysical noise</td><td><span class="menu-path">Edit &gt; Geophysics Calculation Options&hellip;</span></td><td>Adds random relative noise to the density and susceptibility of every voxel, with an optional fixed seed. <a href="noise.html">More&hellip;</a></td></tr>
+<tr><td>Show Topo in block diagrams</td><td>Right-click a Block Diagram &gt; <em>Display Type</em></td><td>Voxels above the loaded topography are left out, so the block shows the land surface. <a href="blockdef.html">More&hellip;</a></td></tr>
+<tr><td>Save Surface Orientations</td><td><span class="menu-path">File &gt; Save Surface Orientations&hellip;</span></td><td>Writes bedding dip, dip direction and lithology on a regular grid over the top of the model (or the topography) as CSV. <a href="surforient.html">More&hellip;</a></td></tr>
+<tr><td>XYZ for measured orientations</td><td><span class="menu-path">File &gt; Save Orientations&hellip;</span></td><td>The orientation file now includes the X, Y and Z of each measurement. <a href="orifl.html">More&hellip;</a></td></tr>
+<tr><td>DXF export of 3D triangulations (batch)</td><td><code>-dxfface</code>, <code>-dxfline</code></td><td>Exports discontinuity and stratigraphic surfaces from the command line. <a href="batch.html">More&hellip;</a></td></tr>
+<tr><td>Smoother discontinuity surfaces</td><td>3D Triangulation</td><td>Fault, unconformity and plug surfaces are now placed using the true distance to the surface, removing the earlier &ldquo;egg-carton&rdquo; roughness.</td></tr>
+<tr><td>Labelled block corners</td><td>Block diagrams</td><td>The two opposite corners of the block are labelled with their X,Y,Z coordinates.</td></tr>
+<tr><td>Tooltips</td><td>Toolbar and dialog controls</td><td>Hover over a Toolbar icon or a control to see what it does.</td></tr>
+</table></div>
+
+<h2>Changed behaviour</h2>
+<ul>
+<li><strong>Pictures are PNG.</strong> <span class="menu-path">File &gt; Save Picture&hellip;</span> and movie frames are written as PNG files instead of BMP. Read Picture and Trace From Image accept BMP, PNG and other common image formats.</li>
+<li><strong>Default calculation scheme.</strong> New histories use the <em>Spectral</em> calculation scheme with <em>Reflection</em> padding (previously Spatial with Ramp padding).</li>
+<li><strong>Event previews</strong> default to <em>Block</em> rather than <em>Plane</em>.</li>
+<li><strong>History file format</strong> is now version 8.0.2; it stores the Gaussian noise settings. Older history files still load.</li>
+<li><strong>Licence.</strong> Noddy is open source under the MIT licence; the licence-key mechanism and its <em>Licence</em> menu item have gone.</li>
+<li>The program version is shown in <span class="menu-path">File &gt; About Noddy&hellip;</span>.</li>
+</ul>
+
+<h2 id="removed">Removed</h2>
+<ul>
+<li><strong>Vertical Derivatives</strong> (Geophysics menu) &mdash; the First/Second derivative calculations have been removed. Use an external package such as Geosoft or QGIS on exported grids instead.</li>
+<li><strong>In-program help.</strong> The <em>Help&hellip;</em> buttons in dialogs are disabled and the Help Viewer setting in Project Options is not used. Use this online documentation instead.</li>
+<li><strong>Licence</strong> menu item and licence files.</li>
+<li><strong>CD-ROM installer.</strong> Noddy is distributed as downloads from GitHub; see <a href="install.html">Installing Noddy</a>.</li>
+</ul>
+
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

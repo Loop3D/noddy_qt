@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alteration zones &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Alteration zones">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Alteration zones</h1>
+
+<p>Alteration zones can be created around a number of the structural features (faults, shear zones, plugs, dykes and unconformities), and are defined as either alteration haloes, where the pre-existing rock property values are enhanced or depleted, or as replacement zones, where the original rock property values ar replaced without regard for the original values. In either case the alteration profile varies as a function of distance from the structural feature, using a standard profile definition window, and where appropriate can be defined as occuring above and/or below the defining surface. Beyond the <strong>Alteration Distance</strong>, the rocks simply maintain their original values. </p>
+<p>Alteration Haloes</p>
+<p>Rock properties in these zones are defined by the product of the original rock property value and the alteration index. This index is defined as a function of distance using the alteration profile window, with the <strong>Properties</strong> value set to <strong>Line</strong> or <strong>Curve</strong>. The specific geophysical rock property profile being defined is selected from the <strong>Current Graph</strong> menu list, and the Options window supplies specific scaling parameters.</p>
+<figure class="screen"><img src="images/screens/dlg_alteration.png" alt="Alteration Options Window" loading="lazy"><figcaption>Alteration Options Window</figcaption></figure>
+<p>Replacement Zones </p>
+<p>Rock properties in these zones are defined only by the alteration value. This value is defined as a step function as a function of distance using the alteration profile window, with the <strong>Properties</strong> value set to <strong>Square</strong></p>
+<p>Comparing Alteration vs Replacement Behaviour </p>
+<p>As an example of how alteration haloes behave as compared to replacement zones, the post alteration susceptibility values for these two modes are compared in table and graph form with the alteration profile values and the original susceptibility as a function of distance away from a dyke, with an <strong>Alteration Distance</strong> set to 600m.</p>
+<div class="table-wrap"><table>
+<tr><td><strong>Distance to Fault</strong></td><td>Original Susceptibility</td><td>Alteration Halo Index</td><td>Resulting Susceptibility</td><td>Replacement Index</td><td>Resulting Susceptibility</td></tr>
+<tr><td>0</td><td>1.0e-4</td><td>0.1</td><td>1.0e-5</td><td>1.0e-3</td><td>1.0e-3</td></tr>
+<tr><td>100</td><td>1.0e-4</td><td>0.2</td><td>2.0e-5</td><td>1.0e-4</td><td>1.0e-4</td></tr>
+<tr><td>200</td><td>1.0e-4</td><td>0.4</td><td>4.0e-5</td><td>1.0e-5</td><td>1.0e-5</td></tr>
+<tr><td>300</td><td>5.0e-4</td><td>0.6</td><td>3.0e-4</td><td>1.0e-5</td><td>1.0e-5</td></tr>
+<tr><td>400</td><td>5.0e-4</td><td>0.8</td><td>4.0e-4</td><td>1.0e-5</td><td>1.0e-5</td></tr>
+<tr><td>500</td><td>1.0e-4</td><td>0.9</td><td>9.0e-5</td><td>1.0e-5</td><td>1.0e-5</td></tr>
+<tr><td>600</td><td>1.0e-4</td><td>1.0</td><td>1.0e-4</td><td>1.0e-5</td><td>1.0e-5</td></tr>
+<tr><td>601</td><td>1.0e-4</td><td>undefined</td><td>1.0e-4</td><td>undefined</td><td>1.0e-4</td></tr>
+</table></div>
+<p>Alteration effects as a function of distance from fault </p>
+<figure class="fig"><img src="images/figures/img00067.png" alt="figure" width="568" loading="lazy"></figure>
+<p>In order to turn on or off anisotropic susceptibility and remanence within an alteration zone a simple on-off control is required. The behaviour of the profile window for the <strong>Anisotropy</strong> and <strong>Remanence</strong> settings is simply to turn these types of behaviour on (non zero Y axis values) or off (zero Y axis values), and the easiest way to set these parameters is with the square profile option. The underlying colour of the profile changes to green when these controlling settings are turned on, and this colouration remains for all parameters that depend on the controlling profile. </p>
+<div class="table-wrap"><table>
+<tr><th>GROUP</th><th>NAME</th><th>FUNCTION</th></tr>
+<tr class="group-start"><td class="group">Properties</td><td>Line</td><td>Alteration Halo profile defined by straight line segments</td></tr>
+<tr><td class="group"></td><td>Curve</td><td>Alteration Halo profile defined by Bezier Curve</td></tr>
+<tr><td class="group"></td><td>Square</td><td>Replacement Zone profile defined by step function</td></tr>
+<tr><td class="group"></td><td>Current Graph</td><td>Currently selected rock property for profile definition</td></tr>
+<tr><td class="group"></td><td>Delete Point</td><td>Delete currently selected point from profile</td></tr>
+<tr><td class="group"></td><td>Delete All</td><td>Revert Profile back to default settings</td></tr>
+<tr><td class="group"></td><td>Options...</td><td>Scaling Options for profile</td></tr>
+<tr class="group-start"><td class="group">Options</td><td>Min Scaling</td><td>Minimum Y axis value for alteration haloes</td></tr>
+<tr><td class="group"></td><td>Max Scaling</td><td>Maximum Y axis value for alteration haloes</td></tr>
+<tr><td class="group"></td><td>Min Replacement</td><td>Minimum Y axis value for replacement zones</td></tr>
+<tr><td class="group"></td><td>Max Replacement</td><td>Maximum Y axis value for replacement zones</td></tr>
+<tr><td class="group"></td><td>Alteration Distance</td><td>X axis distance on profile (distance beyond which alterations of either type have no effect)</td></tr>
+</table></div>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

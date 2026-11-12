@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importing Vulcan block models &mdash; Noddy documentation</title>
+<meta name="description" content="Noddy user guide: Importing Vulcan block models">
+<link rel="icon" href="images/icons/noddy.png">
+<link rel="stylesheet" href="assets/style.css">
+<script>try{var t=localStorage.getItem('noddy-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Show navigation">&#9776;</button>
+  <a class="brand" href="index.html"><img src="images/icons/noddy.png" alt=""><span>Noddy<small>documentation</small></span></a>
+  <span class="spacer"></span>
+  <input class="search" id="search" type="search" placeholder="Filter pages&hellip;" aria-label="Filter pages">
+  <a class="gh" href="https://github.com/Loop3D/noddy_qt">GitHub</a>
+  <button class="icon-btn" id="theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">&#9680;</button>
+</header>
+<div class="layout">
+<nav class="sidebar" id="sidebar" aria-label="Documentation"><a href="contents.html">Contents</a></nav>
+<main>
+<article>
+<div class="crumbs" id="crumbs"></div>
+<h1>Importing Vulcan block models</h1>
+
+<p>This menu allows Vulcan format block models to be converted to the .g00 series Noddy block model formats (which can then be used via the Import Deformation Event). </p>
+<p>Vulcan can export a regularised block model with the following ASCII format, one line per voxel:</p>
+<p>x_location y_location z_location x_voxel_size y_voxel_size z_voxel_size rock_name_index density mag_sus </p>
+<p>Using the <strong>Import Block-&gt;Vulcan </strong>menu item from the <strong>Tools</strong> menu, you are able to convert this into standard indexed Noddy block model files. This format may then be imported into the model using the Import event, or geophysical anomalies may be directly calculated on the block using the Geophysics &gt; Calculate Anomalies &gt;Calculate Anomalies from Block menu item.</p>
+<nav class="pager" id="pager" aria-label="Previous and next page"></nav>
+<p class="site-foot">Noddy &middot; open source under the MIT licence &middot; <a href="https://github.com/Loop3D/noddy_qt">Loop3D/noddy_qt</a></p>
+</article>
+</main>
+</div>
+<script src="assets/nav.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
